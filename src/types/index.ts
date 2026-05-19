@@ -1,6 +1,16 @@
-// Tous les types sont définis dans AuthContext pour éviter les problèmes d'import circulaire
-// Ce fichier réexporte tout depuis AuthContext
-export type { Role, User } from '../context/AuthContext';
+// Type definitions - kept here to avoid circular imports
+export type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur';
+
+export interface User {
+  id:        number;
+  prenom:    string;
+  nom:       string;
+  email:     string;
+  telephone: string;
+  role:      Role;
+  statut:    string;
+  livreurId?: string;
+}
 
 export const ROLE_LABELS: Record<string, string> = {
   super_admin:  'Super Admin',

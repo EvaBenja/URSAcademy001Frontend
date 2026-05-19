@@ -7,53 +7,54 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 import './index.css';
 
-// ── Pages publiques
+// ── Auth
 import LandingPage  from './pages/auth/LandingPage';
 import LoginPage    from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 
 // ── Super Admin
-import DashboardPage from './pages/super-admin/DashboardPage';
-import ProduitsAdminPage from './pages/super-admin/ProduitsPage';
-import VentesAdminPage from './pages/super-admin/VentesPage';
-import LivraisonsAdminPage from './pages/super-admin/LivraisonsPage';
-import DemandesLivreursPage from './pages/super-admin/DemandesLivreursPage';
-import DossiersJournaliersPage from './pages/super-admin/DossiersJournaliersPage';
-import RapportsAdminPage from './pages/super-admin/RapportsPage';
-import UtilisateursPage from './pages/super-admin/UtilisateursPage';
-import ParametresPage from './pages/super-admin/ParametresPage';
+import SADashboard from './pages/super-admin/DashboardPage';
+import SAProduits  from './pages/super-admin/ProduitsPage';
+import SAVentes    from './pages/super-admin/VentesPage';
+import SASuivi     from './pages/super-admin/SuiviLivraisons';
 
 // ── Gestionnaire
-import GestionnaireDashboardPage from './pages/gestionnaire/DashboardPage';
-import GestionnaireProduitsPage from './pages/gestionnaire/ProduitsPage';
-import GestionnaireLivraisonsPage from './pages/gestionnaire/LivraisonsPage';
-import GestionnaireRapportsPage from './pages/gestionnaire/RapportsPage';
+import GestDashboard   from './pages/super-admin/DashboardPage';
+import GestProduits    from './pages/gestionnaire/ProduitsPage';
+import GestValidation  from './pages/gestionnaire/ValidationVentesPage';
+import GestClassement  from './pages/gestionnaire/ClassementVendeursPage';
 
 // ── Coordinateur
-import CoordinateurLivraisonsPage from './pages/coordinateur/LivraisonsPage';
-import CoordinateurPositionsPage from './pages/coordinateur/PositionsPage';
-import CoordinateurDemandesPage from './pages/coordinateur/DemandesPage';
+import CoordLivraisons from './pages/coordinateur/LivraisonsPage';
 
 // ── Vendeur
-import VendeurProduitsPage from './pages/vendeur/ProduitsPage';
-import VendeurVentesPage from './pages/vendeur/VentesPage';
+import VendeurProduits from './pages/vendeur/ProduitsPage';
+import VendeurVentes   from './pages/vendeur/VentesPage';
 
 // ── Livreur
-import LivreurDemandesPage from './pages/livreur/DemandesPage';
-import LivreurDossierPage from './pages/livreur/DossierPage';
+import LivreurPage from './pages/livreur/MesLivraisons';
+
+const Soon = ({ title }: { title:string }) => (
+  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
+    <div style={{ textAlign:'center' }}>
+      <div style={{ width:64, height:64, borderRadius:16, background:'#e0f0ff', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1465BB" strokeWidth="1.5"><path d="M12 2v20M2 12h20"/></svg>
+      </div>
+      <p style={{ fontFamily:'Playfair Display,serif', fontSize:26, color:'#1465BB', marginBottom:8 }}>{title}</p>
+      <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>Page en cours de développement…</p>
+    </div>
+  </div>
+);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            style: { fontFamily: 'DM Sans, sans-serif', fontSize: 14, borderRadius: 10, border: '1px solid #dde5f4' },
-            success: { iconTheme: { primary: '#0a9e6e', secondary: 'white' } },
-            error:   { iconTheme: { primary: '#e53e3e', secondary: 'white' } },
-          }}
-        />
+        <Toaster position="top-right" toastOptions={{
+          style:   { fontFamily:'DM Sans,sans-serif', fontSize:14, borderRadius:10, border:'1px solid #dde5f4' },
+          success: { iconTheme:{ primary:'#0a9e6e', secondary:'white' } },
+          error:   { iconTheme:{ primary:'#e53e3e', secondary:'white' } },
+        }}/>
 
         <Routes>
           {/* ── Public ── */}
@@ -62,66 +63,47 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/register" element={<RegisterPage />} />
 
           {/* ── Super Admin ── */}
-          <Route path="/dashboard" element={
-            <ProtectedRoute roles={['super_admin']}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route index                      element={<DashboardPage />} />
-            <Route path="produits"            element={<ProduitsAdminPage />} />
-            <Route path="ventes"              element={<VentesAdminPage />} />
-            <Route path="livraisons"          element={<LivraisonsAdminPage />} />
-            <Route path="demandes-livreurs"   element={<DemandesLivreursPage />} />
-            <Route path="dossiers-journaliers"element={<DossiersJournaliersPage />} />
-            <Route path="rapports"            element={<RapportsAdminPage />} />
-            <Route path="utilisateurs"        element={<UtilisateursPage />} />
-            <Route path="parametres"          element={<ParametresPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute roles={['super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route index                        element={<SADashboard />} />
+            <Route path="produits"              element={<SAProduits />} />
+            <Route path="ventes"                element={<SAVentes />} />
+            <Route path="suivi-livraisons"      element={<SASuivi />} />
+            <Route path="demandes-livreurs"     element={<Soon title="Demandes livreurs" />} />
+            <Route path="dossiers-journaliers"  element={<Soon title="Dossiers journaliers" />} />
+            <Route path="rapports"              element={<Soon title="Rapports & Analyses" />} />
+            <Route path="utilisateurs"          element={<Soon title="Utilisateurs" />} />
+            <Route path="parametres"            element={<Soon title="Paramètres" />} />
           </Route>
 
           {/* ── Gestionnaire ── */}
-          <Route path="/gestionnaire" element={
-            <ProtectedRoute roles={['gestionnaire', 'super_admin']}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="dashboard"  element={<GestionnaireDashboardPage />} />
-            <Route path="produits"   element={<GestionnaireProduitsPage />} />
-            <Route path="livraisons" element={<GestionnaireLivraisonsPage />} />
-            <Route path="rapports"   element={<GestionnaireRapportsPage />} />
+          <Route path="/gestionnaire" element={<ProtectedRoute roles={['gestionnaire','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="dashboard"   element={<GestDashboard />} />
+            <Route path="produits"    element={<GestProduits />} />
+            <Route path="ventes"      element={<GestValidation />} />
+            <Route path="classement"  element={<GestClassement />} />
+            <Route path="livraisons"  element={<Soon title="Livraisons" />} />
+            <Route path="rapports"    element={<Soon title="Rapports" />} />
           </Route>
 
           {/* ── Coordinateur ── */}
-          <Route path="/coordinateur" element={
-            <ProtectedRoute roles={['coordinateur', 'super_admin']}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="livraisons" element={<CoordinateurLivraisonsPage />} />
-            <Route path="positions"  element={<CoordinateurPositionsPage />} />
-            <Route path="demandes"   element={<CoordinateurDemandesPage />} />
+          <Route path="/coordinateur" element={<ProtectedRoute roles={['coordinateur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="livraisons"  element={<CoordLivraisons />} />
+            <Route path="positions"   element={<CoordLivraisons />} />
+            <Route path="demandes"    element={<CoordLivraisons />} />
           </Route>
 
           {/* ── Vendeur ── */}
-          <Route path="/vendeur" element={
-            <ProtectedRoute roles={['vendeur', 'super_admin']}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="produits" element={<VendeurProduitsPage />} />
-            <Route path="ventes"   element={<VendeurVentesPage />} />
+          <Route path="/vendeur" element={<ProtectedRoute roles={['vendeur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="produits"    element={<VendeurProduits />} />
+            <Route path="ventes"      element={<VendeurVentes />} />
           </Route>
 
           {/* ── Livreur ── */}
-          <Route path="/livreur" element={
-            <ProtectedRoute roles={['livreur', 'super_admin']}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }>
-            <Route path="demandes" element={<LivreurDemandesPage />} />
-            <Route path="dossier"  element={<LivreurDossierPage />} />
+          <Route path="/livreur" element={<ProtectedRoute roles={['livreur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="livraisons"  element={<LivreurPage />} />
+            <Route path="historique"  element={<LivreurPage />} />
           </Route>
 
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

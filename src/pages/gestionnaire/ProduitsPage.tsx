@@ -58,7 +58,7 @@ export default function ProduitsPage() {
     const existing = products.find(p => p.produit === moveForm.produit);
 
     if (moveForm.type === 'Sortie' && existing && existing.stock < qty) {
-      alert("⚠️ Stock insuffisant en magasin !");
+      alert('Stock insuffisant en magasin !');
       return;
     }
 

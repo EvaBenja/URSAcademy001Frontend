@@ -279,3 +279,4 @@ const readOnlyInputStyle = { ...inputStyle, background: '#f1f5f9', color: '#6474
 const primaryBtnStyle = { padding: '10px 20px', background: '#1465BB', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' };
 const modalOverlayStyle: any = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
 const modalContentStyle = { background: '#fff', padding: 30, borderRadius: 15, width: '90%', maxWidth: 500 };
+
