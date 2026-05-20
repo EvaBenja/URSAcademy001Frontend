@@ -69,6 +69,24 @@ export interface Notification {
   lu:          boolean;
 }
 
+// --- Demandes livreur
+export type StatutDemande = 'en_attente' | 'approuvee' | 'refusee';
+
+export interface DemandeLivreur {
+  id:          string;
+  ref:         string;
+  livreurId:   string;
+  livreurNom:  string;
+  zone:        string;
+  produits:    { produitRef:string; produitNom:string; qte:number; prixRef:number }[];
+  montantTotal:number;
+  statut:      StatutDemande;
+  motifRefus:  string;
+  note:        string;
+  date:        string;
+  updatedAt:   string;
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DONNÉES INITIALES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -134,6 +152,69 @@ export const getNotifsNonLues = (dest?: Notification['destinataire'], livreurId?
     !dest || n.destinataire === dest || n.destinataire === 'tous' ||
     (livreurId && n.livreurId === livreurId)
   )).length;
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DEMANDES LIVREUR
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let _demandes: DemandeLivreur[] = [
+  {
+    id:'DL001', ref:'#DL-001',
+    livreurId:'L1', livreurNom:'Jean Kossi', zone:'Adidogomé',
+    produits:[
+      { produitRef:'PR-101', produitNom:'Sachet de mil',    qte:10, prixRef:4500  },
+      { produitRef:'PR-102', produitNom:"Huile d'arachide", qte:5,  prixRef:3200  },
+    ],
+    montantTotal:61000, statut:'en_attente', motifRefus:'', note:'Commande hebdomadaire',
+    date:now(), updatedAt:now(),
+  },
+  {
+    id:'DL002', ref:'#DL-002',
+    livreurId:'L3', livreurNom:'Abdou M.', zone:'Baguida',
+    produits:[
+      { produitRef:'PR-103', produitNom:'Couscous local', qte:8, prixRef:6000 },
+    ],
+    montantTotal:48000, statut:'approuvee', motifRefus:'', note:'',
+    date:now(), updatedAt:now(),
+  },
+];
+
+export const getDemandes    = () => _demandes;
+
+export function soumettreDemandesLivreur(data: Omit<DemandeLivreur,'id'|'ref'|'statut'|'motifRefus'|'updatedAt'>) {
+  const id  = `DL${String(Date.now()).slice(-4)}`;
+  const ref = `#DL-${id}`;
+  const d: DemandeLivreur = { ...data, id, ref, statut:'en_attente', motifRefus:'', updatedAt:now() };
+  _demandes = [d, ..._demandes];
+  _addNotif({ type:'en_attente', destinataire:'coordinateur', venteId:id, message:`Nouvelle demande ${ref} — ${data.livreurNom} — ${data.montantTotal.toLocaleString()} FCFA` });
+  broadcast();
+  return d;
+}
+
+export function approuverDemande(id: string) {
+  _demandes = _demandes.map(d => d.id===id ? { ...d, statut:'approuvee' as StatutDemande, updatedAt:now() } : d);
+  const d = _demandes.find(x=>x.id===id);
+  if (d) {
+    // Décrémenter stock pour chaque produit
+    d.produits.forEach(p => {
+      _produits = _produits.map(pr => {
+        if (pr.ref !== p.produitRef) return pr;
+        const newStock = Math.max(0, pr.stock - p.qte);
+        if (newStock < 10) _addNotif({ type:'rupture', destinataire:'tous', message:`Stock bas : ${pr.nom} (${newStock} unités restantes)` });
+        return { ...pr, stock: newStock };
+      });
+    });
+    _addNotif({ type:'info', destinataire:'livreur', livreurId:d.livreurId, venteId:id, message:`Votre demande ${d.ref} a été approuvée` });
+  }
+  broadcast();
+}
+
+export function refuserDemande(id: string, motif: string) {
+  _demandes = _demandes.map(d => d.id===id ? { ...d, statut:'refusee' as StatutDemande, motifRefus:motif, updatedAt:now() } : d);
+  const d = _demandes.find(x=>x.id===id);
+  if (d) _addNotif({ type:'info', destinataire:'livreur', livreurId:d.livreurId, venteId:id, message:`Votre demande ${d.ref} a été refusée. Motif : "${motif}"` });
+  broadcast();
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LOGIQUE AUTO-ASSIGNATION LIVREUR
@@ -377,6 +458,9 @@ export function useStore() {
   const mesLivraisons = useCallback((livreurId: string) =>
     _ventes.filter(v => v.livreurId === livreurId), []);
 
+  const mesDemandesLivreur = useCallback((livreurId: string) =>
+    _demandes.filter(d => d.livreurId === livreurId), []);
+
   const mesNotifs = useCallback((dest: Notification['destinataire'], livreurId?:string) =>
     _notifs.filter(n =>
       n.destinataire === dest || n.destinataire === 'tous' ||
@@ -394,5 +478,6 @@ export function useStore() {
     mesVentes,
     mesLivraisons,
     mesNotifs,
+    mesDemandesLivreur,
   };
 }

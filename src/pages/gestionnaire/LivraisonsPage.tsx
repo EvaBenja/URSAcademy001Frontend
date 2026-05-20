@@ -30,7 +30,7 @@ interface DossierRow {
   livreur: string;
   destination: string;
   client_name: string;
-  status: 'pending' | 'validated'; // Corrigé : Uniquement Attente ou Validé
+  status: 'pending' | 'validated' | 'rejected';
   items: ProductItem[];
   [key: string]: any; 
 }
@@ -56,8 +56,9 @@ const INITIAL_DATA: DossierRow[] = [
 export default function LivraisonsPage() {
   const [dossiers, setDossiers] = useState<DossierRow[]>(INITIAL_DATA);
   const [selectedDossier, setSelectedDossier] = useState<DossierRow | null>(null);
-  const [activeAction, setActiveAction] = useState<'modifier' | 'valider' | 'details' | null>(null);
+  const [activeAction, setActiveAction] = useState<'modifier' | 'review' | null>(null);
   const [editForm, setEditForm] = useState({ destination: '', client_name: '' });
+  const [motifRejet, setMotifRejet] = useState('');
 
   useEffect(() => {
     const saved = localStorage.getItem('urs_dossiers_v4');
@@ -87,9 +88,17 @@ export default function LivraisonsPage() {
     closeModal();
   };
 
-  const updateStatus = (status: 'validated') => {
+  const validateDossier = () => {
     if (!selectedDossier) return;
-    const updated = dossiers.map(d => d.uid === selectedDossier.uid ? { ...d, status } : d);
+    const updated: DossierRow[] = dossiers.map(d => d.uid === selectedDossier.uid ? { ...d, status: 'validated' as const } : d);
+    setDossiers(updated);
+    localStorage.setItem('urs_dossiers_v4', JSON.stringify(updated));
+    closeModal();
+  };
+
+  const rejectDossier = () => {
+    if (!selectedDossier) return;
+    const updated: DossierRow[] = dossiers.map(d => d.uid === selectedDossier.uid ? { ...d, status: 'rejected' as const, updated_at: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) } : d);
     setDossiers(updated);
     localStorage.setItem('urs_dossiers_v4', JSON.stringify(updated));
     closeModal();
@@ -120,26 +129,24 @@ export default function LivraisonsPage() {
             { key: 'status', label: 'État', render: (row) => <StatusBadge status={row.status} /> }
           ]}
           actions={(row) => (
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button onClick={() => handleOpenEdit(row)} style={btnStyle}><Edit3 size={14}/></button>
-              {row.status === 'pending' && (
-                <button onClick={() => { setSelectedDossier(row); setActiveAction('valider'); }} style={btnSuccess}>Vérifier & Valider</button>
-              )}
-              {row.status === 'validated' && (
-                 <span style={{ color: '#10b981', fontSize: '12px', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <CheckCircle2 size={14} /> Validé
-                 </span>
+              <button onClick={() => { setSelectedDossier(row); setActiveAction('review'); setMotifRejet(''); }} style={btnDetail}>
+                Voir
+              </button>
+              {row.status === 'rejected' && (
+                <span style={{ color: '#ef4444', fontSize: '12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <AlertTriangle size={14} /> Rejeté
+                </span>
               )}
             </div>
           )}
         />
       </div>
 
-      <Modal open={!!activeAction} onClose={closeModal} title={activeAction === 'valider' ? "Contrôle Avant Départ" : "Gestion"}>
+      <Modal open={!!activeAction} onClose={closeModal} title={activeAction === 'review' ? "Contrôle Livraison" : "Gestion"}>
         {selectedDossier && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            
-            {/* ACTION MODIFIER */}
             {activeAction === 'modifier' && (
               <>
                 <label style={labelStyle}>Destination <input style={inputStyle} value={editForm.destination} onChange={e => setEditForm({...editForm, destination: e.target.value})} /></label>
@@ -148,32 +155,67 @@ export default function LivraisonsPage() {
               </>
             )}
 
-            {/* ACTION VALIDER (AVEC LISTE PRODUITS) */}
-            {activeAction === 'valider' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {activeAction === 'review' && (
+              <>
                 <div style={infoBox}>
-                   <ClipboardList size={20} />
-                   <span>Vérifiez que le livreur <strong>{selectedDossier.livreur}</strong> a chargé les articles suivants :</span>
+                  <ClipboardList size={20} />
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700 }}>Commande {selectedDossier.uid}</p>
+                    <p style={{ margin: '6px 0 0', color: '#475569' }}>Livreur : {selectedDossier.livreur}</p>
+                    <p style={{ margin: '4px 0 0', color: '#475569' }}>Destination : {selectedDossier.destination}</p>
+                    <p style={{ margin: '4px 0 0', color: '#475569' }}>Client : {selectedDossier.client_name}</p>
+                    <p style={{ margin: '4px 0 0', color: '#475569' }}>Statut : {selectedDossier.status === 'pending' ? 'En attente' : selectedDossier.status === 'validated' ? 'Validée' : 'Rejetée'}</p>
+                  </div>
                 </div>
-                
-                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+
+                <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: 0, fontWeight: 700, marginBottom: 10 }}>Produits à vérifier</p>
+                  <div style={{ display: 'grid', gap: 10 }}>
                     {selectedDossier.items.map((item, idx) => (
-                        <div key={idx} style={{ padding: '12px', borderBottom: idx !== selectedDossier.items.length - 1 ? '1px solid #f1f5f9' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 500, color: '#1e293b' }}>{item.label}</span>
-                            <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, color: '#3b82f6' }}>x {item.quantity}</span>
-                        </div>
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, borderRadius: 10, background: 'white', border: '1px solid #e2e8f0' }}>
+                        <span style={{ fontWeight: 600 }}>{item.label}</span>
+                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: 999, fontWeight: 700 }}>x{item.quantity}</span>
+                      </div>
                     ))}
+                  </div>
                 </div>
 
-                <div style={{ marginTop: 8 }}>
-                    <p style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', marginBottom: 12 }}>
-                        En cliquant sur confirmer, le stock sera marqué comme "En circulation".
-                    </p>
-                    <button onClick={() => updateStatus('validated')} style={btnBigSuccess}>Confirmer le Chargement & Départ</button>
-                </div>
-              </div>
+                {selectedDossier.status === 'pending' && (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <label style={labelStyle}>
+                        Motif de rejet
+                        <textarea
+                          value={motifRejet}
+                          onChange={e => setMotifRejet(e.target.value)}
+                          placeholder="Expliquez pourquoi vous souhaitez refuser cette commande"
+                          style={{ ...inputStyle, minHeight: 120, resize: 'vertical' }}
+                        />
+                      </label>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button onClick={validateDossier} style={btnBigSuccess}>Valider la commande</button>
+                      <button onClick={rejectDossier} style={btnBigReject} disabled={!motifRejet.trim()}>
+                        Rejeter avec motif
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {selectedDossier.status === 'validated' && (
+                  <div style={{ padding: 14, borderRadius: 10, background: '#dcfce7', border: '1px solid #86efac', color: '#166534' }}>
+                    Livraison déjà validée. Aucune action supplémentaire requise.
+                  </div>
+                )}
+
+                {selectedDossier.status === 'rejected' && (
+                  <div style={{ padding: 14, borderRadius: 10, background: '#fee2e2', border: '1px solid #fecaca', color: '#b91c1c' }}>
+                    Livraison rejetée. Vous pouvez consulter le dossier ou corriger la commande via le bouton Modifier.
+                  </div>
+                )}
+              </>
             )}
-
           </div>
         )}
       </Modal>
@@ -191,21 +233,25 @@ const StatCard = ({ label, count, color, icon }: any) => (
 
 const StatusBadge = ({ status }: { status: string }) => {
   const isPending = status === 'pending';
+  const isRejected = status === 'rejected';
   return (
     <span style={{ 
-        background: isPending ? '#fee2e2' : '#dcfce7', 
-        color: isPending ? '#ef4444' : '#10b981', 
+        background: isPending ? '#fef2f2' : isRejected ? '#fee2e2' : '#dcfce7', 
+        color: isPending ? '#b91c1c' : isRejected ? '#991b1b' : '#047857', 
         padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700 
     }}>
-      {isPending ? 'EN ATTENTE' : 'VALIDÉ'}
+      {isPending ? 'EN ATTENTE' : isRejected ? 'REJETÉ' : 'VALIDÉ'}
     </span>
   );
 };
 
 const btnStyle = { padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const btnSuccess = { padding: '8px 16px', borderRadius: '8px', background: '#10b981', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '12px' };
+const btnReject = { padding: '8px 16px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '12px' };
+const btnDetail = { padding: '8px 16px', borderRadius: '8px', background: '#3b82f6', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', fontSize: '12px' };
 const btnBigPrimary = { width: '100%', padding: '14px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' };
 const btnBigSuccess = { ...btnBigPrimary, background: '#10b981' };
+const btnBigReject = { ...btnBigPrimary, background: '#ef4444' };
 
 const infoBox: CSSProperties = { display: 'flex', gap: 12, padding: '12px', background: '#f0f9ff', color: '#0369a1', borderRadius: '8px', fontSize: '13px', lineHeight: '1.4' };
 const labelStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 4, fontSize: '12px', fontWeight: 600, color: '#475569' };
