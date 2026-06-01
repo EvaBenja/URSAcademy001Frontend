@@ -1,27 +1,40 @@
+import { useState, useEffect } from 'react';
 import PageHeader from '../../components/ui/PageHeader';
 import Table from '../../components/ui/Table';
-
-const PRODUCTS = [
-  { ref: 'VP-101', name: 'Tapis de sol', prix: '29 €', stock: 74, statut: 'Actif' },
-  { ref: 'VP-107', name: 'Lampe LED', prix: '18 €', stock: 21, statut: 'À réapprovisionner' },
-  { ref: 'VP-115', name: 'Chargeur rapide', prix: '24 €', stock: 56, statut: 'Actif' },
-];
+import { produitsService } from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function ProduitsPage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading,  setLoading]  = useState(true);
+
+  useEffect(() => {
+    produitsService.getAll()
+      .then(res => setProducts(res.data))
+      .catch(() => toast.error('Erreur chargement produits'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</div>;
+
   return (
     <>
-      <PageHeader title="Produits" subtitle="Listez vos articles, suivez leur stock et révisez les fiches produits avant leur publication." />
+      <PageHeader title="Produits" subtitle="Consultez le catalogue et les stocks disponibles." />
       <Table
-        data={PRODUCTS}
+        data={products}
         columns={[
-          { key: 'ref', label: 'Référence' },
-          { key: 'name', label: 'Produit' },
-          { key: 'prix', label: 'Prix' },
-          { key: 'stock', label: 'Stock' },
-          { key: 'statut', label: 'Statut' },
+          { key:'reference', label:'Référence' },
+          { key:'nom',       label:'Produit' },
+          { key:'prix_unitaire', label:'Prix (FCFA)', render:(row:any)=>new Intl.NumberFormat('fr-FR').format(row.prix_unitaire) },
+          { key:'quantite_stock', label:'Stock', render:(row:any)=>(
+            <span style={{ fontWeight:700, color:row.quantite_stock<10?'#ef4444':'#1465BB' }}>
+              {row.quantite_stock} {row.quantite_stock<10 && <span style={{ fontSize:10, background:'#fef2f2', color:'#ef4444', padding:'1px 6px', borderRadius:6, marginLeft:4 }}>Bas</span>}
+            </span>
+          )},
+          { key:'unite', label:'Unité', render:(row:any)=>row.unite||'—' },
         ]}
-        searchKeys={['ref', 'name', 'statut']}
-        pageSize={6}
+        searchKeys={['reference','nom']}
+        pageSize={10}
       />
     </>
   );

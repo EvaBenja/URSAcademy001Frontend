@@ -8,7 +8,7 @@ const api = axios.create({
 
 // Ajoute le token JWT à chaque requête
 api.interceptors.request.use((cfg) => {
-  const t = Cookies.get('urs_token');
+  const t = Cookies.get('urs_token') || localStorage.getItem('urs_token');
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
   return cfg;
 });
@@ -19,7 +19,8 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       Cookies.remove('urs_token');
-      Cookies.remove('urs_user');
+      localStorage.removeItem('urs_token');
+      localStorage.removeItem('urs_user');
       window.location.href = '/login';
     }
     return Promise.reject(err);
@@ -32,7 +33,7 @@ export default api;
 export const authService = {
   login:    (email: string, password: string) => api.post('/auth/login', { email, password }),
   logout:   () => api.post('/auth/logout'),
-  register: (data: object)  => api.post('/auth/register', data),
+  register: (data: object) => api.post('/auth/register', data),
   me:       () => api.get('/auth/me'),
 };
 
@@ -46,24 +47,35 @@ export const produitsService = {
 
 // ── Ventes ──
 export const ventesService = {
-  getAll:  (params?: object) => api.get('/ventes', { params }),
-  create:  (data: object)    => api.post('/ventes', data),
-  stats:   ()                => api.get('/ventes/stats'),
+  getAll:    (params?: object) => api.get('/ventes', { params }),
+  create:    (data: object)    => api.post('/ventes', data),
+  stats:     ()                => api.get('/ventes/stats'),
+  classement:()                => api.get('/ventes/classement'),
+  valider:   (id: number)      => api.post(`/ventes/${id}/valider`),
+  annuler:   (id: number)      => api.post(`/ventes/${id}/annuler`),
+  chiffreAffaires: ()          => api.get('/ventes/chiffre-affaires'),
 };
 
 // ── Livraisons ──
 export const livraisonsService = {
   getAll:       (params?: object) => api.get('/livraisons', { params }),
+  create:       (data: object)    => api.post('/livraisons', data),
+  show:         (id: number)      => api.get(`/livraisons/${id}`),
   updateStatut: (id: number, statut: string) => api.patch(`/livraisons/${id}/statut`, { statut }),
-  positions:    () => api.get('/livraisons/positions'),
+  valider:      (id: number, data: object)   => api.post(`/livraisons/${id}/valider`, data),
+  accepter:     (id: number)      => api.post(`/livraisons/${id}/accepter`),
+  rejeter:      (id: number, motif: string)  => api.post(`/livraisons/${id}/rejeter`, { motif }),
+  cloturer:     (id: number)      => api.post(`/livraisons/${id}/cloturer`),
+  assigner:     (id: number, data: object)   => api.post(`/livraisons/${id}/assigner`, data),
+  positions:    () => api.get('/livreurs/positions'),
 };
 
 // ── Demandes livreurs ──
 export const demandesService = {
   getAll:  (params?: object) => api.get('/demandes', { params }),
   create:  (data: object)    => api.post('/demandes', data),
-  valider: (id: number)      => api.patch(`/demandes/${id}/valider`),
-  refuser: (id: number)      => api.patch(`/demandes/${id}/refuser`),
+  valider: (id: number, data: object) => api.patch(`/demandes/${id}/valider`, data),
+  refuser: (id: number, motif: string) => api.patch(`/demandes/${id}/refuser`, { motif }),
 };
 
 // ── Dossiers journaliers ──
@@ -74,10 +86,11 @@ export const dossiersService = {
 
 // ── Utilisateurs ──
 export const utilisateursService = {
-  getAll:  (params?: object)      => api.get('/utilisateurs', { params }),
-  create:  (data: object)          => api.post('/utilisateurs', data),
+  getAll:  (params?: object)          => api.get('/utilisateurs', { params }),
+  create:  (data: object)             => api.post('/utilisateurs', data),
   update:  (id: number, data: object) => api.put(`/utilisateurs/${id}`, data),
-  delete:  (id: number)            => api.delete(`/utilisateurs/${id}`),
+  delete:  (id: number)               => api.delete(`/utilisateurs/${id}`),
+  roles:   ()                         => api.get('/roles'),
 };
 
 // ── Dashboard ──
@@ -85,4 +98,13 @@ export const dashboardService = {
   stats:            () => api.get('/dashboard/stats'),
   graphVentes:      (periode?: string) => api.get('/dashboard/ventes', { params: { periode } }),
   demandesRecentes: () => api.get('/dashboard/demandes-recentes'),
+};
+
+// ── Géolocalisation ──
+export const geoService = {
+  updatePosition: (latitude: number, longitude: number) =>
+    api.post('/position', { latitude, longitude }),
+  livreurs:       () => api.get('/livreurs/positions'),
+  plusProche:     (latitude: number, longitude: number) =>
+    api.post('/livreurs/plus-proche', { latitude, longitude }),
 };

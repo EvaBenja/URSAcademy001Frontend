@@ -3,29 +3,52 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Truck, User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/api';
 import toast from 'react-hot-toast';
-import type { Role } from '../../types/index';
 
-const ROLES: { value: Role; label: string }[] = [
-  { value: 'gestionnaire', label: 'Gestionnaire' },
-  { value: 'coordinateur', label: 'Coordinateur' },
-  { value: 'vendeur',      label: 'Vendeur'       },
-  { value: 'livreur',      label: 'Livreur'       },
+const ROLES = [
+  { value: 1, label: 'Gestionnaire' },
+  { value: 2, label: 'Coordinateur' },
+  { value: 3, label: 'Vendeur' },
+  { value: 4, label: 'Livreur' },
 ];
 
-type FormState = { nom: string; prenom: string; email: string; telephone: string; role: Role; password: string; password_confirmation: string };
+type FormState = { 
+  nom: string; 
+  prenom: string; 
+  email: string; 
+  telephone: string; 
+  role_id: number; 
+  password: string; 
+  password_confirmation: string 
+};
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const [form, setForm] = useState<FormState>({ nom: '', prenom: '', email: '', telephone: '', role: 'vendeur', password: '', password_confirmation: '' });
+  const [form, setForm] = useState<FormState>({ 
+    nom: '', 
+    prenom: '', 
+    email: '', 
+    telephone: '', 
+    role_id: 3, 
+    password: '', 
+    password_confirmation: '' 
+  });
   const [showPass, setShowPass] = useState(false);
-  const [loading,  setLoading]  = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ 
+      ...prev, 
+      [name]: name === 'role_id' ? Number(value) : value 
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.password !== form.password_confirmation) { toast.error('Les mots de passe ne correspondent pas'); return; }
+    if (form.password !== form.password_confirmation) { 
+      toast.error('Les mots de passe ne correspondent pas'); 
+      return; 
+    }
     setLoading(true);
     try {
       await authService.register(form);
@@ -34,7 +57,9 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       toast.error(e.response?.data?.message || 'Erreur lors de la création');
-    } finally { setLoading(false); }
+    } finally { // Correction ici : "finally" avec deux 'l'
+      setLoading(false); 
+    }
   };
 
   const inp = { border: '1.5px solid #dde5f4', borderRadius: 8, fontSize: 14, outline: 'none', color: '#0d1b3e', width: '100%' };
@@ -48,7 +73,6 @@ export default function RegisterPage() {
             <Truck size={22} color="white" />
           </div>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 26, fontWeight: 600, color: '#0d1b3e', marginBottom: 6 }}>Créer un compte</h2>
-          {/* <p style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 15, color: '#4a5578' }}>Rejoignez la plateforme URS</p> */}
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -86,7 +110,7 @@ export default function RegisterPage() {
           {/* Rôle */}
           <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Rôle</label>
-            <select name="role" value={form.role} onChange={handleChange} style={{ ...inp, padding: '9px 13px' }}>
+            <select name="role_id" value={form.role_id} onChange={handleChange} style={{ ...inp, padding: '9px 13px' }}>
               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </div>
