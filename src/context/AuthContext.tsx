@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 import Cookies from 'js-cookie';
-import { authService } from '../services/api';
+import { authService, setCurrentRole } from '../services/api';
 import type { Role, User } from '../types';
 
 const ROLE_HOME: Record<Role, string> = {
@@ -59,7 +59,7 @@ interface AuthCtx {
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user,      setUser]    = useState<User | null>(getSavedUser());
+  const [user,      setUser]    = useState<User | null>(() => { const u = getSavedUser(); if (u) setCurrentRole(u.role); return u; });
   const [token,     setToken]   = useState<string | null>(getSavedToken());
   const [isLoading, setLoading] = useState(false);
 
@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           saveUser(u);
           setUser(u);
           setToken(savedToken);
+          setCurrentRole(u.role);
         })
         .catch(() => {
           clearAll();
@@ -89,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { token: t, user: apiUser } = res.data;
       const u = normalizeUser(apiUser);
       saveToken(t);
+      setCurrentRole(u.role);
       saveUser(u);
       setToken(t);
       setUser(u);

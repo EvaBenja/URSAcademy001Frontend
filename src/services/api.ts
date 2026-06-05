@@ -6,14 +6,12 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 });
 
-// Ajoute le token JWT à chaque requête
 api.interceptors.request.use((cfg) => {
   const t = Cookies.get('urs_token') || localStorage.getItem('urs_token');
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
   return cfg;
 });
 
-// Redirige vers /login si 401
 api.interceptors.response.use(
   (r) => r,
   (err) => {
@@ -29,7 +27,22 @@ api.interceptors.response.use(
 
 export default api;
 
-// ── Auth ──
+// Rôle courant — mis à jour par AuthContext au login
+let _currentRole = '';
+
+export const setCurrentRole = (role: string) => { _currentRole = role; };
+
+export const getRole = (): string => {
+  if (_currentRole) return _currentRole;
+  try {
+    const u = localStorage.getItem('urs_user');
+    const role = u ? JSON.parse(u).role : '';
+    if (role) _currentRole = role;
+    return role;
+  } catch { return ''; }
+};
+
+// ── Auth ──────────────────────────────────────────────────
 export const authService = {
   login:    (email: string, password: string) => api.post('/auth/login', { email, password }),
   logout:   () => api.post('/auth/logout'),
@@ -37,54 +50,69 @@ export const authService = {
   me:       () => api.get('/auth/me'),
 };
 
-// ── Produits ──
+// ── Produits ──────────────────────────────────────────────
+// Rôles avec accès CRUD: gestionnaire, super_admin, admin
+// Rôles avec accès lecture seule: vendeur, coordinateur, livreur
+const ROLES_PRODUITS_FULL = ['super_admin', 'gestionnaire', 'admin'];
+
 export const produitsService = {
-  getAll:  (params?: object) => api.get('/produits', { params }),
-  create:  (data: object)    => api.post('/produits', data),
-  update:  (id: number, data: object) => api.put(`/produits/${id}`, data),
-  delete:  (id: number)      => api.delete(`/produits/${id}`),
+  getAll: (params?: object) => {
+    const role = getRole();
+    const endpoint = ROLES_PRODUITS_FULL.includes(role) ? '/produits' : '/produits-liste';
+    return api.get(endpoint, { params });
+  },
+  create: (data: object)             => api.post('/produits', data),
+  update: (id: number, data: object) => api.put(`/produits/${id}`, data),
+  delete: (id: number)               => api.delete(`/produits/${id}`),
 };
 
-// ── Ventes ──
+// ── Ventes ────────────────────────────────────────────────
 export const ventesService = {
-  getAll:    (params?: object) => api.get('/ventes', { params }),
-  create:    (data: object)    => api.post('/ventes', data),
-  stats:     ()                => api.get('/ventes/stats'),
-  classement:()                => api.get('/ventes/classement'),
-  valider:   (id: number)      => api.post(`/ventes/${id}/valider`),
-  annuler:   (id: number)      => api.post(`/ventes/${id}/annuler`),
-  chiffreAffaires: ()          => api.get('/ventes/chiffre-affaires'),
+  getAll:     (params?: object) => api.get('/ventes', { params }),
+  create:     (data: object)    => api.post('/ventes', data),
+  stats:      ()                => api.get('/ventes/stats'),
+  classement: ()                => api.get('/ventes/classement'),
+  valider:    (id: number)      => api.post(`/ventes/${id}/valider`),
+  annuler:    (id: number)      => api.post(`/ventes/${id}/annuler`),
 };
 
-// ── Livraisons ──
+// ── Demandes ──────────────────────────────────────────────
+// POST /demandes → livreur soumet une demande
+// PATCH /demandes/{id}/valider → gestionnaire valide
+// PATCH /demandes/{id}/refuser → gestionnaire refuse
+export const demandesService = {
+  getAll:  (params?: object) => api.get('/demandes', { params }),
+  create:  (data: object)    => api.post('/demandes', data),
+  valider: (id: number, data: { montant_carburant: number }) =>
+    api.patch(`/demandes/${id}/valider`, data),
+  refuser: (id: number, motif: string) =>
+    api.patch(`/demandes/${id}/refuser`, { motif }),
+};
+
+// ── Livraisons ────────────────────────────────────────────
 export const livraisonsService = {
   getAll:       (params?: object) => api.get('/livraisons', { params }),
   create:       (data: object)    => api.post('/livraisons', data),
   show:         (id: number)      => api.get(`/livraisons/${id}`),
-  updateStatut: (id: number, statut: string) => api.patch(`/livraisons/${id}/statut`, { statut }),
-  valider:      (id: number, data: object)   => api.post(`/livraisons/${id}/valider`, data),
-  accepter:     (id: number)      => api.post(`/livraisons/${id}/accepter`),
-  rejeter:      (id: number, motif: string)  => api.post(`/livraisons/${id}/rejeter`, { motif }),
-  cloturer:     (id: number)      => api.post(`/livraisons/${id}/cloturer`),
-  assigner:     (id: number, data: object)   => api.post(`/livraisons/${id}/assigner`, data),
-  positions:    () => api.get('/livreurs/positions'),
+  updateStatut: (id: number, statut: string) =>
+    api.patch(`/livraisons/${id}/statut`, { statut }),
+  valider:      (id: number, data: { montant_carburant: number; notes?: string }) =>
+    api.post(`/livraisons/${id}/valider`, data),
+  accepter:     (id: number) => api.post(`/livraisons/${id}/accepter`),
+  rejeter:      (id: number, motif: string) =>
+    api.post(`/livraisons/${id}/rejeter`, { motif }),
+  cloturer:     (id: number) => api.post(`/livraisons/${id}/cloturer`),
+  assigner:     (id: number, data: { latitude: number; longitude: number }) =>
+    api.post(`/livraisons/${id}/assigner`, data),
 };
 
-// ── Demandes livreurs ──
-export const demandesService = {
-  getAll:  (params?: object) => api.get('/demandes', { params }),
-  create:  (data: object)    => api.post('/demandes', data),
-  valider: (id: number, data: object) => api.patch(`/demandes/${id}/valider`, data),
-  refuser: (id: number, motif: string) => api.patch(`/demandes/${id}/refuser`, { motif }),
-};
-
-// ── Dossiers journaliers ──
+// ── Dossiers ──────────────────────────────────────────────
 export const dossiersService = {
   getAll:   (params?: object) => api.get('/dossiers', { params }),
   cloturer: (id: number)      => api.post(`/dossiers/${id}/cloturer`),
 };
 
-// ── Utilisateurs ──
+// ── Utilisateurs ──────────────────────────────────────────
 export const utilisateursService = {
   getAll:  (params?: object)          => api.get('/utilisateurs', { params }),
   create:  (data: object)             => api.post('/utilisateurs', data),
@@ -93,18 +121,19 @@ export const utilisateursService = {
   roles:   ()                         => api.get('/roles'),
 };
 
-// ── Dashboard ──
+// ── Dashboard ─────────────────────────────────────────────
 export const dashboardService = {
   stats:            () => api.get('/dashboard/stats'),
-  graphVentes:      (periode?: string) => api.get('/dashboard/ventes', { params: { periode } }),
+  graphVentes:      (periode?: string) =>
+    api.get('/dashboard/ventes', { params: { periode } }),
   demandesRecentes: () => api.get('/dashboard/demandes-recentes'),
 };
 
-// ── Géolocalisation ──
+// ── Géolocalisation ───────────────────────────────────────
 export const geoService = {
   updatePosition: (latitude: number, longitude: number) =>
     api.post('/position', { latitude, longitude }),
-  livreurs:       () => api.get('/livreurs/positions'),
-  plusProche:     (latitude: number, longitude: number) =>
+  livreurs:   () => api.get('/livreurs/positions'),
+  plusProche: (latitude: number, longitude: number) =>
     api.post('/livreurs/plus-proche', { latitude, longitude }),
 };
