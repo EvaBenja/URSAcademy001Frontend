@@ -16,7 +16,7 @@ export default function ValidationVentesPage() {
   const [filter,  setFilter]  = useState('en_attente');
   const [saving,  setSaving]  = useState(false);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
   const load = async () => {
     try { const r = await ventesService.getAll(); setVentes(r.data || []); }
     catch { toast.error('Erreur chargement ventes'); }

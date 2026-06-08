@@ -8,10 +8,13 @@ export default function ClassementVendeursPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    ventesService.classement()
+    const doLoad = () => ventesService.classement()
       .then(r => setClassement(r.data))
-      .catch(() => toast.error('Erreur chargement classement'))
+      .catch(() => {})
       .finally(() => setLoading(false));
+    doLoad();
+    const t = setInterval(doLoad, 15000);
+    return () => clearInterval(t);
   }, []);
 
   const podium = classement.slice(0, 3);

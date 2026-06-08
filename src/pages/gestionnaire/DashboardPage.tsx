@@ -11,10 +11,13 @@ export default function GestDashboardPage() {
   const [loading,    setLoading]    = useState(true);
 
   useEffect(() => {
-    Promise.all([dashboardService.stats(), ventesService.classement()])
+    const doLoad = () => Promise.all([dashboardService.stats(), ventesService.classement()])
       .then(([sr, cr]) => { setStats(sr.data); setClassement(cr.data.slice(0,5)); })
-      .catch(() => toast.error('Erreur chargement'))
+      .catch(() => {})
       .finally(() => setLoading(false));
+    doLoad();
+    const t = setInterval(doLoad, 15000);
+    return () => clearInterval(t);
   }, []);
 
   if (loading) return (
