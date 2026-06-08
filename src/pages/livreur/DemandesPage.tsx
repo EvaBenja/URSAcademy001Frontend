@@ -38,8 +38,9 @@ export default function LivreurDemandesPage() {
         api.get('/produits-liste'),
       ]);
       if (dr.status === 'fulfilled') setDemandes(dr.value.data || []);
+      else if ((dr.reason as any)?.response?.status !== 403) toast.error('Erreur chargement demandes');
       if (pr.status === 'fulfilled') setProduits(pr.value.data || []);
-    } catch { toast.error('Erreur chargement'); }
+    } catch { /* silencieux */ }
     finally { setLoading(false); }
   };
 

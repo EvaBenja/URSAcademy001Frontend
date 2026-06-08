@@ -32,7 +32,14 @@ export default function DemandesLivreursPage() {
       const r = await demandesService.getAll();
       setDemandes(r.data || []);
       setLastRefresh(new Date());
-    } catch { if (!silent) toast.error('Erreur chargement demandes'); }
+    } catch (e: any) {
+      if (e?.response?.status === 403) {
+        // Pas autorisé — pas de message répété
+        if (!silent) toast.error('Accès non autorisé pour ce rôle');
+      } else if (!silent) {
+        toast.error('Erreur chargement demandes');
+      }
+    }
     finally { setLoading(false); }
   }, []);
 
