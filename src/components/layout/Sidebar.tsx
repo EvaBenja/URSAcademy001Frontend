@@ -41,6 +41,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Mes livraisons',       to:'/livreur/livraisons',            Icon:Truck           },
     { label:'Historique',           to:'/livreur/historique',            Icon:FolderOpen      },
     { label:'Mes dossiers',          to:'/livreur/dossiers',              Icon:ClipboardList   },
+    { label:'Mes demandes',          to:'/livreur/demandes',             Icon:Bell            },
   ],
 };
 
