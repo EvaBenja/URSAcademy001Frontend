@@ -88,6 +88,8 @@ export const demandesService = {
     api.patch(`/demandes/${id}/valider`, data),
   refuser: (id: number, motif: string) =>
     api.patch(`/demandes/${id}/refuser`, { motif }),
+  cloturer: (id: number, data: object) =>
+    api.patch(`/demandes/${id}/cloturer`, data),
 };
 
 // ── Livraisons ────────────────────────────────────────────
