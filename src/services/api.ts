@@ -58,7 +58,8 @@ const ROLES_PRODUITS_FULL = ['super_admin', 'gestionnaire', 'admin'];
 export const produitsService = {
   getAll: (params?: object) => {
     const role = getRole();
-    const endpoint = ROLES_PRODUITS_FULL.includes(role) ? '/produits' : '/produits-liste';
+    // Si role vide (race condition) ou role non admin → produits-liste (safe)
+    const endpoint = role && ROLES_PRODUITS_FULL.includes(role) ? '/produits' : '/produits-liste';
     return api.get(endpoint, { params });
   },
   create: (data: object)             => api.post('/produits', data),
