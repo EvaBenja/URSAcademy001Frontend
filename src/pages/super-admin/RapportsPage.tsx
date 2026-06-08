@@ -1,222 +1,189 @@
-
-import { useState, type CSSProperties } from 'react';
-import { BarChart2, TrendingUp, TrendingDown, Download, Calendar, Package, Truck, Users } from 'lucide-react';
-import { useStore } from '../../store/ventesStore';
-
-const MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-const CA_MOIS  = [3200000,4100000,3800000,5200000,6800000,5900000,7200000,6500000,8100000,7400000,9200000,8700000];
-const VTE_MOIS = [42,58,51,70,88,75,94,82,108,96,124,115];
+import { useState, useEffect, type CSSProperties } from 'react';
+import { TrendingUp, Package, Users, BarChart2, RefreshCw } from 'lucide-react';
+import { ventesService, dashboardService } from '../../services/api';
+import toast from 'react-hot-toast';
 
 export default function RapportsPage() {
-  const { ventes, produits, classementVendeurs } = useStore();
-  const [periode, setPeriode] = useState<'semaine'|'mois'|'annee'>('mois');
+  const [ventes,     setVentes]     = useState<any[]>([]);
+  const [stats,      setStats]      = useState<any>(null);
+  const [classement, setClassement] = useState<any[]>([]);
+  const [loading,    setLoading]    = useState(true);
 
-  const classement   = classementVendeurs();
-  const totalCA      = ventes.filter(v=>v.statut!=='refusee').reduce((s,v)=>s+v.montantTotal,0);
-  const totalLivrees = ventes.filter(v=>v.statut==='livree').length;
-  const stockBas     = produits.filter(p=>p.stock<10).length;
-  const tauxLivraison= ventes.length>0?Math.round((totalLivrees/ventes.length)*100):0;
-  const maxCA        = Math.max(...CA_MOIS);
-  const maxVte       = Math.max(...VTE_MOIS);
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [vr, sr, cr] = await Promise.all([
+        ventesService.getAll(),
+        dashboardService.stats(),
+        ventesService.classement(),
+      ]);
+      setVentes(vr.data || []);
+      setStats(sr.data);
+      setClassement(cr.data || []);
+    } catch { toast.error('Erreur chargement rapports'); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const caTotal      = ventes.filter(v=>v.statut==='validee').reduce((s,v)=>s+Number(v.montant_total||0),0);
+  const nbValidees   = ventes.filter(v=>v.statut==='validee').length;
+  const nbAttente    = ventes.filter(v=>v.statut==='en_attente').length;
+  const tauxValid    = ventes.length > 0 ? Math.round((nbValidees/ventes.length)*100) : 0;
+
+  // CA par jour (7 derniers jours)
+  const ventesParJour = Array.from({length:7},(_,i) => {
+    const d = new Date(); d.setDate(d.getDate()-(6-i));
+    const key = d.toISOString().split('T')[0];
+    const total = ventes.filter(v=>v.date_vente===key && v.statut==='validee').reduce((s,v)=>s+Number(v.montant_total||0),0);
+    return { jour: d.toLocaleDateString('fr-FR',{weekday:'short'}), total, nb: ventes.filter(v=>v.date_vente===key).length };
+  });
+  const maxCA = Math.max(...ventesParJour.map(v=>v.total),1);
+
+  // Top zones
+  const ventesParZone: Record<string,number> = {};
+  ventes.filter(v=>v.statut==='validee').forEach(v => {
+    const z = v.zone_livraison||'Non définie';
+    ventesParZone[z] = (ventesParZone[z]||0)+Number(v.montant_total||0);
+  });
+  const topZones = Object.entries(ventesParZone).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxZone  = Math.max(...topZones.map(z=>z[1]),1);
+
+  if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement des rapports…</p>;
 
   return (
-    <div style={{ padding:28, background:'#f0f4fb', minHeight:'100vh' }}>
-
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:26 }}>
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={T.h1}>Rapports & Analyses</h1>
-          <p style={T.sub}>Vue synthétique des performances de votre activité</p>
+          <p style={T.sub}>Vue agrégée de l'activité commerciale</p>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
-          <div style={{ display:'flex', gap:4, background:'white', borderRadius:10, padding:4, border:'1px solid #dde5f4' }}>
-            {(['semaine','mois','annee'] as const).map(p => (
-              <button key={p} onClick={()=>setPeriode(p)}
-                style={{ padding:'7px 14px', borderRadius:7, border:'none', background:periode===p?'linear-gradient(90deg,#1465BB,#003785)':'transparent', color:periode===p?'white':'#4a5578', fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:'DM Sans,sans-serif' }}>
-                {p==='semaine'?'Semaine':p==='mois'?'Mois':'Année'}
-              </button>
-            ))}
-          </div>
-          <button style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:8, background:'linear-gradient(90deg,#d0a83a,#ae8f1e)', color:'white', border:'none', fontSize:13, fontWeight:500, cursor:'pointer' }}>
-            <Download size={14}/> Exporter
-          </button>
-        </div>
+        <button onClick={load} style={{ display:'flex', alignItems:'center', gap:7, padding:'9px 16px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:13, color:'#4a5578' }}>
+          <RefreshCw size={14}/> Actualiser
+        </button>
       </div>
 
       {/* KPIs */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:24 }}>
+      <div className="kpi-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:24 }}>
         {[
-          { label:"Chiffre d'affaires",  val:totalCA.toLocaleString()+' FCFA', evo:'+12.5%', up:true,  color:'#1465BB', bg:'#e0f0ff', Icon:TrendingUp   },
-          { label:'Ventes livrées',       val:totalLivrees,                     evo:'+8.3%',  up:true,  color:'#0a9e6e', bg:'#dcfce7', Icon:Truck        },
-          { label:'Taux de livraison',    val:tauxLivraison+'%',                evo:'+2.1%',  up:true,  color:'#7c3aed', bg:'#ede9fe', Icon:BarChart2    },
-          { label:'Alertes stock',        val:stockBas,                         evo:stockBas>0?'⚠️':'✓', up:stockBas===0, color:'#d0a83a', bg:'#fdf3d7', Icon:Package },
-        ].map(({ label, val, evo, up, color, bg, Icon }) => (
-          <div key={label} style={T.statCard}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-              <div style={{ width:42, height:42, borderRadius:10, background:bg, display:'flex', alignItems:'center', justifyContent:'center', border:`1px solid ${color}22` }}>
-                <Icon size={18} color={color}/>
-              </div>
-              <span style={{ fontSize:11, fontWeight:600, color:up?'#0a9e6e':'#e53e3e', background:up?'#dcfce7':'#fee2e2', padding:'3px 8px', borderRadius:20 }}>
-                {up?<TrendingUp size={10} style={{display:'inline',marginRight:3}}/>:<TrendingDown size={10} style={{display:'inline',marginRight:3}}/>}
-                {evo}
-              </span>
+          {label:"CA total validé",  val:`${caTotal.toLocaleString('fr-FR')} FCFA`, sub:`${nbValidees} ventes`, color:'#1465BB', bg:'#e0f0ff', Icon:TrendingUp},
+          {label:'Taux validation',  val:`${tauxValid}%`, sub:`${ventes.length} total`, color:'#0a9e6e', bg:'#dcfce7', Icon:BarChart2 },
+          {label:'En attente valid.',val:nbAttente,        sub:'À traiter',             color:'#d0a83a', bg:'#fdf3d7', Icon:Package   },
+          {label:'Livreurs actifs',  val:stats?.total_livreurs||0, sub:'Enregistrés',   color:'#7c3aed', bg:'#ede9fe', Icon:Users    },
+        ].map(({label,val,sub,color,bg,Icon}) => (
+          <div key={label} style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.3rem' }}>
+            <div style={{ width:42, height:42, borderRadius:11, background:bg, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:14 }}>
+              <Icon size={18} color={color}/>
             </div>
-            <p style={{ fontFamily:'Playfair Display,serif', fontSize:22, fontWeight:700, color, lineHeight:1 }}>{val}</p>
-            <p style={{ fontSize:11, color:'#8a96b0', marginTop:4 }}>{label}</p>
+            <p style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color, margin:'0 0 4px', wordBreak:'break-all' }}>{val}</p>
+            <p style={{ fontSize:13, color:'#0d1b3e', fontWeight:500, margin:'0 0 2px' }}>{label}</p>
+            <p style={{ fontSize:12, color:'#8a96b0', margin:0 }}>{sub}</p>
           </div>
         ))}
       </div>
 
-      {/* Graphiques */}
-      <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr', gap:16, marginBottom:20 }}>
-
-        {/* Évolution CA */}
+      {/* Graphes */}
+      <div className="charts-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18, marginBottom:24 }}>
+        {/* CA 7 jours */}
         <div style={T.card}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-            <h2 style={T.cardTitle}>Évolution du CA mensuel</h2>
-            <span style={{ fontFamily:'Cormorant Garamond,serif', fontSize:13, color:'#4a5578' }}>Année 2024</span>
-          </div>
-          <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:150 }}>
-            {CA_MOIS.map((v, i) => {
-              const pct    = (v / maxCA) * 100;
-              const isMax  = v === maxCA;
-              const isCurr = i === 4;
+          <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'#0d1b3e', marginBottom:18 }}>CA des 7 derniers jours</h3>
+          <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:150, padding:'0 4px' }}>
+            {ventesParJour.map((d,i) => {
+              const pct = (d.total/maxCA)*100;
+              const isMax = d.total === Math.max(...ventesParJour.map(v=>v.total));
               return (
                 <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
-                  <span style={{ fontSize:9, color: isMax?'#d0a83a':'#8a96b0', fontWeight:isMax?700:400 }}>
-                    {(v/1000000).toFixed(1)}M
-                  </span>
-                  <div style={{ width:'100%', height:`${pct}%`, borderRadius:'4px 4px 0 0', background: isMax?'linear-gradient(180deg,#d0a83a,#ae8f1e)':isCurr?'linear-gradient(180deg,#2196F3,#1465BB)':'#e0f0ff', minHeight:6, transition:'all .3s', boxShadow: isMax?'0 3px 8px rgba(208,168,58,0.4)':isCurr?'0 3px 8px rgba(33,150,243,0.3)':'none' }}/>
-                  <span style={{ fontSize:9, color:isCurr?'#1465BB':'#8a96b0', fontWeight:isCurr?600:400 }}>{MOIS[i]}</span>
+                  <span style={{ fontSize:9, color:'#8a96b0', whiteSpace:'nowrap' }}>{d.total>0?(d.total>=1000?Math.round(d.total/1000)+'k':d.total):''}</span>
+                  <div style={{ width:'100%', height:`${Math.max(pct,3)}%`, background:isMax?'linear-gradient(180deg,#2196F3,#1465BB)':'#e0f0ff', borderRadius:'5px 5px 0 0', minHeight:4 }}/>
+                  <span style={{ fontSize:10, color:isMax?'#1465BB':'#8a96b0', fontWeight:isMax?700:400 }}>{d.jour}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Répartition ventes */}
+        {/* Top zones */}
         <div style={T.card}>
-          <h2 style={{ ...T.cardTitle, marginBottom:18 }}>Répartition des ventes</h2>
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            {[
-              { label:'Livrées',       val:ventes.filter(v=>v.statut==='livree').length,                              color:'#0a9e6e', bg:'#dcfce7' },
-              { label:'En livraison',  val:ventes.filter(v=>v.statut==='en_livraison').length,                        color:'#1465BB', bg:'#e0f0ff' },
-              { label:'En attente',    val:ventes.filter(v=>v.statut==='en_attente').length,                          color:'#d0a83a', bg:'#fdf3d7' },
-              { label:'Non livrées',   val:ventes.filter(v=>['non_livree','rejetee_livreur'].includes(v.statut)).length, color:'#e53e3e', bg:'#fee2e2' },
-              { label:'Refusées',      val:ventes.filter(v=>v.statut==='refusee').length,                             color:'#94a3b8', bg:'#f1f5f9' },
-            ].map(({ label, val, color, bg }) => {
-              const pct = ventes.length > 0 ? Math.round((val/ventes.length)*100) : 0;
-              return (
-                <div key={label}>
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                    <span style={{ fontSize:13, color:'#4a5578', fontWeight:500 }}>{label}</span>
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontFamily:'Playfair Display,serif', fontSize:15, fontWeight:700, color }}>{val}</span>
-                      <span style={{ background:bg, color, fontSize:10, fontWeight:600, padding:'1px 7px', borderRadius:10 }}>{pct}%</span>
+          <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'#0d1b3e', marginBottom:18 }}>Top zones par CA</h3>
+          {topZones.length === 0 ? (
+            <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:15, color:'#8a96b0', textAlign:'center', padding:'30px 0' }}>Aucune donnée</p>
+          ) : (
+            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+              {topZones.map(([zone,ca],i) => {
+                const colors=['#1465BB','#0a9e6e','#d0a83a','#7c3aed','#0891b2'];
+                return (
+                  <div key={zone}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
+                      <span style={{ fontSize:13, fontWeight:500, color:'#0d1b3e' }}>{zone}</span>
+                      <span style={{ fontSize:13, fontWeight:700, color:colors[i] }}>{ca.toLocaleString('fr-FR')} FCFA</span>
+                    </div>
+                    <div style={{ height:8, background:'#f0f4fb', borderRadius:4, overflow:'hidden' }}>
+                      <div style={{ height:'100%', width:`${(ca/maxZone)*100}%`, background:colors[i], borderRadius:4 }}/>
                     </div>
                   </div>
-                  <div style={{ background:'#f0f4fb', borderRadius:20, height:6, overflow:'hidden' }}>
-                    <div style={{ height:'100%', width:`${pct}%`, background:color, borderRadius:20, transition:'width .5s ease' }}/>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Ventes par mois + Classement */}
-      <div style={{ display:'grid', gridTemplateColumns:'1.6fr 1fr', gap:16, marginBottom:20 }}>
-
-        {/* Nb ventes mois */}
-        <div style={T.card}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-            <h2 style={T.cardTitle}>Nombre de ventes par mois</h2>
-          </div>
-          <div style={{ display:'flex', alignItems:'flex-end', gap:6, height:120 }}>
-            {VTE_MOIS.map((v,i) => {
-              const pct   = (v/maxVte)*100;
-              const isCurr = i === 4;
-              return (
-                <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
-                  <span style={{ fontSize:9, color:isCurr?'#1465BB':'#8a96b0' }}>{v}</span>
-                  <div style={{ width:'100%', height:`${pct}%`, borderRadius:'4px 4px 0 0', background:isCurr?'linear-gradient(180deg,#2196F3,#1465BB)':'#e0f0ff', minHeight:4 }}/>
-                  <span style={{ fontSize:9, color:isCurr?'#1465BB':'#8a96b0', fontWeight:isCurr?600:400 }}>{MOIS[i]}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Top Vendeurs */}
-        <div style={T.card}>
-          <h2 style={{ ...T.cardTitle, marginBottom:16 }}>Top vendeurs</h2>
-          {classement.length === 0 ? (
-            <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:15, color:'#8a96b0', textAlign:'center', padding:'20px 0' }}>Aucune donnée</p>
-          ) : classement.slice(0,5).map((c,i) => {
-            const medals = ['🥇','🥈','🥉'];
-            const pct    = classement[0].total > 0 ? (c.total/classement[0].total)*100 : 0;
-            return (
-              <div key={c.vendeurId} style={{ marginBottom:12 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:4 }}>
-                  <span style={{ fontSize:16, width:24 }}>{medals[i]||`#${i+1}`}</span>
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'white', flexShrink:0 }}>
-                    {c.nom[0]}
-                  </div>
-                  <span style={{ flex:1, fontSize:13, fontWeight:500, color:'#0d1b3e' }}>{c.nom}</span>
-                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:14, fontWeight:700, color:'#1465BB' }}>
-                    {(c.total/1000).toFixed(0)}k FCFA
-                  </span>
-                </div>
-                <div style={{ background:'#f0f4fb', borderRadius:20, height:4, overflow:'hidden', marginLeft:33 }}>
-                  <div style={{ height:'100%', width:`${pct}%`, background:i===0?'linear-gradient(90deg,#d0a83a,#ae8f1e)':'linear-gradient(90deg,#2196F3,#1465BB)', borderRadius:20 }}/>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Stock critique */}
+      {/* Classement */}
       <div style={T.card}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:16 }}>
-          <Package size={18} color="#d0a83a"/>
-          <h2 style={T.cardTitle}>Produits à réapprovisionner</h2>
-          <span style={{ marginLeft:'auto', background:'#fdf3d7', color:'#854d0e', fontSize:12, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>
-            {stockBas} produit{stockBas>1?'s':''}
-          </span>
-        </div>
-        {stockBas === 0 ? (
-          <div style={{ textAlign:'center', padding:'24px', background:'#f0fdf4', borderRadius:10 }}>
-            <p style={{ color:'#166534', fontWeight:500 }}>✅ Tous les stocks sont suffisants</p>
-          </div>
+        <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'#0d1b3e', marginBottom:18 }}>Performance des vendeurs</h3>
+        {classement.length === 0 ? (
+          <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0', textAlign:'center', padding:'20px' }}>Aucune vente validée</p>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
-            {produits.filter(p=>p.stock<10).map(p => (
-              <div key={p.ref} style={{ background:p.stock<=3?'#fff5f5':'#fffbeb', borderRadius:10, padding:'12px 14px', border:`1px solid ${p.stock<=3?'#fecaca':'#fcd34d'}` }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                  <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e' }}>{p.nom}</p>
-                  <span style={{ background:p.stock<=3?'#fee2e2':'#fef9c3', color:p.stock<=3?'#991b1b':'#854d0e', fontSize:10, fontWeight:700, padding:'2px 7px', borderRadius:8 }}>
-                    {p.stock<=3?'🔴 Critique':'🟡 Bas'}
-                  </span>
-                </div>
-                <p style={{ fontSize:11, color:'#8a96b0', marginTop:3 }}>{p.categorie} · {p.poids}</p>
-                <div style={{ display:'flex', justifyContent:'space-between', marginTop:8 }}>
-                  <span style={{ fontSize:12, color:'#4a5578' }}>Stock actuel</span>
-                  <span style={{ fontSize:14, fontWeight:800, color:p.stock<=3?'#e53e3e':'#d0a83a' }}>{p.stock} unités</span>
-                </div>
-              </div>
-            ))}
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+              <thead>
+                <tr>{['Rang','Vendeur','Nb ventes','CA total','Part'].map(h=>(
+                  <th key={h} style={T.th}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {classement.map((c:any, i:number) => {
+                  const part = caTotal > 0 ? Math.round((c.total/caTotal)*100) : 0;
+                  return (
+                    <tr key={i} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
+                      <td style={{ ...T.td, fontWeight:700 }}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}</td>
+                      <td style={T.td}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <div style={{ width:28, height:28, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:11, fontWeight:700, flexShrink:0 }}>
+                            {(c.vendeur||'?')[0]}
+                          </div>
+                          {c.vendeur}
+                        </div>
+                      </td>
+                      <td style={{ ...T.td, textAlign:'center', fontWeight:700, color:'#1465BB' }}>{c.nombre_ventes}</td>
+                      <td style={{ ...T.td, fontWeight:700, color:'#0a9e6e' }}>{Number(c.total).toLocaleString('fr-FR')} FCFA</td>
+                      <td style={T.td}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <div style={{ flex:1, height:6, background:'#f0f4fb', borderRadius:3 }}>
+                            <div style={{ height:'100%', width:`${part}%`, background:'linear-gradient(90deg,#1465BB,#003785)', borderRadius:3 }}/>
+                          </div>
+                          <span style={{ fontSize:12, fontWeight:600, color:'#1465BB', minWidth:30 }}>{part}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+      <style>{`
+        @media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(2,1fr)!important;} .charts-grid{grid-template-columns:1fr!important;}}
+        @media(max-width:640px){.kpi-grid{grid-template-columns:1fr 1fr!important;}}
+      `}</style>
     </div>
   );
 }
-
 const T = {
-  h1:        { fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
-  sub:       { fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
-  card:      { background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
-  cardTitle: { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'#0d1b3e', margin:0 } as CSSProperties,
-  statCard:  { background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem', boxShadow:'0 2px 8px rgba(0,55,133,0.04)' } as CSSProperties,
+  h1:{ fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
+  sub:{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
+  card:{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
+  th:{ fontSize:11, fontWeight:600, letterSpacing:'.8px', textTransform:'uppercase' as const, color:'#8a96b0', padding:'11px 14px', background:'#f4f7fd', borderBottom:'1px solid #dde5f4', textAlign:'left' as const, whiteSpace:'nowrap' as const },
+  td:{ padding:'11px 14px', fontSize:13, borderBottom:'1px solid #f0f4fb', verticalAlign:'middle' as const } as CSSProperties,
 };
