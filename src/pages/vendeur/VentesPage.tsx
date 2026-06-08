@@ -37,18 +37,21 @@ export default function VendeurVentesPage() {
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    try {
-      const [vr, pr, cr] = await Promise.all([
-        ventesService.getAll(),
-        // Vendeur utilise toujours /produits-liste (lecture seule, pas de 403)
-        api.get('/produits-liste'),
-        ventesService.classement(),
-      ]);
-      setVentes(vr.data || []);
-      setProduits(pr.data || []);
-      setClassement(cr.data || []);
-    } catch { toast.error('Erreur chargement'); }
-    finally { setLoading(false); }
+    setLoading(true);
+    // Chaque appel est indépendant — un échec n'empêche pas les autres
+    const [pr, vr, cr] = await Promise.allSettled([
+      api.get('/produits-liste'),
+      ventesService.getAll(),
+      ventesService.classement(),
+    ]);
+
+    if (pr.status === 'fulfilled') setProduits(pr.value.data || []);
+    else toast.error('Impossible de charger les produits');
+
+    if (vr.status === 'fulfilled') setVentes(vr.value.data || []);
+    if (cr.status === 'fulfilled') setClassement(cr.value.data || []);
+
+    setLoading(false);
   };
 
   const addToCart = (produitId: string) => {
@@ -56,7 +59,9 @@ export default function VendeurVentesPage() {
     if (!p) return;
     setPanier(prev => {
       const existing = prev.find(i => i.produit_id === p.id);
-      if (existing) return prev.map(i => i.produit_id === p.id ? {...i, quantite: i.quantite + 1} : i);
+      if (existing) return prev.map(i =>
+        i.produit_id === p.id ? {...i, quantite: i.quantite + 1} : i
+      );
       return [...prev, {
         produit_id:    p.id,
         nom:           p.nom,
@@ -74,17 +79,14 @@ export default function VendeurVentesPage() {
   const removeItem = (id: number) =>
     setPanier(prev => prev.filter(i => i.produit_id !== id));
 
-  const totalPanier = panier.reduce((s, i) => s + ((i.prix_vendeur * i.quantite) - i.remise), 0);
+  const totalPanier = panier.reduce((s, i) =>
+    s + ((i.prix_vendeur * i.quantite) - i.remise), 0);
 
   const handleSubmit = async () => {
     if (panier.length === 0) { toast.error('Ajoutez au moins un produit'); return; }
     for (const item of panier) {
       if (item.prix_vendeur < item.prix_unitaire) {
-        toast.error(`Prix minimum pour "${item.nom}" : ${item.prix_unitaire.toLocaleString('fr-FR')} FCFA`);
-        return;
-      }
-      if (item.quantite < 1) {
-        toast.error(`Quantité invalide pour "${item.nom}"`);
+        toast.error(`Prix min pour "${item.nom}" : ${item.prix_unitaire.toLocaleString('fr-FR')} FCFA`);
         return;
       }
     }
@@ -101,7 +103,7 @@ export default function VendeurVentesPage() {
         zone_livraison: zone,
         notes,
       });
-      toast.success('Vente soumise ! En attente de validation gestionnaire.');
+      toast.success('Vente soumise ! En attente de validation.');
       setModal(false);
       setPanier([]);
       setNotes('');
@@ -116,7 +118,7 @@ export default function VendeurVentesPage() {
 
   if (loading) return (
     <div style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>
-      Chargement des produits et ventes…
+      Chargement…
     </div>
   );
 
@@ -127,10 +129,14 @@ export default function VendeurVentesPage() {
         <div>
           <h1 style={T.h1}>Mes Ventes</h1>
           <p style={T.sub}>
-            Enregistrez vos ventes — {produits.length} produit{produits.length>1?'s':''} disponible{produits.length>1?'s':''}
+            {produits.length > 0
+              ? `${produits.length} produit${produits.length>1?'s':''} disponible${produits.length>1?'s':''} en catalogue`
+              : 'Aucun produit — contactez le gestionnaire'}
           </p>
         </div>
-        <button onClick={()=>{ setPanier([]); setZone(ZONES[0]); setNotes(''); setModal(true); }} style={T.btnPrimary}>
+        <button
+          onClick={()=>{ setPanier([]); setZone(ZONES[0]); setNotes(''); setModal(true); }}
+          style={T.btnPrimary}>
           <ShoppingCart size={15}/> Nouvelle vente
         </button>
       </div>
@@ -153,7 +159,7 @@ export default function VendeurVentesPage() {
       {/* Classement */}
       {classement.length > 0 && (
         <div style={{ ...T.card, marginBottom:20 }}>
-          <h2 style={{ ...T.cardTitle, marginBottom:14 }}>🏆 Classement des vendeurs</h2>
+          <h2 style={{ ...T.cardTitle, marginBottom:14 }}>🏆 Classement vendeurs</h2>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {classement.slice(0,5).map((c:any, i:number) => {
               const isMe = Number(c.caissiere_id) === Number(user?.id);
@@ -180,7 +186,7 @@ export default function VendeurVentesPage() {
         </div>
       )}
 
-      {/* Historique ventes */}
+      {/* Historique */}
       <div style={{ ...T.card, padding:0, overflow:'hidden' }}>
         <div style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
           <h2 style={T.cardTitle}>Historique ({mesVentes.length})</h2>
@@ -205,21 +211,18 @@ export default function VendeurVentesPage() {
                     onMouseLeave={e=>e.currentTarget.style.background='white'}>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{v.id}</td>
                     <td style={T.td}>
-                      {v.items && v.items.length > 0 ? (
-                        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                          {v.items.map((it:any) => (
-                            <span key={it.id} style={{ fontSize:12 }}>{it.produit?.nom} ×{it.quantite}</span>
-                          ))}
-                        </div>
-                      ) : <span>{v.produit?.nom||'—'} ×{v.quantite}</span>}
+                      {v.items?.length > 0
+                        ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+                            {v.items.map((it:any) => (
+                              <span key={it.id} style={{ fontSize:12 }}>{it.produit?.nom} ×{it.quantite}</span>
+                            ))}
+                          </div>
+                        : <span>{v.produit?.nom||'—'} ×{v.quantite}</span>
+                      }
                     </td>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')}</td>
                     <td style={T.td}>{v.zone_livraison||'—'}</td>
-                    <td style={T.td}>
-                      <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>
-                        {sc.label}
-                      </span>
-                    </td>
+                    <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>{sc.label}</span></td>
                     <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{v.date_vente}</td>
                   </tr>
                 );
@@ -242,30 +245,30 @@ export default function VendeurVentesPage() {
               {/* Sélection produit */}
               <div>
                 <label style={T.lbl}>
-                  Ajouter un produit au panier
-                  <span style={{ fontWeight:400, color:'#8a96b0', marginLeft:6 }}>
-                    ({produits.filter((p:any)=>p.quantite_stock>0).length} dispo)
+                  Choisir un produit
+                  <span style={{ fontWeight:400, color:'#8a96b0', marginLeft:6, fontSize:11 }}>
+                    ({produits.filter((p:any)=>p.quantite_stock>0).length} en stock)
                   </span>
                 </label>
                 {produits.length === 0 ? (
-                  <div style={{ padding:'12px', background:'#fef9c3', borderRadius:8, fontSize:13, color:'#854d0e', border:'1px solid #fde68a' }}>
-                    ⚠️ Aucun produit disponible — contactez le gestionnaire pour ajouter des produits
+                  <div style={{ padding:'12px 14px', background:'#fef9c3', borderRadius:8, fontSize:13, color:'#854d0e', border:'1px solid #fde68a' }}>
+                    ⚠️ Aucun produit — le gestionnaire doit d'abord ajouter des produits
                   </div>
                 ) : (
                   <select
-                    onChange={e=>{ if(e.target.value){ addToCart(e.target.value); e.target.value=''; } }}
-                    style={T.inp}
-                    defaultValue="">
-                    <option value="" disabled>Sélectionner un produit…</option>
-                    {produits
-                      .filter((p:any) => p.quantite_stock > 0)
-                      .map((p:any) => (
-                        <option key={p.id} value={String(p.id)}>
-                          {p.nom} — {Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                          {p.unite ? ` / ${p.unite}` : ''} (stock: {p.quantite_stock})
-                        </option>
-                      ))
-                    }
+                    onChange={e=>{ if(e.target.value){ addToCart(e.target.value); e.target.value=''; }}}
+                    style={{ ...T.inp, cursor:'pointer' }}
+                    value="">
+                    <option value="" disabled>— Sélectionner un produit à ajouter —</option>
+                    {produits.map((p:any) => (
+                      <option key={p.id} value={String(p.id)} disabled={p.quantite_stock === 0}>
+                        {p.nom}
+                        {p.unite ? ` (${p.unite})` : ''}
+                        {' — '}
+                        {Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA
+                        {p.quantite_stock === 0 ? ' — RUPTURE' : ` — stock: ${p.quantite_stock}`}
+                      </option>
+                    ))}
                   </select>
                 )}
               </div>
@@ -282,7 +285,7 @@ export default function VendeurVentesPage() {
                         <div>
                           <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e' }}>{item.nom}</span>
                           <span style={{ fontSize:11, color:'#8a96b0', marginLeft:8 }}>
-                            Plancher : {item.prix_unitaire.toLocaleString('fr-FR')} FCFA
+                            plancher : {item.prix_unitaire.toLocaleString('fr-FR')} FCFA
                           </span>
                         </div>
                         <button onClick={()=>removeItem(item.produit_id)}
@@ -302,10 +305,10 @@ export default function VendeurVentesPage() {
                           <input type="number" min={0} value={item.prix_vendeur}
                             onChange={e=>updateItem(item.produit_id,'prix_vendeur',+e.target.value)}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13,
-                              borderColor:item.prix_vendeur < item.prix_unitaire ? '#e53e3e' : '#dde5f4' }}/>
+                              borderColor: item.prix_vendeur < item.prix_unitaire ? '#e53e3e' : '#dde5f4' }}/>
                           {item.prix_vendeur < item.prix_unitaire && (
                             <p style={{ fontSize:10, color:'#e53e3e', margin:'2px 0 0' }}>
-                              Min: {item.prix_unitaire.toLocaleString('fr-FR')}
+                              Min : {item.prix_unitaire.toLocaleString('fr-FR')}
                             </p>
                           )}
                         </div>
@@ -349,7 +352,7 @@ export default function VendeurVentesPage() {
               <div>
                 <label style={T.lbl}>Notes (optionnel)</label>
                 <input value={notes} onChange={e=>setNotes(e.target.value)}
-                  placeholder="Ex: Livraison urgente, client fidèle…" style={T.inp}/>
+                  placeholder="Ex: Client fidèle, livraison urgente…" style={T.inp}/>
               </div>
 
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
@@ -366,8 +369,8 @@ export default function VendeurVentesPage() {
 
       <style>{`
         @media(max-width:768px){
-          .stats-4         { grid-template-columns: repeat(2,1fr) !important; }
-          .cart-item-grid  { grid-template-columns: 1fr 1fr !important; }
+          .stats-4        { grid-template-columns: repeat(2,1fr) !important; }
+          .cart-item-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
     </div>
@@ -375,19 +378,19 @@ export default function VendeurVentesPage() {
 }
 
 const T = {
-  h1:        { fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
-  sub:       { fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
-  statCard:  { background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem' } as CSSProperties,
-  card:      { background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
-  cardTitle: { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'#0d1b3e', margin:0 } as CSSProperties,
-  th:        { fontSize:11, fontWeight:600, letterSpacing:'.8px', textTransform:'uppercase' as const, color:'#8a96b0', padding:'11px 14px', background:'#f4f7fd', borderBottom:'1px solid #dde5f4', textAlign:'left' as const, whiteSpace:'nowrap' as const },
-  td:        { padding:'11px 14px', fontSize:13, borderBottom:'1px solid #f0f4fb', verticalAlign:'middle' as const } as CSSProperties,
-  lbl:       { display:'block', fontSize:12, fontWeight:600, color:'#4a5578', marginBottom:5 } as CSSProperties,
-  inp:       { width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', color:'#0d1b3e', background:'white', boxSizing:'border-box' as const } as CSSProperties,
-  btnPrimary:{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontSize:14, fontWeight:500, cursor:'pointer' } as CSSProperties,
-  btnCancel: { padding:'9px 18px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', fontSize:14, cursor:'pointer', color:'#4a5578' } as CSSProperties,
-  overlay:   { position:'fixed' as const, inset:0, zIndex:200, background:'rgba(13,27,62,0.45)', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(3px)', padding:'16px' } as CSSProperties,
-  modalBox:  { background:'white', borderRadius:14, width:'100%', maxWidth:580, maxHeight:'92vh', overflowY:'auto' as const } as CSSProperties,
+  h1:         { fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
+  sub:        { fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
+  statCard:   { background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem' } as CSSProperties,
+  card:       { background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
+  cardTitle:  { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'#0d1b3e', margin:0 } as CSSProperties,
+  th:         { fontSize:11, fontWeight:600, letterSpacing:'.8px', textTransform:'uppercase' as const, color:'#8a96b0', padding:'11px 14px', background:'#f4f7fd', borderBottom:'1px solid #dde5f4', textAlign:'left' as const, whiteSpace:'nowrap' as const },
+  td:         { padding:'11px 14px', fontSize:13, borderBottom:'1px solid #f0f4fb', verticalAlign:'middle' as const } as CSSProperties,
+  lbl:        { display:'block', fontSize:12, fontWeight:600, color:'#4a5578', marginBottom:5 } as CSSProperties,
+  inp:        { width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', color:'#0d1b3e', background:'white', boxSizing:'border-box' as const } as CSSProperties,
+  btnPrimary: { display:'flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontSize:14, fontWeight:500, cursor:'pointer' } as CSSProperties,
+  btnCancel:  { padding:'9px 18px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', fontSize:14, cursor:'pointer', color:'#4a5578' } as CSSProperties,
+  overlay:    { position:'fixed' as const, inset:0, zIndex:200, background:'rgba(13,27,62,0.45)', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(3px)', padding:'16px' } as CSSProperties,
+  modalBox:   { background:'white', borderRadius:14, width:'100%', maxWidth:580, maxHeight:'92vh', overflowY:'auto' as const } as CSSProperties,
   modalHeader:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 22px', background:'linear-gradient(90deg,#003785,#1465BB)', position:'sticky' as const, top:0 } as CSSProperties,
   modalTitle: { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0, display:'flex', alignItems:'center' } as CSSProperties,
   modalClose: { background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
