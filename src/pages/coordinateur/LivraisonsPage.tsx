@@ -24,19 +24,23 @@ export default function CoordLivraisonsPage() {
     finally { setLoading(false); }
   };
 
+  // Assigner sans GPS coordinateur — le backend choisit le livreur
+  // avec GPS actif le plus proche de la zone de livraison
   const doAssignerGPS = async (livraison: any) => {
-    if (!navigator.geolocation) { toast.error('GPS non disponible'); return; }
-    toast.loading('Recherche livreur le plus proche…', { id: `gps-${livraison.id}` });
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await livraisonsService.assigner(livraison.id, { latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-          toast.success(`Livreur assigné : ${res.data.livreur||'OK'} (${res.data.distance||''})`, { id: `gps-${livraison.id}` });
-          load();
-        } catch (e:any) { toast.error(e.response?.data?.message || 'Aucun livreur disponible', { id: `gps-${livraison.id}` }); }
-      },
-      () => toast.error('Position GPS refusée', { id: `gps-${livraison.id}` })
-    );
+    toast.loading('Recherche du livreur disponible…', { id: `gps-${livraison.id}` });
+    try {
+      const res = await livraisonsService.assigner(livraison.id, {
+        latitude:  0,
+        longitude: 0,
+      });
+      toast.success(
+        `Livreur assigné : ${res.data.livreur || 'OK'}${res.data.distance ? ` (${res.data.distance})` : ''}`,
+        { id: `gps-${livraison.id}` }
+      );
+      load();
+    } catch (e:any) {
+      toast.error(e.response?.data?.message || 'Aucun livreur disponible', { id: `gps-${livraison.id}` });
+    }
   };
 
   const filtered = filter === 'tous' ? livraisons : livraisons.filter(l => l.statut === filter);
