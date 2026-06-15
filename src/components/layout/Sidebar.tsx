@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from '../../types';
 import {
-  LayoutDashboard, Package, TrendingUp, Truck,
+  LayoutDashboard, Package, TrendingUp, TrendingDown, Truck,
   Users, FolderOpen, BarChart2, MapPin,
   LogOut, ChevronRight, Settings, Trophy,
   CheckSquare, Bell, ClipboardList, X,
