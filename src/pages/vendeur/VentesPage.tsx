@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { Plus, X, Trash2, ShoppingCart } from 'lucide-react';
+import { Plus, X, Trash2, ShoppingCart, User, Phone, MapPin } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -12,17 +12,10 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
 };
 const ZONES = ['Adidogomé','Agoe','Baguida','Lomé centre','Hédzranawoe','Avedji','Tokoin','Djidjolé'];
 
-interface CartItem {
-  produit_id:    number;
-  nom:           string;
-  prix_unitaire: number;
-  prix_vendeur:  number;
-  quantite:      number;
-  remise:        number;
-}
+interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; }
 
 export default function VendeurVentesPage() {
-  const { user }     = useAuth();
+  const { user } = useAuth();
   const [ventes,     setVentes]     = useState<any[]>([]);
   const [produits,   setProduits]   = useState<any[]>([]);
   const [classement, setClassement] = useState<any[]>([]);
@@ -33,54 +26,46 @@ export default function VendeurVentesPage() {
   const [zone,       setZone]       = useState(ZONES[0]);
   const [dateVente,  setDateVente]  = useState(new Date().toISOString().split('T')[0]);
   const [notes,      setNotes]      = useState('');
+  const [clientNom,      setClientNom]      = useState('');
+  const [clientTel,      setClientTel]      = useState('');
+  const [clientQuartier, setClientQuartier] = useState('');
 
   useEffect(() => { load(); }, []);
 
   const load = async () => {
-    setLoading(true);
-    // Chaque appel est indépendant — un échec n'empêche pas les autres
-    const [pr, vr, cr] = await Promise.allSettled([
-      api.get('/produits-liste'),
+    const [vr, pr, cr] = await Promise.allSettled([
       ventesService.getAll(),
+      api.get('/produits-liste'),
       ventesService.classement(),
     ]);
-
-    if (pr.status === 'fulfilled') setProduits(pr.value.data || []);
-    else toast.error('Impossible de charger les produits');
-
     if (vr.status === 'fulfilled') setVentes(vr.value.data || []);
+    if (pr.status === 'fulfilled') setProduits(pr.value.data || []);
     if (cr.status === 'fulfilled') setClassement(cr.value.data || []);
-
     setLoading(false);
   };
 
   const addToCart = (produitId: string) => {
-    const p = produits.find((x: any) => String(x.id) === produitId);
+    const p = produits.find((x:any) => String(x.id) === produitId);
     if (!p) return;
     setPanier(prev => {
       const existing = prev.find(i => i.produit_id === p.id);
-      if (existing) return prev.map(i =>
-        i.produit_id === p.id ? {...i, quantite: i.quantite + 1} : i
-      );
-      return [...prev, {
-        produit_id:    p.id,
-        nom:           p.nom,
-        prix_unitaire: p.prix_unitaire,
-        prix_vendeur:  p.prix_unitaire,
-        quantite:      1,
-        remise:        0,
-      }];
+      if (existing) return prev.map(i => i.produit_id === p.id ? {...i, quantite: i.quantite+1} : i);
+      return [...prev, { produit_id:p.id, nom:p.nom, prix_unitaire:p.prix_unitaire, prix_gros:p.prix_gros||null, prix_vendeur:p.prix_unitaire, quantite:1, remise:0 }];
     });
   };
 
   const updateItem = (id: number, field: keyof CartItem, val: number) =>
     setPanier(prev => prev.map(i => i.produit_id === id ? {...i, [field]: val} : i));
 
-  const removeItem = (id: number) =>
-    setPanier(prev => prev.filter(i => i.produit_id !== id));
+  const removeItem = (id: number) => setPanier(prev => prev.filter(i => i.produit_id !== id));
 
-  const totalPanier = panier.reduce((s, i) =>
-    s + ((i.prix_vendeur * i.quantite) - i.remise), 0);
+  const totalPanier = panier.reduce((s,i) => s + ((i.prix_vendeur * i.quantite) - i.remise), 0);
+
+  const openModal = () => {
+    setPanier([]); setZone(ZONES[0]); setNotes('');
+    setClientNom(''); setClientTel(''); setClientQuartier('');
+    setModal(true);
+  };
 
   const handleSubmit = async () => {
     if (panier.length === 0) { toast.error('Ajoutez au moins un produit'); return; }
@@ -93,52 +78,35 @@ export default function VendeurVentesPage() {
     setSaving(true);
     try {
       await ventesService.create({
-        items: panier.map(i => ({
-          produit_id:   i.produit_id,
-          quantite:     i.quantite,
-          prix_vendeur: i.prix_vendeur,
-          remise:       i.remise,
-        })),
-        date_vente:     dateVente,
-        zone_livraison: zone,
+        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise })),
+        date_vente:       dateVente,
+        zone_livraison:   zone,
         notes,
+        client_nom:       clientNom,
+        client_telephone: clientTel,
+        client_quartier:  clientQuartier,
       });
       toast.success('Vente soumise ! En attente de validation.');
-      setModal(false);
-      setPanier([]);
-      setNotes('');
+      setModal(false); setPanier([]); setNotes('');
+      setClientNom(''); setClientTel(''); setClientQuartier('');
       load();
-    } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Erreur lors de la soumission');
-    } finally { setSaving(false); }
+    } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
+    finally { setSaving(false); }
   };
 
-  const mesVentes = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
-  const monRang   = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
+  const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
+  const monRang    = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
 
-  if (loading) return (
-    <div style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>
-      Chargement…
-    </div>
-  );
+  if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={T.h1}>Mes Ventes</h1>
-          <p style={T.sub}>
-            {produits.length > 0
-              ? `${produits.length} produit${produits.length>1?'s':''} disponible${produits.length>1?'s':''} en catalogue`
-              : 'Aucun produit — contactez le gestionnaire'}
-          </p>
+          <p style={T.sub}>{produits.length} produit{produits.length>1?'s':''} disponible{produits.length>1?'s':''}</p>
         </div>
-        <button
-          onClick={()=>{ setPanier([]); setZone(ZONES[0]); setNotes(''); setModal(true); }}
-          style={T.btnPrimary}>
-          <ShoppingCart size={15}/> Nouvelle vente
-        </button>
+        <button onClick={openModal} style={T.btnPrimary}><ShoppingCart size={15}/> Nouvelle vente</button>
       </div>
 
       {/* Stats */}
@@ -156,27 +124,28 @@ export default function VendeurVentesPage() {
         ))}
       </div>
 
-      {/* Classement */}
+      {/* Classement TOUS les vendeurs */}
       {classement.length > 0 && (
         <div style={{ ...T.card, marginBottom:20 }}>
-          <h2 style={{ ...T.cardTitle, marginBottom:14 }}>🏆 Classement vendeurs</h2>
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {classement.slice(0,5).map((c:any, i:number) => {
+          <h2 style={{ ...T.cardTitle, marginBottom:14 }}>🏆 Classement — tous les vendeurs</h2>
+          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {classement.map((c:any, i:number) => {
               const isMe = Number(c.caissiere_id) === Number(user?.id);
+              const medals: Record<number,string> = {0:'🥇',1:'🥈',2:'🥉'};
               return (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:10,
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 14px', borderRadius:10,
                   background:isMe?'linear-gradient(90deg,#e0f0ff,#f0f4fb)':'#f8faff',
                   border:isMe?'1.5px solid #1465BB':'1px solid #f0f4fb' }}>
-                  <span style={{ fontSize:18, width:28, textAlign:'center', flexShrink:0 }}>
-                    {i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}
+                  <span style={{ fontSize:i<3?18:13, fontWeight:700, width:32, textAlign:'center', flexShrink:0, color:i<3?'inherit':'#8a96b0' }}>
+                    {medals[i]||`#${i+1}`}
                   </span>
                   <div style={{ flex:1 }}>
-                    <p style={{ fontSize:14, fontWeight:isMe?700:500, color:'#0d1b3e', margin:0 }}>
+                    <p style={{ fontSize:13, fontWeight:isMe?700:500, color:'#0d1b3e', margin:0 }}>
                       {c.vendeur} {isMe && <span style={{ fontSize:11, color:'#1465BB' }}>(vous)</span>}
                     </p>
-                    <p style={{ fontSize:12, color:'#8a96b0', margin:0 }}>{c.nombre_ventes} vente{c.nombre_ventes>1?'s':''}</p>
+                    <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{c.nombre_ventes} vente{c.nombre_ventes>1?'s':''}</p>
                   </div>
-                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:15, fontWeight:700, color:isMe?'#1465BB':'#0d1b3e' }}>
+                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:14, fontWeight:700, color:isMe?'#1465BB':'#4a5578' }}>
                     {Number(c.total).toLocaleString('fr-FR')} <span style={{fontSize:10,color:'#8a96b0'}}>FCFA</span>
                   </span>
                 </div>
@@ -194,31 +163,33 @@ export default function VendeurVentesPage() {
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
-              <tr>{['#','Produit(s)','Total FCFA','Zone','Statut','Date'].map(h=>(
+              <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Date'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {mesVentes.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
-                  Aucune vente — cliquez sur "Nouvelle vente" pour commencer
+                <tr><td colSpan={7} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
+                  Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
               ) : mesVentes.map((v:any) => {
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 return (
-                  <tr key={v.id}
-                    onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'}
-                    onMouseLeave={e=>e.currentTarget.style.background='white'}>
+                  <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{v.id}</td>
                     <td style={T.td}>
                       {v.items?.length > 0
-                        ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-                            {v.items.map((it:any) => (
-                              <span key={it.id} style={{ fontSize:12 }}>{it.produit?.nom} ×{it.quantite}</span>
-                            ))}
-                          </div>
-                        : <span>{v.produit?.nom||'—'} ×{v.quantite}</span>
-                      }
+                        ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>{v.items.map((it:any)=><span key={it.id} style={{fontSize:12}}>{it.produit?.nom} ×{it.quantite}</span>)}</div>
+                        : <span>{v.produit?.nom||'—'} ×{v.quantite}</span>}
+                    </td>
+                    <td style={T.td}>
+                      {v.client_nom ? (
+                        <div>
+                          <p style={{ fontSize:13, fontWeight:500, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
+                          {v.client_telephone && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_telephone}</p>}
+                          {v.client_quartier && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_quartier}</p>}
+                        </div>
+                      ) : <span style={{ color:'#8a96b0', fontSize:12 }}>—</span>}
                     </td>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')}</td>
                     <td style={T.td}>{v.zone_livraison||'—'}</td>
@@ -232,7 +203,7 @@ export default function VendeurVentesPage() {
         </div>
       </div>
 
-      {/* ── Modal panier ── */}
+      {/* Modal panier + infos client */}
       {modal && (
         <div onClick={()=>setModal(false)} style={T.overlay}>
           <div onClick={e=>e.stopPropagation()} style={T.modalBox}>
@@ -242,58 +213,69 @@ export default function VendeurVentesPage() {
             </div>
             <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
 
+              {/* Infos client */}
+              <div style={{ background:'#f4f7fd', borderRadius:10, padding:'14px', border:'1px solid #dde5f4' }}>
+                <p style={{ fontSize:12, fontWeight:700, color:'#4a5578', margin:'0 0 10px', textTransform:'uppercase', letterSpacing:'.5px' }}>
+                  <User size={12} style={{marginRight:5, verticalAlign:'middle'}}/> Infos client (optionnel)
+                </p>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  <div>
+                    <label style={T.lbl}>Nom client</label>
+                    <input value={clientNom} onChange={e=>setClientNom(e.target.value)} placeholder="Ex: Kofi Mensah" style={T.inp}/>
+                  </div>
+                  <div>
+                    <label style={T.lbl}>Téléphone</label>
+                    <input value={clientTel} onChange={e=>setClientTel(e.target.value)} placeholder="90 00 00 00" style={T.inp}/>
+                  </div>
+                  <div style={{ gridColumn:'1/-1' }}>
+                    <label style={T.lbl}>Quartier / Adresse</label>
+                    <input value={clientQuartier} onChange={e=>setClientQuartier(e.target.value)} placeholder="Ex: Adidogomé carrefour" style={T.inp}/>
+                  </div>
+                </div>
+              </div>
+
               {/* Sélection produit */}
               <div>
-                <label style={T.lbl}>
-                  Choisir un produit
+                <label style={T.lbl}>Ajouter un produit
                   <span style={{ fontWeight:400, color:'#8a96b0', marginLeft:6, fontSize:11 }}>
                     ({produits.filter((p:any)=>p.quantite_stock>0).length} en stock)
                   </span>
                 </label>
-                {produits.length === 0 ? (
-                  <div style={{ padding:'12px 14px', background:'#fef9c3', borderRadius:8, fontSize:13, color:'#854d0e', border:'1px solid #fde68a' }}>
-                    ⚠️ Aucun produit — le gestionnaire doit d'abord ajouter des produits
-                  </div>
-                ) : (
-                  <select
-                    onChange={e=>{ if(e.target.value){ addToCart(e.target.value); e.target.value=''; }}}
-                    style={{ ...T.inp, cursor:'pointer' }}
-                    value="">
-                    <option value="" disabled>— Sélectionner un produit à ajouter —</option>
-                    {produits.map((p:any) => (
-                      <option key={p.id} value={String(p.id)} disabled={p.quantite_stock === 0}>
-                        {p.nom}
-                        {p.unite ? ` (${p.unite})` : ''}
-                        {' — '}
-                        {Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                        {p.quantite_stock === 0 ? ' — RUPTURE' : ` — stock: ${p.quantite_stock}`}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <select onChange={e=>{ if(e.target.value){ addToCart(e.target.value); e.target.value=''; }}} style={T.inp} value="">
+                  <option value="" disabled>— Sélectionner un produit —</option>
+                  {produits.map((p:any) => (
+                    <option key={p.id} value={String(p.id)} disabled={p.quantite_stock===0}>
+                      {p.nom} {p.unite?`(${p.unite})`:''} — {Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA
+                      {p.quantite_stock===0?' — RUPTURE':` — stock: ${p.quantite_stock}`}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Panier */}
               {panier.length > 0 && (
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  <label style={T.lbl}>
-                    Panier — {panier.length} produit{panier.length>1?'s':''}
-                  </label>
+                  <label style={T.lbl}>Panier — {panier.length} produit{panier.length>1?'s':''}</label>
                   {panier.map(item => (
                     <div key={item.produit_id} style={{ background:'#f8faff', borderRadius:10, padding:'12px 14px', border:'1px solid #dde5f4' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
                         <div>
                           <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e' }}>{item.nom}</span>
-                          <span style={{ fontSize:11, color:'#8a96b0', marginLeft:8 }}>
-                            plancher : {item.prix_unitaire.toLocaleString('fr-FR')} FCFA
-                          </span>
+                          <div style={{ display:'flex', gap:10, marginTop:2 }}>
+                            <span style={{ fontSize:11, color:'#8a96b0' }}>Plancher: {item.prix_unitaire.toLocaleString('fr-FR')} FCFA</span>
+                            {item.prix_gros && (
+                              <span style={{ fontSize:11, color:'#7c3aed', fontWeight:600 }}>
+                                Prix gros: {Number(item.prix_gros).toLocaleString('fr-FR')} FCFA
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <button onClick={()=>removeItem(item.produit_id)}
                           style={{ background:'#fee2e2', border:'none', borderRadius:6, width:24, height:24, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                           <Trash2 size={11} color="#e53e3e"/>
                         </button>
                       </div>
-                      <div className="cart-item-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+                      <div className="cart-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Quantité</label>
                           <input type="number" min={1} value={item.quantite}
@@ -304,12 +286,9 @@ export default function VendeurVentesPage() {
                           <label style={{ ...T.lbl, fontSize:10 }}>Prix vente (FCFA)</label>
                           <input type="number" min={0} value={item.prix_vendeur}
                             onChange={e=>updateItem(item.produit_id,'prix_vendeur',+e.target.value)}
-                            style={{ ...T.inp, padding:'6px 8px', fontSize:13,
-                              borderColor: item.prix_vendeur < item.prix_unitaire ? '#e53e3e' : '#dde5f4' }}/>
+                            style={{ ...T.inp, padding:'6px 8px', fontSize:13, borderColor:item.prix_vendeur<item.prix_unitaire?'#e53e3e':'#dde5f4' }}/>
                           {item.prix_vendeur < item.prix_unitaire && (
-                            <p style={{ fontSize:10, color:'#e53e3e', margin:'2px 0 0' }}>
-                              Min : {item.prix_unitaire.toLocaleString('fr-FR')}
-                            </p>
+                            <p style={{ fontSize:10, color:'#e53e3e', margin:'2px 0 0' }}>Min: {item.prix_unitaire.toLocaleString('fr-FR')}</p>
                           )}
                         </div>
                         <div>
@@ -324,13 +303,9 @@ export default function VendeurVentesPage() {
                       </div>
                     </div>
                   ))}
-
-                  {/* Total */}
                   <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:10, padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:14, color:'rgba(255,255,255,0.8)' }}>Total panier</span>
-                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color:'#d0a83a' }}>
-                      {totalPanier.toLocaleString('fr-FR')} FCFA
-                    </span>
+                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color:'#d0a83a' }}>{totalPanier.toLocaleString('fr-FR')} FCFA</span>
                   </div>
                 </div>
               )}
@@ -351,14 +326,13 @@ export default function VendeurVentesPage() {
 
               <div>
                 <label style={T.lbl}>Notes (optionnel)</label>
-                <input value={notes} onChange={e=>setNotes(e.target.value)}
-                  placeholder="Ex: Client fidèle, livraison urgente…" style={T.inp}/>
+                <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ex: Livraison urgente…" style={T.inp}/>
               </div>
 
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
                 <button onClick={()=>setModal(false)} style={T.btnCancel}>Annuler</button>
-                <button onClick={handleSubmit} disabled={saving || panier.length === 0}
-                  style={{ ...T.btnPrimary, opacity: saving || panier.length === 0 ? 0.5 : 1 }}>
+                <button onClick={handleSubmit} disabled={saving||panier.length===0}
+                  style={{ ...T.btnPrimary, opacity:saving||panier.length===0?0.5:1 }}>
                   {saving ? 'Envoi…' : `Soumettre (${panier.length} produit${panier.length>1?'s':''})`}
                 </button>
               </div>
@@ -366,32 +340,30 @@ export default function VendeurVentesPage() {
           </div>
         </div>
       )}
-
       <style>{`
         @media(max-width:768px){
-          .stats-4        { grid-template-columns: repeat(2,1fr) !important; }
-          .cart-item-grid { grid-template-columns: 1fr 1fr !important; }
+          .stats-4{grid-template-columns:repeat(2,1fr)!important;}
+          .cart-grid{grid-template-columns:1fr 1fr!important;}
         }
       `}</style>
     </div>
   );
 }
-
 const T = {
-  h1:         { fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
-  sub:        { fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
-  statCard:   { background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem' } as CSSProperties,
-  card:       { background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
-  cardTitle:  { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'#0d1b3e', margin:0 } as CSSProperties,
-  th:         { fontSize:11, fontWeight:600, letterSpacing:'.8px', textTransform:'uppercase' as const, color:'#8a96b0', padding:'11px 14px', background:'#f4f7fd', borderBottom:'1px solid #dde5f4', textAlign:'left' as const, whiteSpace:'nowrap' as const },
-  td:         { padding:'11px 14px', fontSize:13, borderBottom:'1px solid #f0f4fb', verticalAlign:'middle' as const } as CSSProperties,
-  lbl:        { display:'block', fontSize:12, fontWeight:600, color:'#4a5578', marginBottom:5 } as CSSProperties,
-  inp:        { width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', color:'#0d1b3e', background:'white', boxSizing:'border-box' as const } as CSSProperties,
-  btnPrimary: { display:'flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontSize:14, fontWeight:500, cursor:'pointer' } as CSSProperties,
-  btnCancel:  { padding:'9px 18px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', fontSize:14, cursor:'pointer', color:'#4a5578' } as CSSProperties,
-  overlay:    { position:'fixed' as const, inset:0, zIndex:200, background:'rgba(13,27,62,0.45)', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(3px)', padding:'16px' } as CSSProperties,
-  modalBox:   { background:'white', borderRadius:14, width:'100%', maxWidth:580, maxHeight:'92vh', overflowY:'auto' as const } as CSSProperties,
+  h1:{ fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
+  sub:{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
+  statCard:{ background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem' } as CSSProperties,
+  card:{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
+  cardTitle:{ fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'#0d1b3e', margin:0 } as CSSProperties,
+  th:{ fontSize:11, fontWeight:600, letterSpacing:'.8px', textTransform:'uppercase' as const, color:'#8a96b0', padding:'11px 14px', background:'#f4f7fd', borderBottom:'1px solid #dde5f4', textAlign:'left' as const, whiteSpace:'nowrap' as const },
+  td:{ padding:'11px 14px', fontSize:13, borderBottom:'1px solid #f0f4fb', verticalAlign:'middle' as const } as CSSProperties,
+  lbl:{ display:'block', fontSize:12, fontWeight:600, color:'#4a5578', marginBottom:5 } as CSSProperties,
+  inp:{ width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', color:'#0d1b3e', background:'white', boxSizing:'border-box' as const } as CSSProperties,
+  btnPrimary:{ display:'flex', alignItems:'center', gap:7, padding:'10px 18px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontSize:14, fontWeight:500, cursor:'pointer' } as CSSProperties,
+  btnCancel:{ padding:'9px 18px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', fontSize:14, cursor:'pointer', color:'#4a5578' } as CSSProperties,
+  overlay:{ position:'fixed' as const, inset:0, zIndex:200, background:'rgba(13,27,62,0.45)', display:'flex', alignItems:'center', justifyContent:'center', backdropFilter:'blur(3px)', padding:'16px' } as CSSProperties,
+  modalBox:{ background:'white', borderRadius:14, width:'100%', maxWidth:600, maxHeight:'92vh', overflowY:'auto' as const } as CSSProperties,
   modalHeader:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 22px', background:'linear-gradient(90deg,#003785,#1465BB)', position:'sticky' as const, top:0 } as CSSProperties,
-  modalTitle: { fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0, display:'flex', alignItems:'center' } as CSSProperties,
-  modalClose: { background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
+  modalTitle:{ fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0, display:'flex', alignItems:'center' } as CSSProperties,
+  modalClose:{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
 };

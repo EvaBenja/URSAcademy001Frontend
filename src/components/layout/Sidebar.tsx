@@ -27,6 +27,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Classement vendeurs',  to:'/gestionnaire/classement',       Icon:Trophy          },
     { label:'Dossiers journaliers', to:'/gestionnaire/dossiers',         Icon:FolderOpen      },
     { label:'Rapports',             to:'/gestionnaire/rapports',         Icon:BarChart2       },
+    { label:'Dépenses',            to:'/gestionnaire/depenses',         Icon:TrendingDown    },
   ],
   coordinateur: [
     { label:'Livraisons',           to:'/coordinateur/livraisons',       Icon:Truck           },

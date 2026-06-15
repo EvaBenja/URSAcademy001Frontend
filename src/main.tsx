@@ -29,6 +29,7 @@ import GestClassement from './pages/gestionnaire/ClassementVendeursPage';
 import GestDemandes   from './pages/gestionnaire/DemandesLivreursPage';
 import GestLivraisons from './pages/gestionnaire/LivraisonsPage';
 import GestRapports   from './pages/gestionnaire/RapportsPage';
+import GestDepenses   from './pages/gestionnaire/DepensesPage';
 
 // Coordinateur
 import CoordLivraisons from './pages/coordinateur/LivraisonsPage';
@@ -95,6 +96,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="demandes"   element={<GestDemandes />} />
             <Route path="dossiers"   element={<SADossiers />} />
             <Route path="rapports"   element={<GestRapports />} />
+            <Route path="depenses"  element={<GestDepenses />} />
           </Route>
 
           {/* Coordinateur */}

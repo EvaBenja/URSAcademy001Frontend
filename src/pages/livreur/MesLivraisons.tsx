@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type CSSProperties } from 'react';
-import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw, User } from 'lucide-react';
 import { livraisonsService, geoService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -257,6 +257,9 @@ export default function MesLivraisonsPage() {
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:10 }}>
               {[
                 ['Zone',          detail.zone_livraison||'—'],
+                ['Client',        detail.vente?.client_nom||'—'],
+                ['Tél. client',   detail.vente?.client_telephone||'—'],
+                ['Quartier',      detail.vente?.client_quartier||detail.zone_livraison||'—'],
                 ['Date livraison',detail.date_livraison||'—'],
                 ['Statut',        STATUT[detail.statut]?.label||detail.statut],
                 ['Gestionnaire',  detail.gestionnaire ? `${detail.gestionnaire.prenom||detail.gestionnaire.name||''} ${detail.gestionnaire.nom||''}`.trim() : '—'],

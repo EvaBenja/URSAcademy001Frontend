@@ -132,6 +132,15 @@ export const dashboardService = {
   demandesRecentes: () => api.get('/dashboard/demandes-recentes'),
 };
 
+// ── Dépenses ─────────────────────────────────────────────
+export const depensesService = {
+  getAll:  (params?: object) => api.get('/depenses', { params }),
+  create:  (data: object)    => api.post('/depenses', data),
+  update:  (id: number, data: object) => api.put(`/depenses/${id}`, data),
+  delete:  (id: number)      => api.delete(`/depenses/${id}`),
+  stats:   ()                => api.get('/depenses/stats'),
+};
+
 // ── Géolocalisation ───────────────────────────────────────
 export const geoService = {
   updatePosition: (latitude: number, longitude: number) =>

@@ -72,7 +72,7 @@ export default function SAProduitsPage() {
           </thead>
           <tbody>
             {produits.length === 0 ? (
-              <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>
+              <tr><td colSpan={8} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>
                 Aucun produit — ajoutez votre premier produit
               </td></tr>
             ) : produits.map((p:any) => (
@@ -80,6 +80,8 @@ export default function SAProduitsPage() {
                 <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{p.reference}</td>
                 <td style={{ ...T.td, fontWeight:500 }}>{p.nom}</td>
                 <td style={{ ...T.td, fontWeight:700 }}>{Number(p.prix_unitaire).toLocaleString('fr-FR')}</td>
+                <td style={T.td}>{p.prix_gros > 0 ? <span style={{fontWeight:600,color:'#7c3aed'}}>{Number(p.prix_gros).toLocaleString('fr-FR')}</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
+                <td style={T.td}>{p.prix_gros > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>+{Number(p.prix_unitaire-p.prix_gros).toLocaleString('fr-FR')} F</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
                 <td style={T.td}>
                   <span style={{ fontWeight:700, color:p.quantite_stock<10?'#e53e3e':'#0a9e6e', fontSize:15 }}>{p.quantite_stock}</span>
                   {p.quantite_stock < 10 && <span style={{ marginLeft:7, background:'#fee2e2', color:'#e53e3e', fontSize:10, padding:'2px 7px', borderRadius:6, fontWeight:700 }}>BAS</span>}
