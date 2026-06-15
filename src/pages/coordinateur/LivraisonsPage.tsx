@@ -138,7 +138,11 @@ export default function CoordLivraisonsPage() {
             </div>
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:10 }}>
               {[
-                ['Zone',        detail.zone_livraison||'—'],
+                ['Zone',         detail.zone_livraison||'—'],
+                ['Client',       detail.client_nom||detail.vente?.client_nom||'—'],
+                ['Téléphone',    detail.client_telephone||detail.vente?.client_telephone||'—'],
+                ['Quartier',     detail.client_quartier||detail.vente?.client_quartier||'—'],
+                ['Vente liée',   detail.vente_id ? `#${detail.vente_id}` : '—'],
                 ['Livreur',     detail.livreur ? `${detail.livreur.prenom||detail.livreur.name||''} ${detail.livreur.nom||''}`.trim() : 'Non assigné'],
                 ['Tél. livreur',detail.livreur?.telephone||'—'],
                 ['Gestionnaire',detail.gestionnaire ? `${detail.gestionnaire.prenom||detail.gestionnaire.name||''} ${detail.gestionnaire.nom||''}`.trim() : '—'],

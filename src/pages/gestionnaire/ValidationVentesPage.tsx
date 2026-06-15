@@ -129,13 +129,13 @@ export default function ValidationVentesPage() {
         <div style={{ overflowX:'auto' }}>
           <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
-              <tr>{['#','Vendeur','Produit(s)','Total FCFA','Zone','Statut','Date','Actions'].map(h=>(
+              <tr>{['#','Vendeur','Produit(s)','Total FCFA','Zone','Statut','Date','Livreur','Actions'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
               ))}</tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
+                <tr><td colSpan={9} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   {filter==='en_attente' ? '✓ Aucune vente en attente de validation' : 'Aucune vente'}
                 </td></tr>
               ) : paginated.map((v:any) => {
@@ -174,6 +174,15 @@ export default function ValidationVentesPage() {
                       </span>
                     </td>
                     <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{v.date_vente}</td>
+                    <td style={T.td}>
+                      {v.livraison ? (
+                        <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
+                          background:v.livraison.statut==='terminee'?'#dcfce7':v.livraison.statut==='en_cours'?'#dbeafe':'#fef9c3',
+                          color:v.livraison.statut==='terminee'?'#166534':v.livraison.statut==='en_cours'?'#1e40af':'#854d0e' }}>
+                          🚚 {v.livraison.livreur ? `${v.livraison.livreur.prenom||v.livraison.livreur.name||''}` : 'Non assigné'}
+                        </span>
+                      ) : <span style={{fontSize:11,color:'#dde5f4'}}>—</span>}
+                    </td>
                     <td style={T.td}>
                       <div style={{ display:'flex', gap:5 }}>
                         <button onClick={()=>setDetail(v)} style={{ ...T.iconBtn, color:'#1465BB' }} title="Voir détail">

@@ -39,7 +39,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Mes ventes',           to:'/vendeur/ventes',                Icon:TrendingUp      },
   ],
   livreur: [
-    { label:'Mes livraisons',       to:'/livreur/livraisons',            Icon:Truck           },
+    { label:'Mes courses',       to:'/livreur/livraisons',            Icon:Truck           },
     { label:'Historique',           to:'/livreur/historique',            Icon:FolderOpen      },
     { label:'Mes dossiers',          to:'/livreur/dossiers',              Icon:ClipboardList   },
     { label:'Mes demandes',          to:'/livreur/demandes',             Icon:Bell            },
