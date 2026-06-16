@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
   validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
-  en_cours:   {label:'En cours',   bg:'#dcfce7', color:'#166634'},
+  en_cours:   {label:'Acceptée par le livreur', bg:'#dcfce7', color:'#166634'},
   rejetee:    {label:'Rejetée',    bg:'#fee2e2', color:'#991b1b'},
   terminee:   {label:'Terminée',   bg:'#f1f5f9', color:'#475569'},
 };
@@ -17,10 +17,15 @@ export default function CoordLivraisonsPage() {
   const [detail,     setDetail]     = useState<any>(null);
   const [filter,     setFilter]     = useState('tous');
 
-  useEffect(() => { load(); }, []);
-  const load = async () => {
+  useEffect(() => {
+    load();
+    const t = setInterval(() => load(true), 12000);
+    return () => clearInterval(t);
+  }, []);
+
+  const load = async (silent = false) => {
     try { const r = await livraisonsService.getAll(); setLivraisons(r.data || []); }
-    catch { toast.error('Erreur chargement livraisons'); }
+    catch { if (!silent) toast.error('Erreur chargement livraisons'); }
     finally { setLoading(false); }
   };
 
