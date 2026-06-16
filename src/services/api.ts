@@ -102,8 +102,8 @@ export const livraisonsService = {
   valider:      (id: number, data: { montant_carburant: number; notes?: string }) =>
     api.post(`/livraisons/${id}/valider`, data),
   accepter:     (id: number) => api.post(`/livraisons/${id}/accepter`),
-  rejeter:      (id: number, motif: string) =>
-    api.post(`/livraisons/${id}/rejeter`, { motif }),
+  rejeter:      (id: number, motif: string, motifCategorie?: string) =>
+    api.post(`/livraisons/${id}/rejeter`, { motif, motif_categorie: motifCategorie }),
   cloturer:     (id: number) => api.post(`/livraisons/${id}/cloturer`),
   assigner:     (id: number, data: { latitude: number; longitude: number }) =>
     api.post(`/livraisons/${id}/assigner`, data),

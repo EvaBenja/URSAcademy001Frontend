@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
-  validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
+  validee:    {label:'Assignée — attente accord livreur', bg:'#dbeafe', color:'#1e40af'},
   en_cours:   {label:'Acceptée par le livreur', bg:'#dcfce7', color:'#166634'},
   rejetee:    {label:'Rejetée',    bg:'#fee2e2', color:'#991b1b'},
   terminee:   {label:'Terminée',   bg:'#f1f5f9', color:'#475569'},
