@@ -74,7 +74,7 @@ export const ventesService = {
   stats:      ()                => api.get('/ventes/stats'),
   classement: ()                => api.get('/ventes/classement'),
   valider:    (id: number)      => api.post(`/ventes/${id}/valider`),
-  annuler:    (id: number)      => api.post(`/ventes/${id}/annuler`),
+  annuler:    (id: number, motif: string) => api.post(`/ventes/${id}/annuler`, { motif }),
 };
 
 // ── Demandes ──────────────────────────────────────────────

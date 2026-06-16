@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
   validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
-  annulee:    {label:'Annulée',    bg:'#f1f5f9', color:'#475569'},
+  annulee:    {label:'Refusée',    bg:'#f1f5f9', color:'#475569'},
 };
 
 const PAGE_SIZE = 15;
@@ -19,6 +19,8 @@ export default function ValidationVentesPage() {
   const [saving,      setSaving]      = useState(false);
   const [page,        setPage]        = useState(1);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [refusModal,  setRefusModal]  = useState<any>(null);
+  const [motif,       setMotif]       = useState('');
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -47,10 +49,14 @@ export default function ValidationVentesPage() {
     finally { setSaving(false); }
   };
 
-  const doAnnuler = async (id: number) => {
+  const doRefuser = async () => {
+    if (!refusModal || !motif.trim()) { toast.error('Le motif est obligatoire'); return; }
     setSaving(true);
-    try { await ventesService.annuler(id); toast.success('Vente annulée'); setDetail(null); load(true); }
-    catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
+    try {
+      await ventesService.annuler(refusModal.id, motif);
+      toast.success('Vente refusée');
+      setRefusModal(null); setMotif(''); setDetail(null); load(true);
+    } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
@@ -194,8 +200,8 @@ export default function ValidationVentesPage() {
                               style={{ ...T.iconBtn, color:'#0a9e6e', borderColor:'#bbf7d0', background:'#f0fdf4' }} title="Valider">
                               <CheckCircle size={13}/>
                             </button>
-                            <button onClick={()=>doAnnuler(v.id)} disabled={saving}
-                              style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }} title="Annuler">
+                            <button onClick={()=>{setRefusModal(v);setMotif('');}} disabled={saving}
+                              style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }} title="Refuser">
                               <XCircle size={13}/>
                             </button>
                           </>
@@ -277,9 +283,9 @@ export default function ValidationVentesPage() {
               ))}
               {detail.statut === 'en_attente' && (
                 <div style={{ display:'flex', gap:10, marginTop:10 }}>
-                  <button onClick={()=>doAnnuler(detail.id)} disabled={saving}
+                  <button onClick={()=>{setRefusModal(detail);setDetail(null);setMotif('');}} disabled={saving}
                     style={{ flex:1, padding:'11px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer' }}>
-                    Annuler la vente
+                    Refuser la vente
                   </button>
                   <button onClick={()=>doValider(detail.id)} disabled={saving}
                     style={{ flex:1, padding:'11px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontWeight:600, cursor:'pointer' }}>
@@ -287,6 +293,42 @@ export default function ValidationVentesPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal refus avec motif obligatoire */}
+      {refusModal && (
+        <div onClick={()=>setRefusModal(null)} style={T.overlay}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'white', borderRadius:14, width:'100%', maxWidth:420, overflow:'hidden' }}>
+            <div style={T.modalHeader}>
+              <h3 style={T.modalTitle}>Refuser la vente #{refusModal.id}</h3>
+              <button onClick={()=>setRefusModal(null)} style={T.modalClose}><X size={15}/></button>
+            </div>
+            <div style={{ padding:22, display:'flex', flexDirection:'column', gap:14 }}>
+              <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:15, color:'#4a5578', margin:0 }}>
+                Le stock sera remis et le vendeur pourra voir le motif du refus.
+              </p>
+              <div>
+                <label style={{ display:'block', fontSize:12, fontWeight:600, color:'#4a5578', marginBottom:5 }}>
+                  Motif du refus * (obligatoire)
+                </label>
+                <textarea value={motif} onChange={e=>setMotif(e.target.value)}
+                  placeholder="Ex: Prix incorrect, produit indisponible, informations client manquantes…"
+                  rows={4}
+                  style={{ width:'100%', padding:'9px 12px', border:`1.5px solid ${motif.trim()?'#dde5f4':'#fca5a5'}`, borderRadius:8, fontSize:14, outline:'none', resize:'none', boxSizing:'border-box' as const }}/>
+                {!motif.trim() && <p style={{ fontSize:11, color:'#e53e3e', margin:'4px 0 0' }}>Ce champ est obligatoire</p>}
+              </div>
+              <div style={{ display:'flex', gap:10 }}>
+                <button onClick={()=>setRefusModal(null)} style={{ flex:1, padding:'10px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578' }}>
+                  Annuler
+                </button>
+                <button onClick={doRefuser} disabled={saving||!motif.trim()}
+                  style={{ flex:1, padding:'10px', borderRadius:8, background:'linear-gradient(90deg,#e53e3e,#991b1b)', color:'white', border:'none', fontWeight:600, cursor:'pointer', opacity:saving||!motif.trim()?0.5:1 }}>
+                  {saving ? 'Refus…' : 'Confirmer le refus'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

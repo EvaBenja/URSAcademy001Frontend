@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
   validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
-  annulee:    {label:'Annulée',    bg:'#f1f5f9', color:'#475569'},
+  annulee:    {label:'Refusée',    bg:'#f1f5f9', color:'#475569'},
 };
 const ZONES = ['Adidogomé','Agoe','Baguida','Lomé centre','Hédzranawoe','Avedji','Tokoin','Djidjolé'];
 
@@ -193,7 +193,14 @@ export default function VendeurVentesPage() {
                     </td>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')}</td>
                     <td style={T.td}>{v.zone_livraison||'—'}</td>
-                    <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>{sc.label}</span></td>
+                    <td style={T.td}>
+                      <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>{sc.label}</span>
+                      {v.statut === 'annulee' && v.motif_annulation && (
+                        <p style={{ fontSize:11, color:'#e53e3e', margin:'4px 0 0', fontStyle:'italic', maxWidth:160 }}>
+                          Motif : {v.motif_annulation}
+                        </p>
+                      )}
+                    </td>
                     <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{v.date_vente}</td>
                   </tr>
                 );

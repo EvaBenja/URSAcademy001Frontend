@@ -31,8 +31,10 @@ export default function SAVentesPage() {
   };
 
   const doAnnuler = async (id: number) => {
+    const motif = window.prompt('Motif du refus (obligatoire) :');
+    if (!motif || !motif.trim()) { toast.error('Motif obligatoire — refus annulé'); return; }
     setSaving(true);
-    try { await ventesService.annuler(id); toast.success('Vente annulée'); setDetail(null); load(); }
+    try { await ventesService.annuler(id, motif); toast.success('Vente refusée'); setDetail(null); load(); }
     catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
