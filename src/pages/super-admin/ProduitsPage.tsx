@@ -3,7 +3,7 @@ import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { produitsService } from '../../services/api';
 import toast from 'react-hot-toast';
 
-const EMPTY = { reference:'', nom:'', prix_unitaire:0, quantite_stock:0, unite:'unité' };
+const EMPTY = { reference:'', nom:'', prix_unitaire:0, prix_gros:0, quantite_stock:0, unite:'unité' };
 
 export default function SAProduitsPage() {
   const [produits, setProduits] = useState<any[]>([]);
@@ -113,6 +113,13 @@ export default function SAProduitsPage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div><label style={T.lbl}>Prix unitaire (FCFA)</label><input type="number" min={0} style={T.inp} value={form.prix_unitaire||0} onChange={e=>setForm((f:any)=>({...f,prix_unitaire:+e.target.value}))}/></div>
                 <div><label style={T.lbl}>Stock initial</label><input type="number" min={0} style={T.inp} value={form.quantite_stock||0} onChange={e=>setForm((f:any)=>({...f,quantite_stock:+e.target.value}))}/></div>
+              </div>
+              <div>
+                <label style={{ ...T.lbl, color:'#7c3aed' }}>Prix en gros (FCFA) — optionnel</label>
+                <input type="number" min={0} style={{ ...T.inp, borderColor:'#ddd6fe' }} value={form.prix_gros||0} onChange={e=>setForm((f:any)=>({...f,prix_gros:+e.target.value}))} placeholder="0 = non défini"/>
+                <p style={{ fontSize:11, color:'#8a96b0', margin:'5px 0 0' }}>
+                  Sert de référence pour calculer la remise totale accordée par les vendeurs sur ce produit (prix unitaire − prix en gros).
+                </p>
               </div>
               <div><label style={T.lbl}>Unité</label><input style={T.inp} value={form.unite||''} onChange={e=>setForm((f:any)=>({...f,unite:e.target.value}))} placeholder="kg, L, unité, carton…"/></div>
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:4 }}>
