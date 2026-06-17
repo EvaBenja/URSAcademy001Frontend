@@ -5,11 +5,12 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
-  en_attente: {label:'Disponible — à prendre !', bg:'#dbeafe', color:'#1e40af'},
-  validee:    {label:'Assignée — à confirmer',   bg:'#dbeafe', color:'#1e40af'},
-  en_cours:   {label:'En livraison',             bg:'#dcfce7', color:'#166534'},
-  rejetee:    {label:'Rejetée',                  bg:'#fee2e2', color:'#991b1b'},
-  terminee:   {label:'Terminée',                 bg:'#f1f5f9', color:'#475569'},
+  en_attente:                {label:'Disponible — à prendre !',     bg:'#dbeafe', color:'#1e40af'},
+  validee:                   {label:'Assignée — à confirmer',       bg:'#dbeafe', color:'#1e40af'},
+  en_cours:                  {label:'En livraison',                 bg:'#dcfce7', color:'#166534'},
+  rejetee:                   {label:'Rejetée',                      bg:'#fee2e2', color:'#991b1b'},
+  livree_attente_validation: {label:'Clôturée — attente gestionnaire', bg:'#ede9fe', color:'#5b21b6'},
+  terminee:                  {label:'Terminée',                     bg:'#f1f5f9', color:'#475569'},
 };
 
 const MOTIFS_REJET = [
@@ -30,6 +31,9 @@ export default function MesCoursesPage() {
   const [rejetModal,  setRejetModal]  = useState<any>(null);
   const [motifCat,    setMotifCat]    = useState(MOTIFS_REJET[0]);
   const [motifLibre,  setMotifLibre]  = useState('');
+  const [clotureModal,    setClotureModal]    = useState<any>(null);
+  const [produitsStatuts, setProduitsStatuts] = useState<{id:number;statut:'livre'|'non_livre'}[]>([]);
+  const [notesCloture,    setNotesCloture]    = useState('');
   const [saving,      setSaving]      = useState(false);
   const [onglet,      setOnglet]      = useState<'dispo'|'miennes'>('dispo');
   const [gpsActif,    setGpsActif]    = useState(false);
@@ -116,12 +120,27 @@ export default function MesCoursesPage() {
     finally { setSaving(false); }
   };
 
-  const doTerminer = async (id: number) => {
+  const openClotureModal = (livraison: any) => {
+    const statuts = (livraison.produits || []).map((lp: any) => ({ id: lp.id, statut: 'livre' as const }));
+    setProduitsStatuts(statuts);
+    setNotesCloture('');
+    setClotureModal(livraison);
+  };
+
+  const toggleStatutProduit = (id: number, statut: 'livre'|'non_livre') => {
+    setProduitsStatuts(prev => prev.map(p => p.id === id ? { ...p, statut } : p));
+  };
+
+  const doCloturer = async () => {
+    if (!clotureModal) return;
     setSaving(true);
     try {
-      await livraisonsService.updateStatut(id, 'terminee');
-      toast.success('Course terminée ! Bien joué 👍');
-      setDetail(null); load(true);
+      await livraisonsService.cloturer(clotureModal.id, {
+        produits_statuts: produitsStatuts,
+        notes_cloture: notesCloture,
+      });
+      toast.success('Course clôturée — en attente de validation du gestionnaire');
+      setClotureModal(null); setDetail(null); load(true);
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
@@ -288,9 +307,9 @@ export default function MesCoursesPage() {
                       style={{ flex:1, padding:'8px', borderRadius:8, border:'none', background:'#fee2e2', color:'#991b1b', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
                       <XCircle size={12}/> Rejeter
                     </button>
-                    <button onClick={()=>doTerminer(l.id)} disabled={saving}
+                    <button onClick={()=>openClotureModal(l)} disabled={saving}
                       style={{ flex:2, padding:'8px', borderRadius:8, border:'none', background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', cursor:'pointer', fontSize:12, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-                      <CheckCircle size={12}/> Terminée
+                      <CheckCircle size={12}/> Clôturer
                     </button>
                   </>
                 )}
@@ -347,11 +366,83 @@ export default function MesCoursesPage() {
                 {Number(detail.livreur_id)===Number(user?.id) && detail.statut==='en_cours' && (
                   <>
                     <button onClick={()=>{openRejetModal(detail);setDetail(null);}} style={{ flex:1, padding:'10px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer', minWidth:100 }}>Rejeter</button>
-                    <button onClick={()=>doTerminer(detail.id)} disabled={saving} style={{ flex:2, padding:'10px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontWeight:700, cursor:'pointer' }}>
-                      {saving?'…':'✓ Marquer terminée'}
+                    <button onClick={()=>{openClotureModal(detail);setDetail(null);}} disabled={saving} style={{ flex:2, padding:'10px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontWeight:700, cursor:'pointer' }}>
+                      Clôturer la course
                     </button>
                   </>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {clotureModal && (
+        <div onClick={()=>setClotureModal(null)} style={T.overlay}>
+          <div onClick={e=>e.stopPropagation()} style={{ ...T.modalBox, maxWidth:480 }}>
+            <div style={T.modalHeader}>
+              <h3 style={T.modalTitle}>Clôturer la course #{clotureModal.id}</h3>
+              <button onClick={()=>setClotureModal(null)} style={T.modalClose}><X size={15}/></button>
+            </div>
+            <div style={{ padding:22, display:'flex', flexDirection:'column', gap:16 }}>
+              <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:15, color:'#4a5578', margin:0 }}>
+                Cochez le statut de chaque produit. Le gestionnaire validera ensuite définitivement.
+              </p>
+
+              {clotureModal.produits && clotureModal.produits.length > 0 ? (
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {clotureModal.produits.map((lp:any) => {
+                    const ps = produitsStatuts.find(p => p.id === lp.id);
+                    const isLivre = ps?.statut === 'livre';
+                    return (
+                      <div key={lp.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', borderRadius:10, border:`1.5px solid ${isLivre?'#0a9e6e':'#e53e3e'}`, background:isLivre?'#f0fdf4':'#fff5f5' }}>
+                        <div>
+                          <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', margin:0 }}>{lp.produit?.nom}</p>
+                          <p style={{ fontSize:12, color:'#8a96b0', margin:0 }}>Quantité : {lp.quantite}</p>
+                        </div>
+                        <div style={{ display:'flex', gap:6 }}>
+                          <button onClick={()=>toggleStatutProduit(lp.id,'livre')}
+                            style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${isLivre?'#0a9e6e':'#dde5f4'}`, background:isLivre?'#0a9e6e':'white', color:isLivre?'white':'#4a5578', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
+                            <CheckCircle size={12}/> Livré
+                          </button>
+                          <button onClick={()=>toggleStatutProduit(lp.id,'non_livre')}
+                            style={{ padding:'6px 12px', borderRadius:8, border:`1.5px solid ${!isLivre?'#e53e3e':'#dde5f4'}`, background:!isLivre?'#e53e3e':'white', color:!isLivre?'white':'#4a5578', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', gap:4 }}>
+                            <XCircle size={12}/> Non livré
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display:'flex', gap:10, marginTop:4 }}>
+                    <div style={{ flex:1, background:'#dcfce7', borderRadius:8, padding:'8px 12px', textAlign:'center' }}>
+                      <p style={{ fontSize:18, fontWeight:700, color:'#166534', margin:0 }}>{produitsStatuts.filter(p=>p.statut==='livre').length}</p>
+                      <p style={{ fontSize:11, color:'#166534', margin:0 }}>Livrés</p>
+                    </div>
+                    <div style={{ flex:1, background:'#fee2e2', borderRadius:8, padding:'8px 12px', textAlign:'center' }}>
+                      <p style={{ fontSize:18, fontWeight:700, color:'#991b1b', margin:0 }}>{produitsStatuts.filter(p=>p.statut==='non_livre').length}</p>
+                      <p style={{ fontSize:11, color:'#991b1b', margin:0 }}>Non livrés</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ background:'#f8faff', borderRadius:8, padding:'14px', textAlign:'center', fontSize:13, color:'#8a96b0' }}>
+                  Aucun produit détaillé pour cette course
+                </div>
+              )}
+
+              <div>
+                <label style={T.lbl}>Notes de clôture (optionnel)</label>
+                <textarea value={notesCloture} onChange={e=>setNotesCloture(e.target.value)}
+                  placeholder="Ex: Client absent pour 1 article, remis en stock…" rows={3}
+                  style={{ width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', resize:'none', boxSizing:'border-box' as const }}/>
+              </div>
+
+              <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+                <button onClick={()=>setClotureModal(null)} style={{ padding:'9px 18px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578', fontSize:14 }}>Annuler</button>
+                <button onClick={doCloturer} disabled={saving}
+                  style={{ padding:'10px 20px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontWeight:700, cursor:'pointer', opacity:saving?0.6:1 }}>
+                  {saving ? 'Clôture…' : 'Confirmer la clôture'}
+                </button>
               </div>
             </div>
           </div>

@@ -22,7 +22,8 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   gestionnaire: [
     { label:'Tableau de bord',      to:'/gestionnaire/dashboard',        Icon:LayoutDashboard },
     { label:'Stocks & Produits',    to:'/gestionnaire/produits',         Icon:Package         },
-    { label:'Validation ventes',    to:'/gestionnaire/ventes',           Icon:CheckSquare     },
+    { label:'Suivi ventes',         to:'/gestionnaire/ventes',           Icon:CheckSquare     },
+    { label:'Validation livraisons',to:'/gestionnaire/livraisons',       Icon:Truck           },
     { label:'Demandes livreurs',    to:'/gestionnaire/demandes',         Icon:ClipboardList   },
     { label:'Classement vendeurs',  to:'/gestionnaire/classement',       Icon:Trophy          },
     { label:'Dossiers journaliers', to:'/gestionnaire/dossiers',         Icon:FolderOpen      },

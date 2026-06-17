@@ -73,7 +73,6 @@ export const ventesService = {
   create:     (data: object)    => api.post('/ventes', data),
   stats:      ()                => api.get('/ventes/stats'),
   classement: ()                => api.get('/ventes/classement'),
-  valider:    (id: number)      => api.post(`/ventes/${id}/valider`),
   annuler:    (id: number, motif: string) => api.post(`/ventes/${id}/annuler`, { motif }),
 };
 
@@ -104,7 +103,10 @@ export const livraisonsService = {
   accepter:     (id: number) => api.post(`/livraisons/${id}/accepter`),
   rejeter:      (id: number, motif: string, motifCategorie?: string) =>
     api.post(`/livraisons/${id}/rejeter`, { motif, motif_categorie: motifCategorie }),
-  cloturer:     (id: number) => api.post(`/livraisons/${id}/cloturer`),
+  cloturer:     (id: number, data: { produits_statuts?: { id: number; statut: string }[]; notes_cloture?: string }) =>
+    api.post(`/livraisons/${id}/cloturer`, data),
+  validerCloture: (id: number) => api.post(`/livraisons/${id}/valider-cloture`),
+  refuserCloture: (id: number, motif: string) => api.post(`/livraisons/${id}/refuser-cloture`, { motif }),
   assigner:     (id: number, data: { latitude: number; longitude: number }) =>
     api.post(`/livraisons/${id}/assigner`, data),
 };
