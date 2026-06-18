@@ -206,13 +206,13 @@ export default function ValidationVentesPage() {
                     Produits ({detail.items.length})
                   </p>
                   {detail.items.map((it:any) => (
-                    <div key={it.id} style={{ display:'flex', justifyContent:'space-between', padding:'8px 10px', background:'#f8faff', borderRadius:8, marginBottom:5, fontSize:13 }}>
-                      <div>
+                    <div key={it.id} style={{ display:'flex', justifyContent:'space-between', padding:'8px 10px', background:'#f8faff', borderRadius:8, marginBottom:5, fontSize:13, gap:8, flexWrap:'wrap' }}>
+                      <div style={{ minWidth:0 }}>
                         <span style={{ fontWeight:600 }}>{it.produit?.nom}</span>
                         <span style={{ color:'#8a96b0', marginLeft:8 }}>× {it.quantite}</span>
                         {it.remise > 0 && <span style={{ color:'#e53e3e', marginLeft:8, fontSize:11 }}>Remise: {Number(it.remise).toLocaleString('fr-FR')} FCFA</span>}
                       </div>
-                      <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(it.sous_total).toLocaleString('fr-FR')} FCFA</span>
+                      <span style={{ fontWeight:700, color:'#1465BB', flexShrink:0, whiteSpace:'nowrap' }}>{Number(it.sous_total).toLocaleString('fr-FR')} FCFA</span>
                     </div>
                   ))}
                 </div>

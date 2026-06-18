@@ -116,7 +116,7 @@ export default function GestLivraisonsPage() {
         ))}
       </div>
 
-      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))', gap:14 }}>
+      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(310px,1fr))', gap:14 }}>
         {filtered.length===0 ? (
           <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:40, textAlign:'center', gridColumn:'1/-1' }}>
             <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:17, color:'#8a96b0' }}>Aucune livraison</p>
@@ -128,10 +128,10 @@ export default function GestLivraisonsPage() {
           const client_quartier = l.client_quartier  || l.vente?.client_quartier;
           return (
             <div key={l.id} style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, padding:18, boxShadow:l.statut==='livree_attente_validation'?'0 4px 14px rgba(124,58,237,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start' }}>
-                <div>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
+                <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
                   <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
-                  {l.vente_id && <span style={{ marginLeft:8, fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10 }}>Vente #{l.vente_id}</span>}
+                  {l.vente_id && <span style={{ fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Vente #{l.vente_id}</span>}
                 </div>
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
               </div>
@@ -208,10 +208,10 @@ export default function GestLivraisonsPage() {
                 <div style={{ marginTop:8 }}>
                   <p style={{ fontSize:12, fontWeight:700, color:'#4a5578', textTransform:'uppercase', marginBottom:8 }}>Produits</p>
                   {detail.produits.map((lp:any) => (
-                    <div key={lp.id} style={{ display:'flex', justifyContent:'space-between', padding:'8px 10px', background:'#f8faff', borderRadius:8, marginBottom:5 }}>
-                      <span style={{ fontSize:13, fontWeight:500 }}>{lp.produit?.nom} ×{lp.quantite}</span>
+                    <div key={lp.id} style={{ display:'flex', justifyContent:'space-between', padding:'8px 10px', background:'#f8faff', borderRadius:8, marginBottom:5, gap:8 }}>
+                      <span style={{ fontSize:13, fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', minWidth:0 }}>{lp.produit?.nom} ×{lp.quantite}</span>
                       {lp.statut && lp.statut !== 'en_attente' && (
-                        <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10, background:lp.statut==='livre'?'#dcfce7':'#fee2e2', color:lp.statut==='livre'?'#166534':'#991b1b' }}>
+                        <span style={{ fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10, background:lp.statut==='livre'?'#dcfce7':'#fee2e2', color:lp.statut==='livre'?'#166534':'#991b1b', flexShrink:0, whiteSpace:'nowrap' }}>
                           {lp.statut==='livre'?'✓ Livré':'✗ Non livré'}
                         </span>
                       )}

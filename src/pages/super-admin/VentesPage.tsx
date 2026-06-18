@@ -133,9 +133,9 @@ export default function SAVentesPage() {
                 <div style={{ marginBottom:8 }}>
                   <p style={{ fontSize:12, fontWeight:600, color:'#8a96b0', marginBottom:8 }}>PRODUITS ({detail.items.length})</p>
                   {detail.items.map((it:any) => (
-                    <div key={it.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 10px', background:'#f8faff', borderRadius:8, marginBottom:5, fontSize:13 }}>
-                      <span>{it.produit?.nom} × {it.quantite}</span>
-                      <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(it.sous_total).toLocaleString('fr-FR')} FCFA</span>
+                    <div key={it.id} style={{ display:'flex', justifyContent:'space-between', padding:'7px 10px', background:'#f8faff', borderRadius:8, marginBottom:5, fontSize:13, gap:8 }}>
+                      <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', minWidth:0 }}>{it.produit?.nom} × {it.quantite}</span>
+                      <span style={{ fontWeight:700, color:'#1465BB', flexShrink:0, whiteSpace:'nowrap' }}>{Number(it.sous_total).toLocaleString('fr-FR')} FCFA</span>
                     </div>
                   ))}
                 </div>

@@ -108,7 +108,7 @@ export default function DepensesPage() {
 
       {/* Stats par catégorie */}
       {stats && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))', gap:12, marginBottom:22 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:12, marginBottom:22 }}>
           <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:12, padding:'1.1rem', color:'white', gridColumn:'span 2' }}>
             <p style={{ fontSize:11, color:'rgba(255,255,255,0.6)', margin:'0 0 4px' }}>Total dépenses</p>
             <p style={{ fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#d0a83a', margin:0 }}>

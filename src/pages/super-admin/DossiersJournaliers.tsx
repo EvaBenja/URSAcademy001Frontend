@@ -58,7 +58,7 @@ export default function DossiersJournaliersPage() {
       </div>
 
       {/* Cards */}
-      <div className="dossiers-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
+      <div className="dossiers-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))', gap:14 }}>
         {filtered.length === 0 ? (
           <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:40, textAlign:'center', gridColumn:'1/-1' }}>
             <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:17, color:'#8a96b0' }}>Aucun dossier — ils apparaissent après validation des demandes livreurs</p>
@@ -67,17 +67,17 @@ export default function DossiersJournaliersPage() {
           const sc = STATUT[d.statut]||{label:d.statut,bg:'#f1f5f9',color:'#475569'};
           return (
             <div key={d.id} style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:18, boxShadow:'0 2px 8px rgba(0,55,133,0.04)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14, flexWrap:'wrap', gap:8 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0, flex:1 }}>
                   <div style={{ width:40, height:40, borderRadius:10, background:'#e0f0ff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <FolderOpen size={18} color="#1465BB"/>
                   </div>
-                  <div>
+                  <div style={{ minWidth:0, overflow:'hidden' }}>
                     <p style={{ fontSize:15, fontWeight:700, color:'#0d1b3e', margin:0 }}>Dossier #{d.id}</p>
-                    <p style={{ fontSize:12, color:'#8a96b0', margin:0 }}>{d.date ? new Date(d.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'}) : '—'}</p>
+                    <p style={{ fontSize:12, color:'#8a96b0', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.date ? new Date(d.date).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'}) : '—'}</p>
                   </div>
                 </div>
-                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
               </div>
               <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                 <div style={{ background:'#f8faff', borderRadius:8, padding:'10px 12px' }}>

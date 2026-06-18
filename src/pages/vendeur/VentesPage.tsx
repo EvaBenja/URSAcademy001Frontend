@@ -265,10 +265,10 @@ export default function VendeurVentesPage() {
                   <label style={T.lbl}>Panier — {panier.length} produit{panier.length>1?'s':''}</label>
                   {panier.map(item => (
                     <div key={item.produit_id} style={{ background:'#f8faff', borderRadius:10, padding:'12px 14px', border:'1px solid #dde5f4' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
-                        <div>
-                          <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e' }}>{item.nom}</span>
-                          <div style={{ display:'flex', gap:10, marginTop:2 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8, gap:8 }}>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', wordBreak:'break-word' }}>{item.nom}</span>
+                          <div style={{ display:'flex', gap:10, marginTop:2, flexWrap:'wrap' }}>
                             <span style={{ fontSize:11, color:'#8a96b0' }}>Plancher: {item.prix_unitaire.toLocaleString('fr-FR')} FCFA</span>
                             {item.prix_gros && (
                               <span style={{ fontSize:11, color:'#7c3aed', fontWeight:600 }}>
@@ -351,6 +351,10 @@ export default function VendeurVentesPage() {
         @media(max-width:768px){
           .stats-4{grid-template-columns:repeat(2,1fr)!important;}
           .cart-grid{grid-template-columns:1fr 1fr!important;}
+        }
+        @media(max-width:480px){
+          .stats-4{grid-template-columns:1fr 1fr!important; gap:10px!important;}
+          .cart-grid{grid-template-columns:1fr!important; gap:10px!important;}
         }
       `}</style>
     </div>

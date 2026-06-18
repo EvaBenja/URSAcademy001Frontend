@@ -165,7 +165,7 @@ export default function DemandesLivreursPage() {
       </div>
 
       {/* Cards */}
-      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(310px,1fr))', gap:14 }}>
+      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(310px,1fr))', gap:14 }}>
         {filtered.length === 0 ? (
           <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:40, textAlign:'center', gridColumn:'1/-1' }}>
             <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:17, color:'#8a96b0' }}>
@@ -179,19 +179,19 @@ export default function DemandesLivreursPage() {
           return (
             <div key={d.id} style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:18, boxShadow:'0 2px 8px rgba(0,55,133,0.04)' }}>
               {/* Livreur + statut */}
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12, flexWrap:'wrap', gap:8 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0, flex:1 }}>
                   <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:13, fontWeight:700, flexShrink:0 }}>
                     {(livreur?.prenom||livreur?.name||'?')[0]}
                   </div>
-                  <div>
-                    <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', margin:0 }}>
+                  <div style={{ minWidth:0, overflow:'hidden' }}>
+                    <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                       {livreur ? `${livreur.prenom||livreur.name||''} ${livreur.nom||''}`.trim() : `Livreur #${d.livreur_id}`}
                     </p>
                     <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>Demande #{d.id}</p>
                   </div>
                 </div>
-                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>
+                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>
                   {sc.label}
                 </span>
               </div>

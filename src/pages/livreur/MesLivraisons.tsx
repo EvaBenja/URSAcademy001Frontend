@@ -236,7 +236,7 @@ export default function MesCoursesPage() {
         </button>
       </div>
 
-      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))', gap:14 }}>
+      <div className="cards-grid" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(290px,1fr))', gap:14 }}>
         {liste.length === 0 ? (
           <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:40, textAlign:'center', gridColumn:'1/-1' }}>
             <Truck size={36} color="#dde5f4" style={{ marginBottom:12 }}/>
@@ -256,11 +256,11 @@ export default function MesCoursesPage() {
               border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
               padding:18,
               boxShadow:isDisponible||isAssigneeParCoord?'0 4px 14px rgba(59,130,246,0.15)':l.statut==='en_cours'?'0 4px 14px rgba(10,158,110,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start' }}>
-                <div>
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
+                <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
                   <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
-                  {l.vente_id && <span style={{ marginLeft:8, fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10 }}>Vente #{l.vente_id}</span>}
-                  {isAssigneeParCoord && <span style={{ marginLeft:8, fontSize:10, background:'#ede9fe', color:'#5b21b6', padding:'2px 7px', borderRadius:10 }}>Assignée par coordinateur</span>}
+                  {l.vente_id && <span style={{ fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Vente #{l.vente_id}</span>}
+                  {isAssigneeParCoord && <span style={{ fontSize:10, background:'#ede9fe', color:'#5b21b6', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Assignée par coordinateur</span>}
                 </div>
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
               </div>
@@ -269,10 +269,18 @@ export default function MesCoursesPage() {
                 {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
                 <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0' }}><Clock size={11} color="#d0a83a"/> {l.date_livraison||'—'}</div>
                 {client_nom && (
-                  <div style={{ background:isDisponible?'#eff6ff':'#f0f4ff', borderRadius:8, padding:'8px 10px', marginTop:4 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e' }}><User size={12} color="#1465BB"/> {client_nom}</div>
-                    {client_tel && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#1465BB', marginTop:2 }}><Phone size={11}/> {client_tel}</div>}
-                    {client_quartier && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0', marginTop:2 }}><MapPin size={11}/> {client_quartier}</div>}
+                  <div style={{ background:isDisponible?'#eff6ff':'#f0f4ff', borderRadius:8, padding:'8px 10px', marginTop:4, overflow:'hidden' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e', minWidth:0 }}>
+                      <User size={12} color="#1465BB" style={{flexShrink:0}}/>
+                      <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client_nom}</span>
+                    </div>
+                    {client_tel && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#1465BB', marginTop:2 }}><Phone size={11} style={{flexShrink:0}}/> {client_tel}</div>}
+                    {client_quartier && (
+                      <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0', marginTop:2, minWidth:0 }}>
+                        <MapPin size={11} style={{flexShrink:0}}/>
+                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client_quartier}</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 {l.motif_rejet && <p style={{ fontSize:12, color:'#e53e3e', margin:0 }}>⚠ {l.motif_rejet}</p>}
