@@ -65,8 +65,8 @@ export default function RegisterPage() {
   const inp = { border: '1.5px solid #dde5f4', borderRadius: 8, fontSize: 14, outline: 'none', color: '#0d1b3e', width: '100%' };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4fb', padding: '2rem' }}>
-      <div style={{ width: '100%', maxWidth: 540, background: 'white', borderRadius: 16, border: '1px solid #dde5f4', padding: '2.5rem', boxShadow: '0 4px 24px rgba(0,55,133,0.08)' }}>
+    <div className="reg-outer" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f4fb', padding: '2rem' }}>
+      <div className="reg-card" style={{ width: '100%', maxWidth: 540, background: 'white', borderRadius: 16, border: '1px solid #dde5f4', padding: '2.5rem', boxShadow: '0 4px 24px rgba(0,55,133,0.08)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ width: 52, height: 52, background: 'linear-gradient(135deg, #1465BB, #003785)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 3px 12px rgba(20,101,187,0.3)' }}>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* Prénom + Nom */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="reg-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {([['prenom', 'Prénom'], ['nom', 'Nom']] as [string, string][]).map(([name, label]) => (
               <div key={name}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>{label}</label>
@@ -116,7 +116,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Password x2 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="reg-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {([['password', 'Mot de passe'], ['password_confirmation', 'Confirmer']] as [string, string][]).map(([name, label]) => (
               <div key={name}>
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>{label}</label>
@@ -144,6 +144,14 @@ export default function RegisterPage() {
           <Link to="/login" style={{ color: '#1465BB', fontWeight: 600 }}>Se connecter</Link>
         </p>
       </div>
+
+      <style>{`
+        @media (max-width: 480px) {
+          .reg-outer { padding: 1rem !important; }
+          .reg-card  { padding: 1.5rem !important; }
+          .reg-grid-2 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

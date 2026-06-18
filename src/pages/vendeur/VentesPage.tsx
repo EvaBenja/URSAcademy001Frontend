@@ -161,7 +161,7 @@ export default function VendeurVentesPage() {
           <h2 style={T.cardTitle}>Historique ({mesVentes.length})</h2>
         </div>
         <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Date'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
@@ -225,7 +225,7 @@ export default function VendeurVentesPage() {
                 <p style={{ fontSize:12, fontWeight:700, color:'#4a5578', margin:'0 0 10px', textTransform:'uppercase', letterSpacing:'.5px' }}>
                   <User size={12} style={{marginRight:5, verticalAlign:'middle'}}/> Infos client (optionnel)
                 </p>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                   <div>
                     <label style={T.lbl}>Nom client</label>
                     <input value={clientNom} onChange={e=>setClientNom(e.target.value)} placeholder="Ex: Kofi Mensah" style={T.inp}/>
@@ -318,7 +318,7 @@ export default function VendeurVentesPage() {
               )}
 
               {/* Zone & Date */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={T.lbl}>Zone de livraison</label>
                   <select value={zone} onChange={e=>setZone(e.target.value)} style={T.inp}>

@@ -153,7 +153,7 @@ export default function DepensesPage() {
       {/* Table */}
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
         <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Date','Catégorie','Motif','Montant FCFA','Ajouté par','Notes','Actions'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
@@ -218,7 +218,7 @@ export default function DepensesPage() {
               <button onClick={()=>setModal(null)} style={T.modalClose}><X size={15}/></button>
             </div>
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:14 }}>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={T.lbl}>Catégorie *</label>
                   <select value={form.categorie} onChange={e=>setForm((f:any)=>({...f,categorie:e.target.value}))} style={T.inp}>

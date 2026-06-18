@@ -159,7 +159,7 @@ export default function UtilisateursPage() {
         </div>
 
         <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['Utilisateur','Email','Téléphone','Rôle','Statut','Actions'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
@@ -216,7 +216,7 @@ export default function UtilisateursPage() {
               <button onClick={()=>setModal(null)} style={T.modalClose}><X size={15}/></button>
             </div>
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:14 }}>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div><label style={lbl}>Prénom</label><input value={form.prenom} onChange={e=>setForm(f=>({...f,prenom:e.target.value}))} placeholder="Ex: Jean" style={inp}/></div>
                 <div><label style={lbl}>Nom</label><input value={form.nom} onChange={e=>setForm(f=>({...f,nom:e.target.value}))} placeholder="Ex: Kossi" style={inp}/></div>
               </div>
@@ -224,7 +224,7 @@ export default function UtilisateursPage() {
               <div><label style={lbl}>Téléphone</label><input value={form.telephone} onChange={e=>setForm(f=>({...f,telephone:e.target.value}))} placeholder="90 00 00 00" style={inp}/></div>
               <div><label style={lbl}>{modal==='edition'?'Nouveau mot de passe (laisser vide pour ne pas changer)':'Mot de passe *'}</label>
                 <input type="password" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} placeholder="••••••••" style={inp}/></div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={lbl}>Rôle</label>
                   <select value={form.role_id} onChange={e=>setForm(f=>({...f,role_id:e.target.value}))} style={inp}>

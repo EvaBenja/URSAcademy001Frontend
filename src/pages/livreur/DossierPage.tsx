@@ -92,7 +92,7 @@ export default function LivreurDossierPage() {
               </div>
 
               {/* Infos */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                 <div style={{ background:'#f8faff', borderRadius:8, padding:'10px 12px' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:3 }}>
                     <Fuel size={12} color="#0a9e6e"/>

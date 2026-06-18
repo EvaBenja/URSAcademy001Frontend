@@ -79,7 +79,7 @@ export default function DossiersJournaliersPage() {
                 </div>
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:14 }}>
                 <div style={{ background:'#f8faff', borderRadius:8, padding:'10px 12px' }}>
                   <p style={{ fontSize:11, color:'#8a96b0', margin:'0 0 3px' }}>Livreur</p>
                   <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{d.livreur ? `${d.livreur.prenom||d.livreur.name||''} ${d.livreur.nom||''}`.trim() : '—'}</p>

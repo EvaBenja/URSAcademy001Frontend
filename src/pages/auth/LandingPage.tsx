@@ -18,7 +18,7 @@ export default function LandingPage() {
     <div style={{ fontFamily: 'DM Sans, sans-serif', background: '#f0f4fb', minHeight: '100vh' }}>
 
       {/* ── Navbar ── */}
-      <nav style={{
+      <nav className="lp-navbar" style={{
         background: 'white', borderBottom: '1px solid #dde5f4',
         padding: '0 48px', height: 66,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -55,7 +55,7 @@ export default function LandingPage() {
       </nav>
 
       {/* ── Hero ── */}
-      <section style={{
+      <section className="lp-hero" style={{
         background: 'linear-gradient(145deg, #003785 0%, #0d1b3e 50%, #003785 100%)',
         padding: '90px 48px 80px', position: 'relative', overflow: 'hidden',
       }}>
@@ -122,7 +122,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Stats bar ── */}
-      <div style={{ background: 'white', borderBottom: '1px solid #dde5f4', padding: '22px 48px', display: 'flex', justifyContent: 'center', gap: 72, flexWrap: 'wrap' }}>
+      <div className="lp-statsbar" style={{ background: 'white', borderBottom: '1px solid #dde5f4', padding: '22px 48px', display: 'flex', justifyContent: 'center', gap: 72, flexWrap: 'wrap' }}>
         {[
        
         ].map(({ v, u, l, c }) => (
@@ -137,7 +137,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── Modules ── */}
-      <section style={{ padding: '70px 48px', maxWidth: 1200, margin: '0 auto' }}>
+      <section className="lp-modules" style={{ padding: '70px 48px', maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 52 }}>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 34, fontWeight: 600, color: '#0d1b3e', marginBottom: 12 }}>
             Choisissez votre espace
@@ -182,7 +182,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: 'linear-gradient(135deg, #003785, #0d1b3e)', padding: '28px 48px', textAlign: 'center' }}>
+      <footer className="lp-footer" style={{ background: 'linear-gradient(135deg, #003785, #0d1b3e)', padding: '28px 48px', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}>
           <Shield size={14} color="#d0a83a" />
           <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 15, color: 'rgba(255,255,255,0.6)' }}>
@@ -191,6 +191,19 @@ export default function LandingPage() {
         </div>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>© 2024 URS — La solution complète pour votre gestion</p>
       </footer>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .lp-navbar  { padding: 0 20px !important; }
+          .lp-hero    { padding: 56px 20px 50px !important; }
+          .lp-statsbar{ padding: 18px 20px !important; gap: 32px !important; }
+          .lp-modules { padding: 44px 20px !important; }
+          .lp-footer  { padding: 22px 20px !important; }
+        }
+        @media (max-width: 480px) {
+          .lp-navbar span[style*="display: block"] { display: none !important; }
+        }
+      `}</style>
     </div>
   );
 }

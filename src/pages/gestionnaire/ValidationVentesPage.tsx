@@ -94,7 +94,7 @@ export default function ValidationVentesPage() {
 
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
         <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Vendeur','Produit(s)','Total FCFA','Zone','Statut','Date','Livreur','Actions'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>

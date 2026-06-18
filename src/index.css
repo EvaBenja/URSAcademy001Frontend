@@ -51,16 +51,12 @@
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
+  width: 100%;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-} 
+}
 
 body {
   margin: 0;
@@ -205,6 +201,70 @@ input, select, textarea { font-family: var(--font-sans); }
 /* ── Stat card hover ── */
 .stat-card { transition: box-shadow .2s, transform .2s; }
 .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE GLOBAL — couvre mobile (<480px), tablette (481-1024px), desktop (>1024px)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Empêche tout débordement horizontal accidentel sur mobile */
+html, body { overflow-x: hidden; max-width: 100vw; }
+img, svg { max-width: 100%; }
+
+/* Tableaux : toujours scrollables horizontalement sur petit écran plutôt que cassés */
+.urs-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.urs-table { min-width: 600px; }
+[style*="overflow-x"] { -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 1024px) {
+  .urs-table { min-width: 560px; }
+}
+
+/* Grilles de stat-cards (3 ou 4 colonnes desktop) — couvre toutes les variantes de nommage du projet */
+@media (max-width: 1024px) {
+  .stats-4, .stats-3, .stats-grid, .stats-grid-4, .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 420px) {
+  .stats-4, .stats-3, .stats-grid, .stats-grid-4, .kpi-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+}
+
+/* Grilles de cards en auto-fill (livraisons, demandes, produits…) */
+@media (max-width: 640px) {
+  .cards-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Formulaires en 2 ou 3 colonnes → 1 colonne sur mobile */
+@media (max-width: 560px) {
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr !important; }
+}
+
+/* Modals : toujours respecter la largeur de l'écran avec marge confortable */
+@media (max-width: 560px) {
+  .urs-modal-box {
+    max-width: calc(100vw - 24px) !important;
+    width: calc(100vw - 24px) !important;
+    margin: 0 12px;
+  }
+}
+
+/* Boutons d'action en ligne qui doivent passer en pile sur très petit écran */
+@media (max-width: 380px) {
+  .actions-row { flex-direction: column !important; }
+  .actions-row > button { width: 100% !important; }
+}
+
+/* Titres de page dashboard — réduits sur mobile (la landing page hero garde son propre clamp()) */
+@media (max-width: 480px) {
+  .page-main h1, .page-title { font-size: 20px !important; }
+}
+
+/* Padding général réduit sur mobile pour gagner de l'espace utile */
+@media (max-width: 480px) {
+  .page-main { padding: 12px !important; }
+}
+
+/* Onglets / filtres horizontaux scrollables au lieu de wrap moche */
+.tabs-scroll { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.tabs-scroll::-webkit-scrollbar { height: 0; }
 h2 {
   font-family: var(--heading);
   font-weight: 500;

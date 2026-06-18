@@ -135,7 +135,7 @@ export default function RapportsPage() {
           <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0', textAlign:'center', padding:'20px' }}>Aucune vente validée</p>
         ) : (
           <div style={{ overflowX:'auto' }}>
-            <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+            <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
               <thead>
                 <tr>{['Rang','Vendeur','Nb ventes','CA total','Part'].map(h=>(
                   <th key={h} style={T.th}>{h}</th>

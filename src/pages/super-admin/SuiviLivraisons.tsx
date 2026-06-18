@@ -78,7 +78,7 @@ export default function SuiviLivraisonsPage() {
       {/* Livraisons */}
       {tab === 'livraisons' && (
         <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Zone','Livreur','Statut','Date'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>

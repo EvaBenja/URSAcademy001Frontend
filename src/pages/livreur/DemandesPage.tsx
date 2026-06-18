@@ -181,7 +181,7 @@ export default function LivreurDemandesPage() {
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:16 }}>
 
               {/* Date et zone */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={T.lbl}>Date de disponibilité *</label>
                   <input type="date" value={form.date_livraison}

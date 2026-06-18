@@ -139,7 +139,7 @@ export default function ProduitsPage() {
             <label style={S.lbl}>Désignation *</label>
             <input style={S.inp} value={editForm.nom||''} onChange={e=>setEditForm(f=>({...f,nom:e.target.value}))} required/>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
             <div>
               <label style={{ ...S.lbl, color:'#1465BB' }}>Prix unitaire (FCFA) *</label>
               <input type="number" style={{ ...S.inp, border:'2px solid #1465BB' }} value={editForm.prix_unitaire||0} onChange={e=>setEditForm(f=>({...f,prix_unitaire:+e.target.value}))} required min={0}/>

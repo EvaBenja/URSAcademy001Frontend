@@ -64,7 +64,7 @@ export default function SAProduitsPage() {
 
       {/* Table */}
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
-        <table style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+        <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
           <thead>
             <tr>{['Référence','Produit','Prix (FCFA)','Stock','Unité','Actions'].map(h=>(
               <th key={h} style={T.th}>{h}</th>
@@ -110,7 +110,7 @@ export default function SAProduitsPage() {
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:14 }}>
               <div><label style={T.lbl}>Référence *</label><input style={T.inp} value={form.reference||''} onChange={e=>setForm((f:any)=>({...f,reference:e.target.value}))} disabled={modal==='edition'} placeholder="Ex: PROD-001"/></div>
               <div><label style={T.lbl}>Désignation *</label><input style={T.inp} value={form.nom||''} onChange={e=>setForm((f:any)=>({...f,nom:e.target.value}))} placeholder="Ex: Huile moteur 5L"/></div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div><label style={T.lbl}>Prix unitaire (FCFA)</label><input type="number" min={0} style={T.inp} value={form.prix_unitaire||0} onChange={e=>setForm((f:any)=>({...f,prix_unitaire:+e.target.value}))}/></div>
                 <div><label style={T.lbl}>Stock initial</label><input type="number" min={0} style={T.inp} value={form.quantite_stock||0} onChange={e=>setForm((f:any)=>({...f,quantite_stock:+e.target.value}))}/></div>
               </div>
