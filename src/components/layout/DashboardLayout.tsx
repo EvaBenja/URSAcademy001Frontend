@@ -7,7 +7,7 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4fb' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4fb', overflowX: 'hidden' }}>
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div
@@ -23,9 +23,9 @@ export default function DashboardLayout() {
 
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div style={{ flex: 1, marginLeft: 240, display: 'flex', flexDirection: 'column', minHeight: '100vh' }} className="main-content">
+      <div style={{ flex: 1, minWidth: 0, marginLeft: 240, display: 'flex', flexDirection: 'column', minHeight: '100vh' }} className="main-content">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        <main style={{ flex: 1, padding: '24px', background: '#f0f4fb' }} className="page-main">
+        <main style={{ flex: 1, minWidth: 0, padding: '24px', background: '#f0f4fb', overflowX: 'hidden' }} className="page-main">
           <Outlet />
         </main>
       </div>
