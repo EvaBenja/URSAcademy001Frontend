@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, TrendingUp, Truck, Users, AlertCircle, Clock, ArrowUpRight } from 'lucide-react';
-import { dashboardService } from '../../services/api';
+import { dashboardService, geoService } from '../../services/api';
+import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 
 interface Stats {
   total_ventes: number;
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [demandes, setDemandes] = useState<any[]>([]);
   const [ventes, setVentes] = useState<number[]>([42, 68, 55, 82, 73, 91, 87]);
+  const [positions, setPositions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -34,16 +36,18 @@ export default function DashboardPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [statsRes, demandesRes, ventesRes] = await Promise.all([
+        const [statsRes, demandesRes, ventesRes, positionsRes] = await Promise.all([
           dashboardService.stats(),
           dashboardService.demandesRecentes(),
           dashboardService.graphVentes('semaine'),
+          geoService.livreurs().catch(() => ({ data: [] })),
         ]);
         setStats(statsRes.data);
         setDemandes(demandesRes.data.slice(0, 4));
         if (ventesRes.data?.length > 0) {
           setVentes(ventesRes.data.map((v: any) => Number(v.total) || 0));
         }
+        setPositions(positionsRes.data || []);
       } catch (e) {
         console.error('Erreur dashboard:', e);
       } finally {
@@ -129,13 +133,23 @@ export default function DashboardPage() {
                 <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 15, fontWeight: 600, color: '#0d1b3e' }}>Localisation des livreurs</h3>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#0a9e6e', background: '#dcfce7', padding: '3px 9px', borderRadius: 20 }}>En direct</span>
               </div>
-              <div style={{ background: 'linear-gradient(135deg,#e0f4fb,#e8f0ff)', borderRadius: 10, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', border: '1px solid #dde5f4' }}>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,rgba(0,55,133,0.04) 0px,transparent 1px,transparent 26px),repeating-linear-gradient(90deg,rgba(0,55,133,0.04) 0px,transparent 1px,transparent 26px)' }} />
-                {[{ x: 25, y: 35, c: '#2196F3' }, { x: 55, y: 60, c: '#0a9e6e' }, { x: 72, y: 30, c: '#d0a83a' }].map((p, i) => (
-                  <div key={i} style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%`, width: 22, height: 22, background: p.c, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)', border: '2px solid white', boxShadow: `0 2px 6px ${p.c}66` }} />
-                ))}
-                <span style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 12, color: '#4a5578', position: 'relative', background: 'rgba(255,255,255,0.7)', padding: '4px 10px', borderRadius: 6 }}>Carte GPS temps réel</span>
-              </div>
+              {(() => {
+                const dansZone = positions.filter((p:any) => !isHorsZone(Number(p.latitude), Number(p.longitude)));
+                const mapPoints: LivreurPoint[] = dansZone.map((p:any, i:number) => ({
+                  id: p.id,
+                  nom: `${p.livreur?.prenom||p.prenom||p.name||''} ${p.livreur?.nom||p.nom||''}`.trim() || 'Livreur',
+                  latitude: Number(p.latitude),
+                  longitude: Number(p.longitude),
+                  couleur: ['#2196F3','#0a9e6e','#d0a83a','#e53e3e','#7c3aed'][i % 5],
+                }));
+                return mapPoints.length === 0 ? (
+                  <div style={{ background: '#f8faff', borderRadius: 10, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dde5f4' }}>
+                    <span style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 13, color: '#8a96b0' }}>Aucun livreur à Ouagadougou actuellement</span>
+                  </div>
+                ) : (
+                  <LivreurMap points={mapPoints} height={150} />
+                );
+              })()}
             </div>
 
             {/* Demandes récentes */}

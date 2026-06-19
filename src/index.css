@@ -215,6 +215,9 @@ img, svg { max-width: 100%; }
 .urs-table { min-width: 600px; }
 [style*="overflow-x"] { -webkit-overflow-scrolling: touch; }
 
+/* Leaflet : garder les contrôles de carte sous la sidebar mobile (zIndex 50) */
+.leaflet-pane, .leaflet-top, .leaflet-bottom, .leaflet-control { z-index: 10 !important; }
+
 @media (max-width: 1024px) {
   .urs-table { min-width: 560px; }
 }

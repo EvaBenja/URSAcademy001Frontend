@@ -65,16 +65,16 @@ export default function ClassementVendeursPage() {
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {reste.map((c: any, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'11px 14px', borderRadius:10, background:'#f8faff', border:'1px solid #f0f4fb' }}>
-                    <span style={{ fontSize:15, fontWeight:700, color:'#8a96b0', width:30, textAlign:'center' }}>#{i+4}</span>
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:14, padding:'11px 14px', borderRadius:10, background:'#f8faff', border:'1px solid #f0f4fb', flexWrap:'wrap' }}>
+                    <span style={{ fontSize:15, fontWeight:700, color:'#8a96b0', width:30, textAlign:'center', flexShrink:0 }}>#{i+4}</span>
                     <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#4a5578,#2d3a5a)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, flexShrink:0 }}>
                       {(c.vendeur||'?')[0]}
                     </div>
-                    <div style={{ flex:1 }}>
-                      <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', margin:0 }}>{c.vendeur}</p>
+                    <div style={{ flex:1, minWidth:0, overflow:'hidden' }}>
+                      <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.vendeur}</p>
                       <p style={{ fontSize:12, color:'#8a96b0', margin:0 }}>{c.nombre_ventes} vente{c.nombre_ventes>1?'s':''}</p>
                     </div>
-                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#0d1b3e' }}>
+                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#0d1b3e', flexShrink:0, whiteSpace:'nowrap' }}>
                       {new Intl.NumberFormat('fr-FR').format(c.total)} <span style={{ fontSize:11, color:'#8a96b0' }}>FCFA</span>
                     </span>
                   </div>

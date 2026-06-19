@@ -74,21 +74,21 @@ export default function LivreurDossierPage() {
               onMouseLeave={e=>{ const el=e.currentTarget as HTMLElement; el.style.boxShadow='none'; }}>
               {/* Header */}
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14, flexWrap:'wrap', gap:8 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0, flex:1 }}>
                   <div style={{ width:42, height:42, borderRadius:10, background:'#e0f0ff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                     <FolderOpen size={18} color="#1465BB"/>
                   </div>
-                  <div>
+                  <div style={{ minWidth:0, overflow:'hidden' }}>
                     <p style={{ fontSize:15, fontWeight:700, color:'#0d1b3e', margin:0 }}>Dossier #{d.id}</p>
-                    <p style={{ fontSize:12, color:'#8a96b0', margin:0, display:'flex', alignItems:'center', gap:4 }}>
-                      <Clock size={11}/>
+                    <p style={{ fontSize:12, color:'#8a96b0', margin:0, display:'flex', alignItems:'center', gap:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      <Clock size={11} style={{flexShrink:0}}/>
                       {d.date
                         ? new Date(d.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
                         : '—'}
                     </p>
                   </div>
                 </div>
-                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'4px 12px', borderRadius:20 }}>{sc.label}</span>
+                <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'4px 12px', borderRadius:20, flexShrink:0, whiteSpace:'nowrap' }}>{sc.label}</span>
               </div>
 
               {/* Infos */}

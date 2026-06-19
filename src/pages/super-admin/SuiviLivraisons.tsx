@@ -1,6 +1,7 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { MapPin, Truck, Trophy, RefreshCw, Clock } from 'lucide-react';
+import { MapPin, Truck, Trophy, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
 import { livraisonsService, ventesService, geoService } from '../../services/api';
+import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -10,6 +11,8 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   rejetee:    {label:'Rejetée',    bg:'#fee2e2', color:'#991b1b'},
   terminee:   {label:'Terminée',   bg:'#f1f5f9', color:'#475569'},
 };
+
+const MAP_COLORS = ['#2196F3','#0a9e6e','#d0a83a','#e53e3e','#7c3aed','#0891b2'];
 
 export default function SuiviLivraisonsPage() {
   const [livraisons,  setLivraisons]  = useState<any[]>([]);
@@ -35,6 +38,16 @@ export default function SuiviLivraisonsPage() {
   };
 
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
+
+  const dansZone = positions.filter((p:any) => !isHorsZone(Number(p.latitude), Number(p.longitude)));
+  const horsZone = positions.filter((p:any) => isHorsZone(Number(p.latitude), Number(p.longitude)));
+  const mapPoints: LivreurPoint[] = dansZone.map((p:any, i:number) => ({
+    id: p.id,
+    nom: `${p.livreur?.prenom||p.prenom||p.name||''} ${p.livreur?.nom||p.nom||''}`.trim() || 'Livreur',
+    latitude: Number(p.latitude),
+    longitude: Number(p.longitude),
+    couleur: MAP_COLORS[i % MAP_COLORS.length],
+  }));
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
@@ -135,44 +148,46 @@ export default function SuiviLivraisonsPage() {
       {/* Carte */}
       {tab === 'carte' && (
         <div style={T.card}>
-          <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'#0d1b3e', marginBottom:14 }}>Positions GPS livreurs</h3>
-          <div style={{ background:'linear-gradient(135deg,#e0f4fb,#e8f0ff)', borderRadius:12, height:280, position:'relative', overflow:'hidden', border:'1px solid #dde5f4' }}>
-            <div style={{ position:'absolute', inset:0, backgroundImage:'repeating-linear-gradient(0deg,rgba(0,55,133,0.04) 0,transparent 1px,transparent 32px),repeating-linear-gradient(90deg,rgba(0,55,133,0.04) 0,transparent 1px,transparent 32px)'}}/>
-            {positions.length === 0 ? (
-              <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:10 }}>
-                <MapPin size={32} color="#8a96b0"/>
-                <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0', textAlign:'center' }}>Aucun livreur ne partage sa position GPS</p>
-              </div>
-            ) : positions.map((p:any, i:number) => {
-              const colors=['#2196F3','#0a9e6e','#d0a83a','#e53e3e','#7c3aed'];
-              const c = colors[i%colors.length];
-              return (
-                <div key={p.id||i} style={{ position:'absolute', left:`${15+(i*20)%70}%`, top:`${15+(i*25)%70}%` }}>
-                  <div style={{ width:22, height:22, borderRadius:'50% 50% 50% 0', background:c, transform:'rotate(-45deg)', border:'2px solid white', boxShadow:`0 2px 8px ${c}66` }}/>
-                  <div style={{ background:'white', borderRadius:6, padding:'2px 7px', fontSize:10, fontWeight:700, color:c, marginTop:4, whiteSpace:'nowrap', boxShadow:'0 2px 6px rgba(0,0,0,0.1)' }}>
-                    {p.livreur?.prenom||`L${i+1}`}
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{ position:'absolute', top:10, right:10, background:'rgba(10,158,110,0.9)', color:'white', fontSize:11, fontWeight:700, padding:'4px 10px', borderRadius:20 }}>● En direct</div>
-          </div>
+          <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'#0d1b3e', marginBottom:14 }}>Positions GPS livreurs — Ouagadougou</h3>
+          {dansZone.length === 0 ? (
+            <div style={{ background:'#f8faff', borderRadius:12, height:280, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:10, border:'1px solid #dde5f4' }}>
+              <MapPin size={32} color="#8a96b0"/>
+              <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0', textAlign:'center', padding:'0 24px' }}>Aucun livreur à Ouagadougou ne partage sa position GPS</p>
+            </div>
+          ) : (
+            <LivreurMap points={mapPoints} height={280}/>
+          )}
+          {horsZone.length > 0 && (
+            <div style={{ background:'#fef9c3', border:'1px solid #fde68a', borderRadius:10, padding:'10px 14px', marginTop:12, display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+              <AlertTriangle size={15} color="#854d0e" style={{flexShrink:0}}/>
+              <span style={{ fontSize:12, color:'#854d0e' }}>Hors zone (non affichés sur la carte) :</span>
+              {horsZone.map(p => (
+                <span key={p.id} style={{ background:'#fde68a', color:'#78350f', fontSize:11, fontWeight:600, padding:'2px 9px', borderRadius:20 }}>
+                  {p.livreur?.prenom||p.prenom||'Livreur'} {p.livreur?.nom||p.nom||''}
+                </span>
+              ))}
+            </div>
+          )}
           {positions.length > 0 && (
             <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:14 }}>
-              {positions.map((p:any, i:number) => (
-                <div key={p.id||i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:8, background:'#f8faff' }}>
+              {positions.map((p:any, i:number) => {
+                const horsZ = isHorsZone(Number(p.latitude), Number(p.longitude));
+                return (
+                <div key={p.id||i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 12px', borderRadius:8, background:'#f8faff', flexWrap:'wrap' }}>
                   <div style={{ width:30, height:30, borderRadius:'50%', background:'linear-gradient(135deg,#0891b2,#0e7490)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:11, fontWeight:700, flexShrink:0 }}>
-                    {(p.livreur?.prenom||'L')[0]}
+                    {(p.livreur?.prenom||p.prenom||'L')[0]}
                   </div>
-                  <div style={{ flex:1 }}>
-                    <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{p.livreur?.prenom} {p.livreur?.nom}</p>
+                  <div style={{ flex:1, minWidth:0, overflow:'hidden' }}>
+                    <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.livreur?.prenom||p.prenom} {p.livreur?.nom||p.nom}</p>
                     <p style={{ fontSize:11, color:'#8a96b0', margin:0, display:'flex', alignItems:'center', gap:4 }}>
-                      <Clock size={10}/> {p.updated_at ? new Date(p.updated_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—'}
+                      <Clock size={10}/> {p.position_updated_at ? new Date(p.position_updated_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—'}
                     </p>
                   </div>
-                  <span style={{ background:'#dcfce7', color:'#166534', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20 }}>GPS ✓</span>
+                  {horsZ
+                    ? <span style={{ background:'#fde68a', color:'#78350f', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, flexShrink:0, whiteSpace:'nowrap' }}>Hors zone</span>
+                    : <span style={{ background:'#dcfce7', color:'#166534', fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, flexShrink:0, whiteSpace:'nowrap' }}>GPS ✓</span>}
                 </div>
-              ))}
+              );})}
             </div>
           )}
         </div>
