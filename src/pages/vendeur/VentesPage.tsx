@@ -4,13 +4,15 @@ import { ventesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import ZoneSelect from '../../components/ui/ZoneSelect';
+import { QUARTIERS_OUAGA } from '../../data/quartiersOuaga';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
   validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
   annulee:    {label:'Refusée',    bg:'#f1f5f9', color:'#475569'},
 };
-const ZONES = ['Adidogomé','Agoe','Baguida','Lomé centre','Hédzranawoe','Avedji','Tokoin','Djidjolé'];
+const ZONES = QUARTIERS_OUAGA;
 
 interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; }
 
@@ -236,7 +238,7 @@ export default function VendeurVentesPage() {
                   </div>
                   <div style={{ gridColumn:'1/-1' }}>
                     <label style={T.lbl}>Quartier / Adresse</label>
-                    <input value={clientQuartier} onChange={e=>setClientQuartier(e.target.value)} placeholder="Ex: Adidogomé carrefour" style={T.inp}/>
+                    <input value={clientQuartier} onChange={e=>setClientQuartier(e.target.value)} placeholder="Ex: Zogona, secteur 15" style={T.inp}/>
                   </div>
                 </div>
               </div>
@@ -321,9 +323,7 @@ export default function VendeurVentesPage() {
               <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                 <div>
                   <label style={T.lbl}>Zone de livraison</label>
-                  <select value={zone} onChange={e=>setZone(e.target.value)} style={T.inp}>
-                    {ZONES.map(z=><option key={z}>{z}</option>)}
-                  </select>
+                  <ZoneSelect value={zone} onChange={setZone} style={T.inp}/>
                 </div>
                 <div>
                   <label style={T.lbl}>Date de vente</label>

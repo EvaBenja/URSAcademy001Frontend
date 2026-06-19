@@ -3,6 +3,8 @@ import { Plus, X, Clock, MapPin, Package, Trash2 } from 'lucide-react';
 import { demandesService } from '../../services/api';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import ZoneSelect from '../../components/ui/ZoneSelect';
+import { QUARTIERS_OUAGA } from '../../data/quartiersOuaga';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
@@ -12,7 +14,7 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   terminee:   {label:'Terminée',   bg:'#f1f5f9', color:'#475569'},
 };
 
-const ZONES = ['Adidogomé','Agoe','Baguida','Lomé centre','Hédzranawoe','Avedji','Tokoin','Djidjolé'];
+const ZONES = QUARTIERS_OUAGA;
 
 interface ProduitItem { produit_id: number; nom: string; quantite: number; }
 
@@ -189,10 +191,7 @@ export default function LivreurDemandesPage() {
                 </div>
                 <div>
                   <label style={T.lbl}>Zone souhaitée</label>
-                  <select value={form.zone_livraison}
-                    onChange={e=>setForm(f=>({...f,zone_livraison:e.target.value}))} style={T.inp}>
-                    {ZONES.map(z=><option key={z}>{z}</option>)}
-                  </select>
+                  <ZoneSelect value={form.zone_livraison} onChange={v=>setForm(f=>({...f,zone_livraison:v}))} style={T.inp}/>
                 </div>
               </div>
 
