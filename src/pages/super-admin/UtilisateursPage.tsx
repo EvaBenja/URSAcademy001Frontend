@@ -158,7 +158,7 @@ export default function UtilisateursPage() {
           <span style={{ marginLeft:'auto', fontSize:12, color:'#8a96b0' }}>{filtered.length} utilisateur{filtered.length>1?'s':''}</span>
         </div>
 
-        <div style={{ overflowX:'auto' }}>
+        <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['Utilisateur','Email','Téléphone','Rôle','Statut','Actions'].map(h=>(
@@ -204,6 +204,54 @@ export default function UtilisateursPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Vue cartes — mobile uniquement, tous les champs visibles empilés */}
+        <div className="urs-cards-mobile">
+          {filtered.length === 0 ? (
+            <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>Aucun utilisateur trouvé</p>
+          ) : filtered.map(u => {
+            const roleNom = getRoleNom(u);
+            const rc = ROLE_CONFIG[roleNom] || { label:roleNom, color:'#475569', bg:'#f1f5f9' };
+            return (
+              <div key={u.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                  <div style={{ width:38, height:38, borderRadius:'50%', background:`linear-gradient(135deg,${rc.color},${rc.color}99)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'white', flexShrink:0 }}>
+                    {(u.prenom||u.name||'?')[0]}{(u.nom||'')[0]}
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.prenom} {u.nom}</p>
+                    <p style={{ fontSize:11, color:'#8a96b0' }}>ID #{u.id}</p>
+                  </div>
+                  <div style={{ display:'flex', gap:5, flexShrink:0 }}>
+                    <button onClick={()=>openEdit(u)} style={{ ...T.iconBtn, color:'#1465BB' }}><Edit2 size={13}/></button>
+                    <button onClick={()=>setDeleteConfirm(u.id)} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><Trash2 size={13}/></button>
+                  </div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                    <span style={{ color:'#8a96b0', flexShrink:0 }}>Email</span>
+                    <span style={{ color:'#4a5578', textAlign:'right', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                    <span style={{ color:'#8a96b0' }}>Téléphone</span>
+                    <span style={{ color:'#4a5578' }}>{u.telephone||'—'}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+                    <span style={{ color:'#8a96b0' }}>Rôle</span>
+                    <span style={{ background:rc.bg, color:rc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{rc.label}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:8 }}>
+                    <span style={{ color:'#8a96b0' }}>Statut</span>
+                    <span style={{ display:'flex', alignItems:'center', gap:5, background:u.statut==='actif'?'#dcfce7':'#f1f5f9', color:u.statut==='actif'?'#166534':'#475569', borderRadius:20, padding:'3px 10px', fontSize:11, fontWeight:600 }}>
+                      {u.statut==='actif' ? <CheckCircle size={11}/> : <XCircle size={11}/>}
+                      {u.statut==='actif'?'Actif':'Inactif'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

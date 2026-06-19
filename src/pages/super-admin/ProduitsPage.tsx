@@ -62,11 +62,11 @@ export default function SAProduitsPage() {
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
+      {/* Table desktop */}
+      <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
         <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
           <thead>
-            <tr>{['Référence','Produit','Prix (FCFA)','Stock','Unité','Actions'].map(h=>(
+            <tr>{['Référence','Produit','Prix (FCFA)','Prix gros','Marge','Stock','Unité','Actions'].map(h=>(
               <th key={h} style={T.th}>{h}</th>
             ))}</tr>
           </thead>
@@ -97,6 +97,53 @@ export default function SAProduitsPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Cartes mobile — tous les champs visibles */}
+      <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
+        {produits.length === 0 ? (
+          <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>
+            Aucun produit — ajoutez votre premier produit
+          </p>
+        ) : produits.map((p:any) => (
+          <div key={p.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+              <div style={{ minWidth:0 }}>
+                <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.nom}</p>
+                <p style={{ fontSize:11, color:'#1465BB', fontWeight:600 }}>{p.reference}</p>
+              </div>
+              <div style={{ display:'flex', gap:5, flexShrink:0 }}>
+                <button onClick={()=>{setForm({...p});setModal('edition');}} style={{ ...T.iconBtn, color:'#1465BB' }}><Edit2 size={13}/></button>
+                <button onClick={()=>handleDelete(p.id)} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><Trash2 size={13}/></button>
+              </div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+              <div style={{ display:'flex', justifyContent:'space-between' }}>
+                <span style={{ color:'#8a96b0' }}>Prix unitaire</span>
+                <span style={{ fontWeight:700, color:'#0d1b3e' }}>{Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between' }}>
+                <span style={{ color:'#8a96b0' }}>Prix gros</span>
+                {p.prix_gros > 0 ? <span style={{fontWeight:600,color:'#7c3aed'}}>{Number(p.prix_gros).toLocaleString('fr-FR')} FCFA</span> : <span style={{color:'#dde5f4'}}>—</span>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between' }}>
+                <span style={{ color:'#8a96b0' }}>Marge</span>
+                {p.prix_gros > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>+{Number(p.prix_unitaire-p.prix_gros).toLocaleString('fr-FR')} FCFA</span> : <span style={{color:'#dde5f4'}}>—</span>}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ color:'#8a96b0' }}>Stock</span>
+                <span>
+                  <span style={{ fontWeight:700, color:p.quantite_stock<10?'#e53e3e':'#0a9e6e', fontSize:15 }}>{p.quantite_stock}</span>
+                  {p.quantite_stock < 10 && <span style={{ marginLeft:7, background:'#fee2e2', color:'#e53e3e', fontSize:10, padding:'2px 7px', borderRadius:6, fontWeight:700 }}>BAS</span>}
+                </span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between' }}>
+                <span style={{ color:'#8a96b0' }}>Unité</span>
+                <span style={{ color:'#4a5578' }}>{p.unite||'—'}</span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Modal */}

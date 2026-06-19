@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { CheckCircle, XCircle, Eye, X } from 'lucide-react';
+import { XCircle, Eye, X } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -23,13 +23,6 @@ export default function SAVentesPage() {
     finally { setLoading(false); }
   };
 
-  const doValider = async (id: number) => {
-    setSaving(true);
-    try { await ventesService.valider(id); toast.success('Vente validée'); setDetail(null); load(); }
-    catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
-    finally { setSaving(false); }
-  };
-
   const doAnnuler = async (id: number) => {
     const motif = window.prompt('Motif du refus (obligatoire) :');
     if (!motif || !motif.trim()) { toast.error('Motif obligatoire — refus annulé'); return; }
@@ -40,7 +33,7 @@ export default function SAVentesPage() {
   };
 
   const filtered = filter === 'tous' ? ventes : ventes.filter(v => v.statut === filter);
-  const caTotal  = ventes.filter(v=>v.statut==='validee').reduce((s,v)=>s+Number(v.montant_total||0),0);
+  const caTotal  = ventes.filter(v=>v.statut!=='annulee').reduce((s,v)=>s+Number(v.montant_total||0),0);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
@@ -54,9 +47,9 @@ export default function SAVentesPage() {
       {/* Stats */}
       <div className="stats-4" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:22 }}>
         {[
-          {label:"CA validé",    val:`${caTotal.toLocaleString('fr-FR')} FCFA`, color:'#1465BB', s:'validee'  },
+          {label:"CA actif",     val:`${caTotal.toLocaleString('fr-FR')} FCFA`, color:'#1465BB', s:'tous'  },
           {label:'En attente',   val:ventes.filter(v=>v.statut==='en_attente').length, color:'#d0a83a', s:'en_attente'},
-          {label:'Validées',     val:ventes.filter(v=>v.statut==='validee').length,    color:'#0a9e6e', s:'validee'  },
+          {label:'Refusées',     val:ventes.filter(v=>v.statut==='annulee').length,    color:'#e53e3e', s:'annulee'  },
           {label:'Total',        val:ventes.length,                                    color:'#7c3aed', s:'tous'     },
         ].map(({label,val,color,s}) => (
           <div key={label} onClick={()=>setFilter(s)}
@@ -78,8 +71,8 @@ export default function SAVentesPage() {
         <span style={{ marginLeft:'auto', fontSize:12, color:'#8a96b0', alignSelf:'center' }}>{filtered.length} vente{filtered.length>1?'s':''}</span>
       </div>
 
-      {/* Table */}
-      <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
+      {/* Table desktop */}
+      <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
         <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
           <thead>
             <tr>{['#','Vendeur','Produit(s)','Total FCFA','Zone','Statut','Date','Actions'].map(h=>(
@@ -106,10 +99,7 @@ export default function SAVentesPage() {
                     <div style={{ display:'flex', gap:5 }}>
                       <button onClick={()=>setDetail(v)} style={{ ...T.iconBtn, color:'#1465BB' }}><Eye size={13}/></button>
                       {v.statut === 'en_attente' && (
-                        <>
-                          <button onClick={()=>doValider(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#0a9e6e', borderColor:'#bbf7d0', background:'#f0fdf4' }}><CheckCircle size={13}/></button>
-                          <button onClick={()=>doAnnuler(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><XCircle size={13}/></button>
-                        </>
+                        <button onClick={()=>doAnnuler(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><XCircle size={13}/></button>
                       )}
                     </div>
                   </td>
@@ -118,6 +108,55 @@ export default function SAVentesPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Cartes mobile */}
+      <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
+        {filtered.length === 0 ? (
+          <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>Aucune vente</p>
+        ) : filtered.map((v:any) => {
+          const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
+          const nomV = v.caissiere ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim() : '—';
+          const produits = v.items?.length > 0 ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ') : `${v.produit?.nom||'—'} ×${v.quantite}`;
+          return (
+            <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+                <div style={{ minWidth:0 }}>
+                  <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{v.id}</span>
+                  <p style={{ fontSize:13, color:'#0d1b3e', fontWeight:600, marginTop:2 }}>{nomV}</p>
+                </div>
+                <div style={{ display:'flex', gap:5, flexShrink:0 }}>
+                  <button onClick={()=>setDetail(v)} style={{ ...T.iconBtn, color:'#1465BB' }}><Eye size={13}/></button>
+                  {v.statut === 'en_attente' && (
+                    <button onClick={()=>doAnnuler(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><XCircle size={13}/></button>
+                  )}
+                </div>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                  <span style={{ color:'#8a96b0', flexShrink:0 }}>Produit(s)</span>
+                  <span style={{ color:'#4a5578', textAlign:'right', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{produits}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#8a96b0' }}>Total</span>
+                  <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#8a96b0' }}>Zone</span>
+                  <span style={{ color:'#4a5578' }}>{v.zone_livraison||'—'}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ color:'#8a96b0' }}>Statut</span>
+                  <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#8a96b0' }}>Date</span>
+                  <span style={{ color:'#4a5578' }}>{v.date_vente}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal détail */}
@@ -155,8 +194,7 @@ export default function SAVentesPage() {
               ))}
               {detail.statut === 'en_attente' && (
                 <div style={{ display:'flex', gap:10, marginTop:10 }}>
-                  <button onClick={()=>doAnnuler(detail.id)} disabled={saving} style={{ flex:1, padding:'10px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer' }}>Annuler</button>
-                  <button onClick={()=>doValider(detail.id)} disabled={saving} style={{ flex:1, padding:'10px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontWeight:600, cursor:'pointer' }}>{saving?'…':'Valider'}</button>
+                  <button onClick={()=>doAnnuler(detail.id)} disabled={saving} style={{ flex:1, padding:'10px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer' }}>{saving?'…':'Refuser cette vente'}</button>
                 </div>
               )}
             </div>

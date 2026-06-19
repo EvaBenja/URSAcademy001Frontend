@@ -162,7 +162,7 @@ export default function VendeurVentesPage() {
         <div style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
           <h2 style={T.cardTitle}>Historique ({mesVentes.length})</h2>
         </div>
-        <div style={{ overflowX:'auto' }}>
+        <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Date'].map(h=>(
@@ -209,6 +209,59 @@ export default function VendeurVentesPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Cartes mobile */}
+        <div className="urs-cards-mobile">
+          {mesVentes.length === 0 ? (
+            <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
+              Cliquez sur "Nouvelle vente" pour commencer
+            </p>
+          ) : mesVentes.map((v:any) => {
+            const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
+            return (
+              <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+                  <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{v.id}</span>
+                  <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                    <span style={{ color:'#8a96b0', flexShrink:0 }}>Produit(s)</span>
+                    <div style={{ textAlign:'right' }}>
+                      {v.items?.length > 0
+                        ? v.items.map((it:any)=><div key={it.id} style={{fontSize:12, color:'#4a5578'}}>{it.produit?.nom} ×{it.quantite}</div>)
+                        : <span style={{ color:'#4a5578' }}>{v.produit?.nom||'—'} ×{v.quantite}</span>}
+                    </div>
+                  </div>
+                  {v.client_nom && (
+                    <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                      <span style={{ color:'#8a96b0' }}>Client</span>
+                      <div style={{ textAlign:'right' }}>
+                        <p style={{ fontSize:13, fontWeight:500, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
+                        {v.client_telephone && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_telephone}</p>}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Total</span>
+                    <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Zone</span>
+                    <span style={{ color:'#4a5578' }}>{v.zone_livraison||'—'}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Date</span>
+                    <span style={{ color:'#4a5578' }}>{v.date_vente}</span>
+                  </div>
+                  {v.statut === 'annulee' && v.motif_annulation && (
+                    <p style={{ fontSize:11, color:'#e53e3e', margin:0, fontStyle:'italic' }}>Motif : {v.motif_annulation}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

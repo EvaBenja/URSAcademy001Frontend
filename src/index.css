@@ -215,6 +215,13 @@ img, svg { max-width: 100%; }
 .urs-table { min-width: 600px; }
 [style*="overflow-x"] { -webkit-overflow-scrolling: touch; }
 
+/* Pattern tableau → cartes : le tableau s'affiche en desktop, les cartes en mobile */
+.urs-cards-mobile { display: none; }
+@media (max-width: 768px) {
+  .urs-table-desktop { display: none !important; }
+  .urs-cards-mobile { display: block; }
+}
+
 /* Leaflet : garder les contrôles de carte sous la sidebar mobile (zIndex 50) */
 .leaflet-pane, .leaflet-top, .leaflet-bottom, .leaflet-control { z-index: 10 !important; }
 
