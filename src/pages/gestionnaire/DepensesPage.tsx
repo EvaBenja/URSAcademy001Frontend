@@ -152,7 +152,7 @@ export default function DepensesPage() {
 
       {/* Table */}
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
-        <div style={{ overflowX:'auto' }}>
+        <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Date','Catégorie','Motif','Montant FCFA','Ajouté par','Notes','Actions'].map(h=>(
@@ -197,6 +197,56 @@ export default function DepensesPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Cartes mobile */}
+        <div className="urs-cards-mobile">
+          {filtered.length === 0 ? (
+            <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
+              Aucune dépense enregistrée
+            </p>
+          ) : filtered.map((d:any) => {
+            const cc = CAT_COLORS[d.categorie]||{bg:'#f1f5f9',color:'#475569'};
+            const cat = CATEGORIES.find(x=>x.value===d.categorie);
+            return (
+              <div key={d.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+                  <div style={{ minWidth:0 }}>
+                    <span style={{ fontWeight:700, color:'#1465BB', fontSize:13 }}>#{d.id}</span>
+                    <p style={{ fontSize:14, fontWeight:500, color:'#0d1b3e', marginTop:2 }}>{d.motif}</p>
+                  </div>
+                  <div style={{ display:'flex', gap:5, flexShrink:0 }}>
+                    <button onClick={()=>openEdit(d)} style={{ ...T.iconBtn, color:'#1465BB' }}><Edit2 size={13}/></button>
+                    <button onClick={()=>handleDelete(d.id)} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><Trash2 size={13}/></button>
+                  </div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Date</span>
+                    <span style={{ color:'#4a5578' }}>{d.date_depense}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ color:'#8a96b0' }}>Catégorie</span>
+                    <span style={{ background:cc.bg, color:cc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{cat?.label||d.categorie}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Montant</span>
+                    <span style={{ fontWeight:700, color:'#e53e3e' }}>{Number(d.montant).toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Ajouté par</span>
+                    <span style={{ color:'#4a5578' }}>{d.user ? `${d.user.prenom||d.user.name||''} ${d.user.nom||''}`.trim() : '—'}</span>
+                  </div>
+                  {d.notes && (
+                    <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                      <span style={{ color:'#8a96b0', flexShrink:0 }}>Notes</span>
+                      <span style={{ color:'#4a5578', textAlign:'right' }}>{d.notes}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
         {/* Total en bas */}
         {filtered.length > 0 && (

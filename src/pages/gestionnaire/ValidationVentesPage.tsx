@@ -93,7 +93,7 @@ export default function ValidationVentesPage() {
       </div>
 
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
-        <div style={{ overflowX:'auto' }}>
+        <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
               <tr>{['#','Vendeur','Produit(s)','Total FCFA','Zone','Statut','Date','Livreur','Actions'].map(h=>(
@@ -165,6 +165,76 @@ export default function ValidationVentesPage() {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Cartes mobile */}
+        <div className="urs-cards-mobile">
+          {paginated.length === 0 ? (
+            <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
+              Aucune vente
+            </p>
+          ) : paginated.map((v:any) => {
+            const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
+            const nomV = v.caissiere
+              ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim()
+              : '—';
+            const produits = v.items?.length > 0
+              ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ')
+              : `${v.produit?.nom||'—'} ×${v.quantite}`;
+            return (
+              <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+                    <div style={{ width:30, height:30, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'white', flexShrink:0 }}>
+                      {(nomV[0]||'?')}
+                    </div>
+                    <div style={{ minWidth:0 }}>
+                      <span style={{ fontWeight:700, color:'#1465BB', fontSize:13 }}>#{v.id}</span>
+                      <p style={{ fontSize:13, color:'#0d1b3e', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{nomV}</p>
+                    </div>
+                  </div>
+                  <button onClick={()=>setDetail(v)} style={{ ...T.iconBtn, color:'#1465BB', flexShrink:0 }} title="Voir détail">
+                    <Eye size={13}/>
+                  </button>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
+                    <span style={{ color:'#8a96b0', flexShrink:0 }}>Produit(s)</span>
+                    <span style={{ color:'#4a5578', textAlign:'right', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{produits}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Total</span>
+                    <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Zone</span>
+                    <span style={{ color:'#4a5578' }}>{v.zone_livraison||'—'}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ color:'#8a96b0' }}>Statut</span>
+                    <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                  </div>
+                  {v.statut === 'annulee' && v.motif_annulation && (
+                    <p style={{ fontSize:11, color:'#e53e3e', margin:0, fontStyle:'italic' }}>Motif : {v.motif_annulation}</p>
+                  )}
+                  <div style={{ display:'flex', justifyContent:'space-between' }}>
+                    <span style={{ color:'#8a96b0' }}>Date</span>
+                    <span style={{ color:'#4a5578' }}>{v.date_vente}</span>
+                  </div>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span style={{ color:'#8a96b0' }}>Livreur</span>
+                    {v.livraison ? (
+                      <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
+                        background:v.livraison.statut==='terminee'?'#dcfce7':v.livraison.statut==='livree_attente_validation'?'#ede9fe':v.livraison.statut==='en_cours'?'#dbeafe':'#fef9c3',
+                        color:v.livraison.statut==='terminee'?'#166534':v.livraison.statut==='livree_attente_validation'?'#5b21b6':v.livraison.statut==='en_cours'?'#1e40af':'#854d0e' }}>
+                        <Truck size={10}/> {v.livraison.livreur ? `${v.livraison.livreur.prenom||v.livraison.livreur.name||''}` : 'Non assigné'}
+                      </span>
+                    ) : <span style={{fontSize:11,color:'#dde5f4'}}>—</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {totalPages > 1 && (

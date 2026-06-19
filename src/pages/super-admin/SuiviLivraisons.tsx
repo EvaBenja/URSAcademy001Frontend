@@ -90,30 +90,63 @@ export default function SuiviLivraisonsPage() {
 
       {/* Livraisons */}
       {tab === 'livraisons' && (
-        <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
-          <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
-            <thead>
-              <tr>{['#','Zone','Livreur','Statut','Date'].map(h=>(
-                <th key={h} style={T.th}>{h}</th>
-              ))}</tr>
-            </thead>
-            <tbody>
-              {livraisons.length === 0 ? (
-                <tr><td colSpan={5} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
-              ) : livraisons.map((l:any) => {
-                const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
-                return (
-                  <tr key={l.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
-                    <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{l.id}</td>
-                    <td style={T.td}><span style={{ display:'flex', alignItems:'center', gap:5 }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span></td>
-                    <td style={T.td}>{l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : <span style={{ color:'#8a96b0', fontStyle:'italic' }}>Non assigné</span>}</td>
-                    <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span></td>
-                    <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
+          <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
+            <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
+              <thead>
+                <tr>{['#','Zone','Livreur','Statut','Date'].map(h=>(
+                  <th key={h} style={T.th}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {livraisons.length === 0 ? (
+                  <tr><td colSpan={5} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
+                ) : livraisons.map((l:any) => {
+                  const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
+                  return (
+                    <tr key={l.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
+                      <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{l.id}</td>
+                      <td style={T.td}><span style={{ display:'flex', alignItems:'center', gap:5 }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span></td>
+                      <td style={T.td}>{l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : <span style={{ color:'#8a96b0', fontStyle:'italic' }}>Non assigné</span>}</td>
+                      <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span></td>
+                      <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Cartes mobile */}
+          <div className="urs-cards-mobile">
+            {livraisons.length === 0 ? (
+              <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
+            ) : livraisons.map((l:any) => {
+              const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
+              return (
+                <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                    <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
+                    <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0' }}>Zone</span>
+                      <span style={{ display:'flex', alignItems:'center', gap:5, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0' }}>Livreur</span>
+                      <span style={{ color:'#4a5578' }}>{l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : <span style={{ fontStyle:'italic' }}>Non assigné</span>}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0' }}>Date</span>
+                      <span style={{ color:'#4a5578' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

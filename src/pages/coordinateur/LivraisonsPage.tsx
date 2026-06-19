@@ -82,8 +82,8 @@ export default function CoordLivraisonsPage() {
         ))}
       </div>
 
-      {/* Table */}
-      <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
+      {/* Table desktop */}
+      <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
         <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
           <thead>
             <tr>{['#','Zone','Livreur assigné','Statut','Date','Action'].map(h=>(
@@ -132,6 +132,61 @@ export default function CoordLivraisonsPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Cartes mobile */}
+      <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
+        {filtered.length === 0 ? (
+          <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
+        ) : filtered.map((l:any) => {
+          const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
+          const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
+          return (
+            <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
+                <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
+                <div style={{ display:'flex', gap:5 }}>
+                  <button onClick={()=>setDetail(l)} style={{ ...T.iconBtn, color:'#1465BB' }}><Eye size={13}/></button>
+                  {l.statut === 'rejetee' && (
+                    <button onClick={()=>doAssignerGPS(l)} style={{ ...T.iconBtn, color:'#7c3aed', borderColor:'#ddd6fe', background:'#f5f3ff', width:'auto', padding:'0 10px', fontSize:11 }}>
+                      <Navigation size={11}/> Réassigner
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#8a96b0' }}>Zone</span>
+                  <span style={{ display:'flex', alignItems:'center', gap:5, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ color:'#8a96b0' }}>Livreur</span>
+                  {nomL ? (
+                    <span style={{ display:'flex', alignItems:'center', gap:6 }}>
+                      <div style={{ width:22, height:22, borderRadius:'50%', background:'linear-gradient(135deg,#0891b2,#0e7490)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:9, fontWeight:700, flexShrink:0 }}>
+                        {nomL[0]}
+                      </div>
+                      <span style={{ color:'#4a5578' }}>{nomL}</span>
+                    </span>
+                  ) : (
+                    <button onClick={()=>doAssignerGPS(l)}
+                      style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:7, border:'1.5px dashed #1465BB', background:'#e0f0ff', color:'#1465BB', fontSize:11, cursor:'pointer', fontWeight:600 }}>
+                      <Navigation size={11}/> Assigner GPS
+                    </button>
+                  )}
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ color:'#8a96b0' }}>Statut</span>
+                  <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between' }}>
+                  <span style={{ color:'#8a96b0' }}>Date</span>
+                  <span style={{ color:'#4a5578' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal détail */}

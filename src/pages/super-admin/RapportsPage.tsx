@@ -134,7 +134,7 @@ export default function RapportsPage() {
         {classement.length === 0 ? (
           <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0', textAlign:'center', padding:'20px' }}>Aucune vente validée</p>
         ) : (
-          <div style={{ overflowX:'auto' }}>
+          <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
             <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
               <thead>
                 <tr>{['Rang','Vendeur','Nb ventes','CA total','Part'].map(h=>(
@@ -170,6 +170,40 @@ export default function RapportsPage() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Cartes mobile */}
+          <div className="urs-cards-mobile">
+            {classement.map((c:any, i:number) => {
+              const part = caTotal > 0 ? Math.round((c.total/caTotal)*100) : 0;
+              return (
+                <div key={i} style={{ padding:'14px 4px', borderBottom: i<classement.length-1 ? '1px solid #f0f4fb' : 'none' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                    <span style={{ fontSize:18, fontWeight:700, width:28, textAlign:'center', flexShrink:0 }}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`}</span>
+                    <div style={{ width:30, height:30, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                      {(c.vendeur||'?')[0]}
+                    </div>
+                    <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', flex:1, minWidth:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.vendeur}</span>
+                  </div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13, paddingLeft:38 }}>
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0' }}>Nb ventes</span>
+                      <span style={{ fontWeight:700, color:'#1465BB' }}>{c.nombre_ventes}</span>
+                    </div>
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0' }}>CA total</span>
+                      <span style={{ fontWeight:700, color:'#0a9e6e' }}>{Number(c.total).toLocaleString('fr-FR')} FCFA</span>
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                      <div style={{ flex:1, height:6, background:'#f0f4fb', borderRadius:3 }}>
+                        <div style={{ height:'100%', width:`${part}%`, background:'linear-gradient(90deg,#1465BB,#003785)', borderRadius:3 }}/>
+                      </div>
+                      <span style={{ fontSize:12, fontWeight:600, color:'#1465BB', minWidth:30 }}>{part}%</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
