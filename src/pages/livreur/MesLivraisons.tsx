@@ -68,14 +68,51 @@ export default function MesCoursesPage() {
     finally { setLoading(false); }
   }, []);
 
+  const watchIdRef = useRef<number|null>(null);
+
   const activerGPS = useCallback(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.watchPosition(
-      pos => geoService.updatePosition(pos.coords.latitude, pos.coords.longitude)
-        .then(() => setGpsActif(true)).catch(() => {}),
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 10000 }
+    if (!navigator.geolocation) {
+      toast.error('La géolocalisation n\'est pas supportée par ce navigateur');
+      return;
+    }
+    // Nettoyer un éventuel watcher précédent
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    toast.loading('Activation du GPS…', { id: 'gps-activation' });
+    const id = navigator.geolocation.watchPosition(
+      pos => {
+        geoService.updatePosition(pos.coords.latitude, pos.coords.longitude)
+          .then(() => {
+            setGpsActif(true);
+            toast.success('GPS activé ✓', { id: 'gps-activation', duration: 3000 });
+          })
+          .catch(() => {});
+      },
+      err => {
+        toast.dismiss('gps-activation');
+        if (err.code === 1) {
+          toast.error('Permission GPS refusée — autorisez la localisation dans les paramètres de votre navigateur');
+        } else if (err.code === 2) {
+          toast.error('Position GPS introuvable — vérifiez votre connexion');
+        } else {
+          toast.error('Erreur GPS — réessayez');
+        }
+        setGpsActif(false);
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
+    watchIdRef.current = id;
+  }, []);
+
+  const desactiverGPS = useCallback(() => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    setGpsActif(false);
+    toast.success('GPS désactivé');
   }, []);
 
   useEffect(() => {
@@ -164,13 +201,13 @@ export default function MesCoursesPage() {
               Courses disponibles et vos courses en cours
             </p>
             {gpsActif
-              ? <span style={{ fontSize:11, color:'#0a9e6e', background:'#dcfce7', padding:'3px 10px', borderRadius:20, display:'flex', alignItems:'center', gap:4 }}>
+              ? <button onClick={desactiverGPS} style={{ fontSize:11, color:'#0a9e6e', background:'#dcfce7', padding:'4px 12px', borderRadius:20, border:'1px solid #86efac', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                   <span style={{ width:7, height:7, borderRadius:'50%', background:'#0a9e6e', display:'inline-block' }}/>
-                  GPS actif
-                </span>
+                  GPS actif — toucher pour désactiver
+                </button>
               : <button onClick={activerGPS} style={{ fontSize:11, color:'#e53e3e', background:'#fee2e2', padding:'4px 12px', borderRadius:20, border:'1px solid #fecaca', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
                   <span style={{ width:7, height:7, borderRadius:'50%', background:'#e53e3e', display:'inline-block' }}/>
-                  GPS désactivé — appuyer pour activer
+                  GPS désactivé — toucher pour activer
                 </button>}
           </div>
         </div>

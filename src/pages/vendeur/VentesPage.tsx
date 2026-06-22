@@ -32,6 +32,31 @@ export default function VendeurVentesPage() {
   const [clientTel,      setClientTel]      = useState('');
   const [clientQuartier, setClientQuartier] = useState('');
   const [vendeurPos, setVendeurPos] = useState<{lat:number;lng:number}|null>(null);
+  const [lienLocalisation, setLienLocalisation] = useState('');
+
+  // Extrait les coordonnées GPS depuis différents formats de liens de localisation
+  // Supporte : Google Maps, WhatsApp location, liens directs lat,lng, geo:, etc.
+  const extraireCoordonnees = (texte: string): {lat:number;lng:number}|null => {
+    texte = texte.trim();
+    // Format direct : "12.3456, -1.2345" ou "12.3456,-1.2345"
+    const direct = texte.match(/^(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)$/);
+    if (direct) return { lat: parseFloat(direct[1]), lng: parseFloat(direct[2]) };
+    // Google Maps /maps?q=lat,lng ou @lat,lng
+    const gm1 = texte.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (gm1) return { lat: parseFloat(gm1[1]), lng: parseFloat(gm1[2]) };
+    const gm2 = texte.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (gm2) return { lat: parseFloat(gm2[1]), lng: parseFloat(gm2[2]) };
+    // Google Maps /place/lat,lng ou maps/lat,lng
+    const gm3 = texte.match(/maps\/(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (gm3) return { lat: parseFloat(gm3[1]), lng: parseFloat(gm3[2]) };
+    // WhatsApp location & geo: protocol
+    const wa = texte.match(/(?:geo:|location\/)(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (wa) return { lat: parseFloat(wa[1]), lng: parseFloat(wa[2]) };
+    // Paramètres ll= ou sll=
+    const ll = texte.match(/[?&](?:ll|sll)=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+    if (ll) return { lat: parseFloat(ll[1]), lng: parseFloat(ll[2]) };
+    return null;
+  };
 
   useEffect(() => { load(); }, []);
 
@@ -67,7 +92,7 @@ export default function VendeurVentesPage() {
   const openModal = () => {
     setPanier([]); setZone(ZONES[0]); setNotes('');
     setClientNom(''); setClientTel(''); setClientQuartier('');
-    setVendeurPos(null);
+    setVendeurPos(null); setLienLocalisation('');
     setModal(true);
   };
 
@@ -94,7 +119,7 @@ export default function VendeurVentesPage() {
       });
       toast.success('Vente soumise — course créée pour les livreurs 🚚');
       setModal(false); setPanier([]); setNotes('');
-      setClientNom(''); setClientTel(''); setClientQuartier(''); setVendeurPos(null);
+      setClientNom(''); setClientTel(''); setClientQuartier(''); setVendeurPos(null); setLienLocalisation('');
       load();
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
@@ -412,35 +437,46 @@ export default function VendeurVentesPage() {
                 <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ex: Livraison urgente…" style={T.inp}/>
               </div>
 
-              {/* Position vendeur — optionnel, aide le livreur à trouver le point de récupération */}
+              {/* Localisation client — le client partage son lien et le vendeur le colle ici */}
               <div style={{ background:'#f0f4ff', borderRadius:10, padding:'12px 14px', border:'1px solid #dde5f4' }}>
                 <p style={{ fontSize:12, fontWeight:600, color:'#4a5578', margin:'0 0 8px', textTransform:'uppercase', letterSpacing:'.5px' }}>
-                  📍 Position du point de vente (optionnel)
+                  📍 Localisation client (optionnel)
                 </p>
                 {vendeurPos ? (
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
-                    <span style={{ fontSize:12, color:'#0a9e6e', fontWeight:600 }}>
-                      ✓ Position partagée ({vendeurPos.lat.toFixed(4)}, {vendeurPos.lng.toFixed(4)})
-                    </span>
-                    <button type="button" onClick={()=>setVendeurPos(null)}
+                    <div>
+                      <span style={{ fontSize:12, color:'#0a9e6e', fontWeight:600 }}>
+                        ✓ Position extraite ({vendeurPos.lat.toFixed(5)}, {vendeurPos.lng.toFixed(5)})
+                      </span>
+                      <a href={`https://www.google.com/maps?q=${vendeurPos.lat},${vendeurPos.lng}`} target="_blank" rel="noreferrer"
+                        style={{ display:'block', fontSize:11, color:'#1465BB', marginTop:2 }}>
+                        Vérifier sur Maps →
+                      </a>
+                    </div>
+                    <button type="button" onClick={()=>{setVendeurPos(null); setLienLocalisation('');}}
                       style={{ fontSize:11, color:'#e53e3e', background:'#fee2e2', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}>
                       Retirer
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={()=>{
-                    if (!navigator.geolocation) { return; }
-                    navigator.geolocation.getCurrentPosition(
-                      pos => setVendeurPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                      () => {}
-                    );
-                  }} style={{ fontSize:12, color:'#1465BB', background:'white', border:'1.5px solid #1465BB', borderRadius:8, padding:'6px 14px', cursor:'pointer' }}>
-                    Partager ma position actuelle
-                  </button>
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    <input
+                      value={lienLocalisation}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setLienLocalisation(val);
+                        // Extraction automatique des coordonnées depuis différents formats de liens
+                        const coords = extraireCoordonnees(val);
+                        if (coords) setVendeurPos(coords);
+                      }}
+                      placeholder="Coller le lien de localisation du client (Google Maps, WhatsApp…)"
+                      style={{ ...T.inp, fontSize:12 }}
+                    />
+                    <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>
+                      Le client envoie sa position via WhatsApp ou Google Maps → copiez le lien ici → les coordonnées sont extraites automatiquement pour guider le livreur.
+                    </p>
+                  </div>
                 )}
-                <p style={{ fontSize:11, color:'#8a96b0', margin:'6px 0 0' }}>
-                  Le livreur pourra voir où venir récupérer la commande.
-                </p>
               </div>
 
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
