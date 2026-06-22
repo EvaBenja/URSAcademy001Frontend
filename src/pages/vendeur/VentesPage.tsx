@@ -30,6 +30,7 @@ export default function VendeurVentesPage() {
   const [notes,      setNotes]      = useState('');
   const [clientNom,      setClientNom]      = useState('');
   const [clientTel,      setClientTel]      = useState('');
+  const [clientQuartier, setClientQuartier] = useState('');
   const [vendeurPos, setVendeurPos] = useState<{lat:number;lng:number}|null>(null);
 
   useEffect(() => { load(); }, []);
