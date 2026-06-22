@@ -58,7 +58,12 @@ export default function VendeurVentesPage() {
     return null;
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // Rafraîchissement auto toutes les 20s pour suivre l'évolution des livraisons en temps réel
+    const t = setInterval(() => load(), 20000);
+    return () => clearInterval(t);
+  }, []);
 
   const load = async () => {
     const [vr, pr, cr] = await Promise.allSettled([
@@ -128,6 +133,13 @@ export default function VendeurVentesPage() {
   const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
   const monRang    = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
 
+  // Statuts livraison de mes ventes (temps réel)
+  const livEnAttente   = mesVentes.filter(v => !v.livraison || v.livraison.statut === 'en_attente').length;
+  const livAssignee    = mesVentes.filter(v => v.livraison?.statut === 'validee').length;
+  const livEnCours     = mesVentes.filter(v => v.livraison?.statut === 'en_cours').length;
+  const livTerminee    = mesVentes.filter(v => v.livraison?.statut === 'terminee').length;
+  const livActives     = mesVentes.filter(v => v.livraison && !['terminee','annulee'].includes(v.livraison.statut));
+
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
@@ -140,20 +152,93 @@ export default function VendeurVentesPage() {
         <button onClick={openModal} style={T.btnPrimary}><ShoppingCart size={15}/> Nouvelle vente</button>
       </div>
 
-      {/* Stats */}
+      {/* Stats suivi livraisons */}
       <div className="stats-4" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:22 }}>
         {[
-          {label:'Total ventes', val:mesVentes.length,                                    color:'#1465BB'},
-          {label:'En attente',   val:mesVentes.filter(v=>v.statut==='en_attente').length,  color:'#d0a83a'},
-          {label:'Validées',     val:mesVentes.filter(v=>v.statut==='validee').length,     color:'#0a9e6e'},
-          {label:'Mon rang',     val:monRang >= 0 ? `#${monRang+1}` : '—',                color:'#7c3aed'},
-        ].map(({label,val,color}) => (
+          {label:'En attente livreur', val:livEnAttente, color:'#d0a83a', icon:'⏳'},
+          {label:'Livreur assigné',    val:livAssignee,  color:'#3b82f6', icon:'✓'},
+          {label:'En livraison',       val:livEnCours,   color:'#0a9e6e', icon:'🚚'},
+          {label:'Terminées',          val:livTerminee,  color:'#7c3aed', icon:'✅'},
+        ].map(({label,val,color,icon}) => (
           <div key={label} style={T.statCard}>
-            <p style={{ fontFamily:'Playfair Display,serif', fontSize:22, fontWeight:700, color, margin:0 }}>{val}</p>
-            <p style={{ fontSize:12, color:'#8a96b0', margin:'4px 0 0' }}>{label}</p>
+            <p style={{ fontFamily:'Playfair Display,serif', fontSize:22, fontWeight:700, color, margin:0 }}>{icon} {val}</p>
+            <p style={{ fontSize:11, color:'#8a96b0', margin:'4px 0 0' }}>{label}</p>
           </div>
         ))}
       </div>
+
+      {/* Livraisons actives — suivi en temps réel */}
+      {livActives.length > 0 && (
+        <div style={{ ...T.card, marginBottom:20, padding:0, overflow:'hidden' }}>
+          <div style={{ padding:'12px 18px', background:'linear-gradient(90deg,#003785,#1465BB)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <h2 style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:600, color:'white', margin:0 }}>
+              🚚 Mes livraisons en cours ({livActives.length})
+            </h2>
+            <span style={{ fontSize:11, color:'rgba(255,255,255,0.6)' }}>Actualisation auto toutes les 20s</span>
+          </div>
+          {livActives.map((v:any) => {
+            const liv = v.livraison;
+            const STATUT_LIV: Record<string,{label:string;bg:string;color:string;step:number}> = {
+              en_attente:                {label:'En attente d\'un livreur', bg:'#fef9c3', color:'#854d0e', step:1},
+              validee:                   {label:'Livreur assigné',          bg:'#dbeafe', color:'#1e40af', step:2},
+              en_cours:                  {label:'En livraison',             bg:'#dcfce7', color:'#166534', step:3},
+              livree_attente_validation: {label:'Livré — validation en cours', bg:'#ede9fe', color:'#5b21b6', step:4},
+              terminee:                  {label:'Terminée',                 bg:'#f1f5f9', color:'#475569', step:5},
+              rejetee:                   {label:'Rejetée',                  bg:'#fee2e2', color:'#991b1b', step:0},
+            };
+            const sl = STATUT_LIV[liv.statut] || {label:liv.statut, bg:'#f1f5f9', color:'#475569', step:0};
+            const nomLivreur = liv.livreur ? `${liv.livreur.prenom||liv.livreur.name||''} ${liv.livreur.nom||''}`.trim() : null;
+            const produits = v.items?.length > 0
+              ? v.items.map((it:any) => `${it.produit?.nom} ×${it.quantite}`).join(', ')
+              : `${v.produit?.nom||'—'} ×${v.quantite}`;
+            return (
+              <div key={v.id} style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:8, marginBottom:10 }}>
+                  <div>
+                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:14, fontWeight:700, color:'#1465BB' }}>Vente #{v.id}</span>
+                    <p style={{ fontSize:12, color:'#4a5578', margin:'2px 0 0', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:220 }}>{produits}</p>
+                  </div>
+                  <span style={{ background:sl.bg, color:sl.color, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20, flexShrink:0 }}>{sl.label}</span>
+                </div>
+
+                {/* Barre de progression */}
+                {sl.step > 0 && (
+                  <div style={{ display:'flex', gap:4, marginBottom:10 }}>
+                    {[
+                      {s:1, label:'En attente'},
+                      {s:2, label:'Assigné'},
+                      {s:3, label:'En cours'},
+                      {s:4, label:'Livré'},
+                      {s:5, label:'Terminé'},
+                    ].map(step => (
+                      <div key={step.s} style={{ flex:1, textAlign:'center' as const }}>
+                        <div style={{ height:4, borderRadius:2, background: step.s <= sl.step ? '#1465BB' : '#dde5f4', marginBottom:3 }}/>
+                        <span style={{ fontSize:9, color: step.s <= sl.step ? '#1465BB' : '#8a96b0', fontWeight: step.s === sl.step ? 700 : 400 }}>
+                          {step.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ display:'flex', gap:16, flexWrap:'wrap', fontSize:12, color:'#4a5578' }}>
+                  {nomLivreur && (
+                    <span style={{ display:'flex', alignItems:'center', gap:4 }}>
+                      🚚 {nomLivreur}
+                      {liv.livreur?.telephone && ` · ${liv.livreur.telephone}`}
+                    </span>
+                  )}
+                  {(v.client_nom) && <span>👤 {v.client_nom}</span>}
+                  {v.zone_livraison && <span>📍 {v.zone_livraison}</span>}
+                </div>
+                {liv.statut === 'rejetee' && liv.motif_rejet && (
+                  <p style={{ fontSize:11, color:'#e53e3e', margin:'6px 0 0' }}>⚠ Rejeté : {liv.motif_rejet}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Classement TOUS les vendeurs */}
       {classement.length > 0 && (
