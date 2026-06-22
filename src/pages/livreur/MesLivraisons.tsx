@@ -164,8 +164,14 @@ export default function MesCoursesPage() {
               Courses disponibles et vos courses en cours
             </p>
             {gpsActif
-              ? <span style={{ fontSize:11, color:'#0a9e6e', background:'#dcfce7', padding:'3px 10px', borderRadius:20 }}>📍 GPS actif</span>
-              : <button onClick={activerGPS} style={{ fontSize:11, color:'#d0a83a', background:'#fdf3d7', padding:'4px 12px', borderRadius:20, border:'none', cursor:'pointer' }}>📍 Activer GPS</button>}
+              ? <span style={{ fontSize:11, color:'#0a9e6e', background:'#dcfce7', padding:'3px 10px', borderRadius:20, display:'flex', alignItems:'center', gap:4 }}>
+                  <span style={{ width:7, height:7, borderRadius:'50%', background:'#0a9e6e', display:'inline-block' }}/>
+                  GPS actif
+                </span>
+              : <button onClick={activerGPS} style={{ fontSize:11, color:'#e53e3e', background:'#fee2e2', padding:'4px 12px', borderRadius:20, border:'1px solid #fecaca', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                  <span style={{ width:7, height:7, borderRadius:'50%', background:'#e53e3e', display:'inline-block' }}/>
+                  GPS désactivé — appuyer pour activer
+                </button>}
           </div>
         </div>
         <button onClick={()=>load(false)}
@@ -251,6 +257,11 @@ export default function MesCoursesPage() {
           const client_nom      = l.client_nom      || l.vente?.client_nom;
           const client_tel      = l.client_telephone || l.vente?.client_telephone;
           const client_quartier = l.client_quartier  || l.vente?.client_quartier;
+          // Infos vendeur (source de la vente)
+          const vendeur = l.vente?.caissiere;
+          const nomVendeur = vendeur ? `${vendeur.prenom||vendeur.name||''} ${vendeur.nom||''}`.trim() : null;
+          // Produits de la vente
+          const produits = l.vente?.items?.length > 0 ? l.vente.items : null;
           return (
             <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
               border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
@@ -268,6 +279,22 @@ export default function MesCoursesPage() {
               <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
                 {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
                 <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0' }}><Clock size={11} color="#d0a83a"/> {l.date_livraison||'—'}</div>
+                {/* Vendeur source */}
+                {nomVendeur && (
+                  <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#7c3aed', background:'#f5f3ff', borderRadius:6, padding:'3px 8px', width:'fit-content' }}>
+                    <span style={{ fontSize:10 }}>👤</span> De : <strong>{nomVendeur}</strong>
+                  </div>
+                )}
+                {/* Produits de la vente */}
+                {produits && (
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                    {produits.map((it:any) => (
+                      <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10 }}>
+                        {it.produit?.nom} ×{it.quantite}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {client_nom && (
                   <div style={{ background:isDisponible?'#eff6ff':'#f0f4ff', borderRadius:8, padding:'8px 10px', marginTop:4, overflow:'hidden' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e', minWidth:0 }}>
@@ -335,12 +362,48 @@ export default function MesCoursesPage() {
               <button onClick={()=>setDetail(null)} style={T.modalClose}><X size={15}/></button>
             </div>
             <div style={{ padding:22, display:'flex', flexDirection:'column', gap:10 }}>
+              {/* Infos vendeur source */}
+              {detail.vente?.caissiere && (
+                <div style={{ background:'#f5f3ff', borderRadius:10, padding:'12px 14px', border:'1px solid #ddd6fe' }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#5b21b6', textTransform:'uppercase', margin:'0 0 6px' }}>👤 Vendeur source</p>
+                  <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                    {`${detail.vente.caissiere.prenom||detail.vente.caissiere.name||''} ${detail.vente.caissiere.nom||''}`.trim()}
+                  </p>
+                  {detail.vente.caissiere.telephone && <p style={{ fontSize:13, color:'#7c3aed', margin:'3px 0 0' }}>📞 {detail.vente.caissiere.telephone}</p>}
+                  {/* Bouton GPS point de récupération */}
+                  {(detail.vendeur_latitude || detail.vente?.vendeur_latitude) && (
+                    <a href={`https://www.google.com/maps?q=${detail.vendeur_latitude||detail.vente?.vendeur_latitude},${detail.vendeur_longitude||detail.vente?.vendeur_longitude}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#5b21b6', color:'white', borderRadius:8, padding:'6px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                      <MapPin size={12}/> Voir le point de récupération
+                    </a>
+                  )}
+                  {/* Produits de la vente */}
+                  {detail.vente?.items?.length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:8 }}>
+                      {detail.vente.items.map((it:any) => (
+                        <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10 }}>
+                          {it.produit?.nom} ×{it.quantite}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               {(detail.client_nom||detail.vente?.client_nom) && (
                 <div style={{ background:'#e0f0ff', borderRadius:10, padding:'14px', border:'1px solid #93c5fd' }}>
                   <p style={{ fontSize:11, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 8px' }}>📦 Infos client</p>
                   <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{detail.client_nom||detail.vente?.client_nom}</p>
                   {(detail.client_telephone||detail.vente?.client_telephone) && <p style={{ fontSize:13, color:'#1465BB', margin:'4px 0 0', display:'flex', alignItems:'center', gap:5 }}><Phone size={12}/>{detail.client_telephone||detail.vente?.client_telephone}</p>}
                   {(detail.client_quartier||detail.vente?.client_quartier) && <p style={{ fontSize:13, color:'#4a5578', margin:'2px 0 0', display:'flex', alignItems:'center', gap:5 }}><MapPin size={12}/>{detail.client_quartier||detail.vente?.client_quartier}</p>}
+                  {/* Lien Maps client */}
+                  {(detail.client_latitude) && (
+                    <a href={`https://www.google.com/maps?q=${detail.client_latitude},${detail.client_longitude}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#1465BB', color:'white', borderRadius:8, padding:'6px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                      <MapPin size={12}/> Naviguer vers le client
+                    </a>
+                  )}
                 </div>
               )}
               {[

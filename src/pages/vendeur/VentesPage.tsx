@@ -30,7 +30,7 @@ export default function VendeurVentesPage() {
   const [notes,      setNotes]      = useState('');
   const [clientNom,      setClientNom]      = useState('');
   const [clientTel,      setClientTel]      = useState('');
-  const [clientQuartier, setClientQuartier] = useState('');
+  const [vendeurPos, setVendeurPos] = useState<{lat:number;lng:number}|null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -66,6 +66,7 @@ export default function VendeurVentesPage() {
   const openModal = () => {
     setPanier([]); setZone(ZONES[0]); setNotes('');
     setClientNom(''); setClientTel(''); setClientQuartier('');
+    setVendeurPos(null);
     setModal(true);
   };
 
@@ -81,16 +82,18 @@ export default function VendeurVentesPage() {
     try {
       await ventesService.create({
         items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise })),
-        date_vente:       dateVente,
-        zone_livraison:   zone,
+        date_vente:        dateVente,
+        zone_livraison:    zone,
         notes,
-        client_nom:       clientNom,
-        client_telephone: clientTel,
-        client_quartier:  clientQuartier,
+        client_nom:        clientNom,
+        client_telephone:  clientTel,
+        client_quartier:   clientQuartier,
+        vendeur_latitude:  vendeurPos?.lat ?? null,
+        vendeur_longitude: vendeurPos?.lng ?? null,
       });
-      toast.success('Vente soumise ! En attente de validation.');
+      toast.success('Vente soumise — course créée pour les livreurs 🚚');
       setModal(false); setPanier([]); setNotes('');
-      setClientNom(''); setClientTel(''); setClientQuartier('');
+      setClientNom(''); setClientTel(''); setClientQuartier(''); setVendeurPos(null);
       load();
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
@@ -165,7 +168,7 @@ export default function VendeurVentesPage() {
         <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
-              <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Date'].map(h=>(
+              <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Livraison','Date'].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
               ))}</tr>
             </thead>
@@ -202,6 +205,15 @@ export default function VendeurVentesPage() {
                           Motif : {v.motif_annulation}
                         </p>
                       )}
+                    </td>
+                    <td style={T.td}>
+                      {v.livraison ? (
+                        <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
+                          background:v.livraison.statut==='terminee'?'#dcfce7':v.livraison.statut==='en_cours'?'#dbeafe':'#fef9c3',
+                          color:v.livraison.statut==='terminee'?'#166534':v.livraison.statut==='en_cours'?'#1e40af':'#854d0e', whiteSpace:'nowrap' }}>
+                          🚚 {v.livraison.livreur ? `${v.livraison.livreur.prenom||v.livraison.livreur.name||''}` : 'En attente'}
+                        </span>
+                      ) : <span style={{ color:'#8a96b0', fontSize:11 }}>—</span>}
                     </td>
                     <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{v.date_vente}</td>
                   </tr>
@@ -255,6 +267,16 @@ export default function VendeurVentesPage() {
                     <span style={{ color:'#8a96b0' }}>Date</span>
                     <span style={{ color:'#4a5578' }}>{v.date_vente}</span>
                   </div>
+                  {v.livraison && (
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ color:'#8a96b0' }}>Livraison</span>
+                      <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
+                        background:v.livraison.statut==='terminee'?'#dcfce7':v.livraison.statut==='livree_attente_validation'?'#ede9fe':v.livraison.statut==='en_cours'?'#dbeafe':'#fef9c3',
+                        color:v.livraison.statut==='terminee'?'#166534':v.livraison.statut==='livree_attente_validation'?'#5b21b6':v.livraison.statut==='en_cours'?'#1e40af':'#854d0e' }}>
+                        🚚 {v.livraison.livreur ? `${v.livraison.livreur.prenom||v.livraison.livreur.name||''} ${v.livraison.livreur.nom||''}`.trim() : 'En attente d\'un livreur'}
+                      </span>
+                    </div>
+                  )}
                   {v.statut === 'annulee' && v.motif_annulation && (
                     <p style={{ fontSize:11, color:'#e53e3e', margin:0, fontStyle:'italic' }}>Motif : {v.motif_annulation}</p>
                   )}
@@ -387,6 +409,37 @@ export default function VendeurVentesPage() {
               <div>
                 <label style={T.lbl}>Notes (optionnel)</label>
                 <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ex: Livraison urgente…" style={T.inp}/>
+              </div>
+
+              {/* Position vendeur — optionnel, aide le livreur à trouver le point de récupération */}
+              <div style={{ background:'#f0f4ff', borderRadius:10, padding:'12px 14px', border:'1px solid #dde5f4' }}>
+                <p style={{ fontSize:12, fontWeight:600, color:'#4a5578', margin:'0 0 8px', textTransform:'uppercase', letterSpacing:'.5px' }}>
+                  📍 Position du point de vente (optionnel)
+                </p>
+                {vendeurPos ? (
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                    <span style={{ fontSize:12, color:'#0a9e6e', fontWeight:600 }}>
+                      ✓ Position partagée ({vendeurPos.lat.toFixed(4)}, {vendeurPos.lng.toFixed(4)})
+                    </span>
+                    <button type="button" onClick={()=>setVendeurPos(null)}
+                      style={{ fontSize:11, color:'#e53e3e', background:'#fee2e2', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}>
+                      Retirer
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={()=>{
+                    if (!navigator.geolocation) { return; }
+                    navigator.geolocation.getCurrentPosition(
+                      pos => setVendeurPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                      () => {}
+                    );
+                  }} style={{ fontSize:12, color:'#1465BB', background:'white', border:'1.5px solid #1465BB', borderRadius:8, padding:'6px 14px', cursor:'pointer' }}>
+                    Partager ma position actuelle
+                  </button>
+                )}
+                <p style={{ fontSize:11, color:'#8a96b0', margin:'6px 0 0' }}>
+                  Le livreur pourra voir où venir récupérer la commande.
+                </p>
               </div>
 
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>

@@ -14,6 +14,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Produits',             to:'/dashboard/produits',            Icon:Package         },
     { label:'Ventes',               to:'/dashboard/ventes',              Icon:TrendingUp      },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
+    { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
     { label:'Dossiers journaliers', to:'/dashboard/dossiers-journaliers',Icon:FolderOpen      },
     { label:'Rapports & Analyses',  to:'/dashboard/rapports',            Icon:BarChart2       },
     { label:'Utilisateurs',         to:'/dashboard/utilisateurs',        Icon:Users           },
@@ -34,6 +35,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Livraisons',           to:'/coordinateur/livraisons',       Icon:Truck           },
     { label:'Positions livreurs',   to:'/coordinateur/positions',        Icon:MapPin          },
     { label:'Demandes livraison',   to:'/coordinateur/demandes',         Icon:ClipboardList   },
+    { label:'Suivi ventes',         to:'/coordinateur/ventes',           Icon:TrendingUp      },
   ],
   vendeur: [
     { label:'Produits',             to:'/vendeur/produits',              Icon:Package         },

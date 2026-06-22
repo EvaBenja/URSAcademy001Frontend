@@ -20,6 +20,7 @@ import SASuivi        from './pages/super-admin/SuiviLivraisons';
 import SADossiers     from './pages/super-admin/DossiersJournaliers';
 import SARapports     from './pages/super-admin/RapportsPage';
 import SAUtilisateurs from './pages/super-admin/UtilisateursPage';
+import SAPositions    from './pages/super-admin/PositionsPage';
 
 // Gestionnaire
 import GestDashboard  from './pages/gestionnaire/DashboardPage';
@@ -35,10 +36,11 @@ import GestDepenses   from './pages/gestionnaire/DepensesPage';
 import CoordLivraisons from './pages/coordinateur/LivraisonsPage';
 import CoordPositions  from './pages/coordinateur/PositionsPage';
 import CoordDemandes   from './pages/coordinateur/DemandesPage';
+import CoordVentes     from './pages/coordinateur/VentesPage';
 
 // Vendeur
-import VendeurProduits from './pages/vendeur/ProduitsPage';
-import VendeurVentes   from './pages/vendeur/VentesPage';
+import VendeurProduits   from './pages/vendeur/ProduitsPage';
+import VendeurVentes     from './pages/vendeur/VentesPage';
 
 // Livreur
 import LivreurLivraisons from './pages/livreur/MesLivraisons';
@@ -79,6 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="produits"             element={<SAProduits />} />
             <Route path="ventes"               element={<SAVentes />} />
             <Route path="suivi-livraisons"     element={<SASuivi />} />
+            <Route path="positions"            element={<SAPositions />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
@@ -104,6 +107,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="livraisons" element={<CoordLivraisons />} />
             <Route path="positions"  element={<CoordPositions />} />
             <Route path="demandes"   element={<CoordDemandes />} />
+            <Route path="ventes"     element={<CoordVentes />} />
           </Route>
 
           {/* Vendeur */}
