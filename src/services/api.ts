@@ -107,7 +107,7 @@ export const livraisonsService = {
     api.post(`/livraisons/${id}/cloturer`, data),
   validerCloture: (id: number) => api.post(`/livraisons/${id}/valider-cloture`),
   refuserCloture: (id: number, motif: string) => api.post(`/livraisons/${id}/refuser-cloture`, { motif }),
-  assigner:     (id: number) => api.post(`/livraisons/${id}/assigner`),
+  assigner:     (id: number, livreurId?: number) => api.post(`/livraisons/${id}/assigner`, livreurId ? { livreur_id: livreurId } : {}),
 };
 
 // ── Dossiers ──────────────────────────────────────────────
