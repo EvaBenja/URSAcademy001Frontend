@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Truck, User, Mail, Phone, Lock, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../../services/api';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
-const ROLES = [
-  { value: 1, label: 'Gestionnaire' },
-  { value: 2, label: 'Coordinateur' },
-  { value: 3, label: 'Vendeur' },
-  { value: 4, label: 'Livreur' },
-];
+const ROLE_LABELS: Record<string, string> = {
+  gestionnaire: 'Gestionnaire',
+  coordinateur: 'Coordinateur',
+  vendeur:      'Vendeur',
+  livreur:      'Livreur',
+};
 
 type FormState = { 
   nom: string; 
@@ -23,17 +24,32 @@ type FormState = {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [roles, setRoles] = useState<{ id:number; nom:string }[]>([]);
   const [form, setForm] = useState<FormState>({ 
     nom: '', 
     prenom: '', 
     email: '', 
     telephone: '', 
-    role_id: 3, 
+    role_id: 0, 
     password: '', 
     password_confirmation: '' 
   });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Charge les rôles réels depuis le backend — jamais d'ID codé en dur côté
+  // frontend, car l'ordre des rôles en base peut différer d'un déploiement à l'autre.
+  useEffect(() => {
+    api.get('/roles-public')
+      .then(r => {
+        setRoles(r.data);
+        if (r.data.length > 0) {
+          const vendeur = r.data.find((r:any) => r.nom === 'vendeur');
+          setForm(f => ({ ...f, role_id: vendeur?.id ?? r.data[0].id }));
+        }
+      })
+      .catch(() => toast.error('Impossible de charger la liste des rôles'));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -48,6 +64,10 @@ export default function RegisterPage() {
     if (form.password !== form.password_confirmation) { 
       toast.error('Les mots de passe ne correspondent pas'); 
       return; 
+    }
+    if (!form.role_id) {
+      toast.error('Veuillez patienter, chargement des rôles en cours…');
+      return;
     }
     setLoading(true);
     try {
@@ -110,8 +130,10 @@ export default function RegisterPage() {
           {/* Rôle */}
           <div>
             <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Rôle</label>
-            <select name="role_id" value={form.role_id} onChange={handleChange} style={{ ...inp, padding: '9px 13px' }}>
-              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            <select name="role_id" value={form.role_id} onChange={handleChange} style={{ ...inp, padding: '9px 13px' }} disabled={roles.length === 0}>
+              {roles.length === 0
+                ? <option>Chargement…</option>
+                : roles.map(r => <option key={r.id} value={r.id}>{ROLE_LABELS[r.nom] || r.nom}</option>)}
             </select>
           </div>
 
