@@ -352,10 +352,16 @@ export default function MesCoursesPage() {
                 {produits && (
                   <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                     {produits.map((it:any) => (
-                      <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10, display:'flex', alignItems:'center', gap:4 }}>
-                        {it.produit?.nom} ×{it.quantite}
-                        {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
-                      </span>
+                      <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'4px 8px', fontSize:11 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
+                          {it.produit?.nom} ×{it.quantite}
+                          {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                        </div>
+                        <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:1 }}>
+                          {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
+                          {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -446,10 +452,17 @@ export default function MesCoursesPage() {
                   {detail.vente?.items?.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:8 }}>
                       {detail.vente.items.map((it:any) => (
-                        <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10, display:'flex', alignItems:'center', gap:4 }}>
-                          {it.produit?.nom} ×{it.quantite}
-                          {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
-                        </span>
+                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'5px 10px', fontSize:11 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
+                            {it.produit?.nom} ×{it.quantite}
+                            {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                          </div>
+                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:2 }}>
+                            {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
+                            {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                            {it.sous_total > 0 && it.quantite > 1 && <span style={{ color:'#8a96b0', fontWeight:400, marginLeft:4 }}>= {Number(it.sous_total).toLocaleString('fr-FR')}</span>}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}
