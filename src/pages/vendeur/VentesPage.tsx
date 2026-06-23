@@ -14,7 +14,7 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
 };
 const ZONES = QUARTIERS_OUAGA;
 
-interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; }
+interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; }
 
 export default function VendeurVentesPage() {
   const { user } = useAuth();
@@ -86,7 +86,7 @@ export default function VendeurVentesPage() {
     setPanier(prev => {
       const existing = prev.find(i => i.produit_id === p.id);
       if (existing) return prev.map(i => i.produit_id === p.id ? {...i, quantite: i.quantite+1} : i);
-      return [...prev, { produit_id:p.id, nom:p.nom, prix_unitaire:p.prix_unitaire, prix_gros:p.prix_gros||null, prix_vendeur:p.prix_unitaire, quantite:1, remise:0 }];
+      return [...prev, { produit_id:p.id, nom:p.nom, prix_unitaire:p.prix_unitaire, prix_gros:p.prix_gros||null, prix_vendeur:p.prix_unitaire, quantite:1, remise:0, couleur:'' }];
     });
   };
 
@@ -117,7 +117,7 @@ export default function VendeurVentesPage() {
     setSaving(true);
     try {
       const payload = {
-        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise })),
+        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise, couleur:i.couleur||null })),
         date_vente:        dateVente,
         zone_livraison:    zone,
         notes,
@@ -358,6 +358,7 @@ export default function VendeurVentesPage() {
                             {v.items.map((it:any) => (
                               <div key={it.id} style={{ fontSize:11 }}>
                                 <span style={{ color:'#0d1b3e' }}>{it.produit?.nom}</span>
+                                {it.couleur && <span style={{ background:'#e0f0ff', color:'#1465BB', borderRadius:6, padding:'1px 6px', fontSize:10, marginLeft:5, fontWeight:600 }}>{it.couleur}</span>}
                                 <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
                                 {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
                               </div>
@@ -432,6 +433,7 @@ export default function VendeurVentesPage() {
                         ? v.items.map((it:any) => (
                             <div key={it.id} style={{ fontSize:12 }}>
                               <span style={{ color:'#0d1b3e', fontWeight:500 }}>{it.produit?.nom}</span>
+                              {it.couleur && <span style={{ background:'#e0f0ff', color:'#1465BB', borderRadius:6, padding:'1px 6px', fontSize:10, marginLeft:5, fontWeight:600 }}>{it.couleur}</span>}
                               <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
                               {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
                               <span style={{ color:'#1465BB', fontWeight:600 }}> = {Number(it.sous_total).toLocaleString('fr-FR')}</span>
@@ -592,6 +594,16 @@ export default function VendeurVentesPage() {
                             onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'remise', isNaN(v)?0:v); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
+                      </div>
+                      {/* Couleur / description visuelle — optionnel */}
+                      <div style={{ marginTop:6 }}>
+                        <label style={{ ...T.lbl, fontSize:10 }}>Couleur / description (optionnel)</label>
+                        <input
+                          value={item.couleur}
+                          onChange={e => setPanier(prev => prev.map(i => i.produit_id === item.produit_id ? {...i, couleur: e.target.value} : i))}
+                          placeholder="Ex: Rouge, Taille L, Bleu marine..."
+                          style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}
+                        />
                       </div>
                       {/* Récapitulatif calcul par ligne */}
                       <div style={{ background:'#e0f0ff', borderRadius:8, padding:'8px 12px', marginTop:8, fontSize:12 }}>

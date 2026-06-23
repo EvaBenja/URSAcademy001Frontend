@@ -352,8 +352,9 @@ export default function MesCoursesPage() {
                 {produits && (
                   <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                     {produits.map((it:any) => (
-                      <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10 }}>
+                      <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10, display:'flex', alignItems:'center', gap:4 }}>
                         {it.produit?.nom} ×{it.quantite}
+                        {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
                       </span>
                     ))}
                   </div>
@@ -445,8 +446,9 @@ export default function MesCoursesPage() {
                   {detail.vente?.items?.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:8 }}>
                       {detail.vente.items.map((it:any) => (
-                        <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10 }}>
+                        <span key={it.id} style={{ background:'#dbeafe', color:'#1e40af', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10, display:'flex', alignItems:'center', gap:4 }}>
                           {it.produit?.nom} ×{it.quantite}
+                          {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
                         </span>
                       ))}
                     </div>
