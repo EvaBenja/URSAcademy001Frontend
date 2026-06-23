@@ -352,7 +352,22 @@ export default function VendeurVentesPage() {
                         </div>
                       ) : <span style={{ color:'#8a96b0', fontSize:12 }}>—</span>}
                     </td>
-                    <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')}</td>
+                    <td style={T.td}>
+                      {v.items?.length > 0
+                        ? <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                            {v.items.map((it:any) => (
+                              <div key={it.id} style={{ fontSize:11 }}>
+                                <span style={{ color:'#0d1b3e' }}>{it.produit?.nom}</span>
+                                <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
+                                {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                              </div>
+                            ))}
+                            <div style={{ borderTop:'1px solid #dde5f4', paddingTop:3, marginTop:2, fontWeight:700, color:'#1465BB', fontSize:12 }}>
+                              = {Number(v.montant_total).toLocaleString('fr-FR')} FCFA
+                            </div>
+                          </div>
+                        : <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>}
+                    </td>
                     <td style={T.td}>{v.zone_livraison||'—'}</td>
                     <td style={T.td}>
                       <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap' }}>{sc.label}</span>
@@ -414,7 +429,14 @@ export default function VendeurVentesPage() {
                     <span style={{ color:'#8a96b0', flexShrink:0 }}>Produit(s)</span>
                     <div style={{ textAlign:'right' }}>
                       {v.items?.length > 0
-                        ? v.items.map((it:any)=><div key={it.id} style={{fontSize:12, color:'#4a5578'}}>{it.produit?.nom} ×{it.quantite}</div>)
+                        ? v.items.map((it:any) => (
+                            <div key={it.id} style={{ fontSize:12 }}>
+                              <span style={{ color:'#0d1b3e', fontWeight:500 }}>{it.produit?.nom}</span>
+                              <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
+                              {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                              <span style={{ color:'#1465BB', fontWeight:600 }}> = {Number(it.sous_total).toLocaleString('fr-FR')}</span>
+                            </div>
+                          ))
                         : <span style={{ color:'#4a5578' }}>{v.produit?.nom||'—'} ×{v.quantite}</span>}
                     </div>
                   </div>
@@ -427,9 +449,23 @@ export default function VendeurVentesPage() {
                       </div>
                     </div>
                   )}
-                  <div style={{ display:'flex', justifyContent:'space-between' }}>
-                    <span style={{ color:'#8a96b0' }}>Total</span>
-                    <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                  <div style={{ background:'#f0f9ff', borderRadius:8, padding:'8px 12px' }}>
+                    {v.items?.some((it:any) => it.remise > 0) && (
+                      <>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#4a5578', marginBottom:2 }}>
+                          <span>Sous-total brut</span>
+                          <span>{v.items.reduce((s:number,it:any)=>s+(Number(it.prix_vendeur||it.prix_unitaire)*it.quantite),0).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                        <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#e53e3e', marginBottom:4 }}>
+                          <span>Total remises</span>
+                          <span>− {v.items.reduce((s:number,it:any)=>s+Number(it.remise||0),0).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      </>
+                    )}
+                    <div style={{ display:'flex', justifyContent:'space-between' }}>
+                      <span style={{ color:'#8a96b0', fontWeight:600 }}>Total net</span>
+                      <span style={{ fontWeight:700, color:'#1465BB' }}>{Number(v.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                    </div>
                   </div>
                   <div style={{ display:'flex', justifyContent:'space-between' }}>
                     <span style={{ color:'#8a96b0' }}>Zone</span>
@@ -538,33 +574,62 @@ export default function VendeurVentesPage() {
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Quantité</label>
                           <input type="number" min={1} value={item.quantite}
-                            onChange={e=>updateItem(item.produit_id,'quantite',Math.max(1,+e.target.value))}
+                            onChange={e=>{ const v=parseInt(e.target.value); if(!isNaN(v)&&v>=1) updateItem(item.produit_id,'quantite',v); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Prix vente (FCFA)</label>
-                          <input type="number" min={0} value={item.prix_vendeur}
-                            onChange={e=>updateItem(item.produit_id,'prix_vendeur',+e.target.value)}
-                            style={{ ...T.inp, padding:'6px 8px', fontSize:13, borderColor:item.prix_vendeur<item.prix_unitaire?'#e53e3e':'#dde5f4' }}/>
-                          {item.prix_vendeur < item.prix_unitaire && (
+                          <input type="number" min={0} value={item.prix_vendeur||''}
+                            onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'prix_vendeur', isNaN(v)?0:v); }}
+                            style={{ ...T.inp, padding:'6px 8px', fontSize:13, borderColor:item.prix_vendeur>0&&item.prix_vendeur<item.prix_unitaire?'#e53e3e':'#dde5f4' }}/>
+                          {item.prix_vendeur > 0 && item.prix_vendeur < item.prix_unitaire && (
                             <p style={{ fontSize:10, color:'#e53e3e', margin:'2px 0 0' }}>Min: {item.prix_unitaire.toLocaleString('fr-FR')}</p>
                           )}
                         </div>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Remise (FCFA)</label>
-                          <input type="number" min={0} value={item.remise}
-                            onChange={e=>updateItem(item.produit_id,'remise',+e.target.value)}
+                          <input type="number" min={0} value={item.remise||''}
+                            onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'remise', isNaN(v)?0:v); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                       </div>
-                      <div style={{ textAlign:'right', fontSize:12, color:'#1465BB', fontWeight:700, marginTop:6 }}>
-                        Sous-total : {((item.prix_vendeur*item.quantite)-item.remise).toLocaleString('fr-FR')} FCFA
+                      {/* Récapitulatif calcul par ligne */}
+                      <div style={{ background:'#e0f0ff', borderRadius:8, padding:'8px 12px', marginTop:8, fontSize:12 }}>
+                        <div style={{ display:'flex', justifyContent:'space-between', color:'#4a5578' }}>
+                          <span>{item.prix_vendeur.toLocaleString('fr-FR')} FCFA × {item.quantite}</span>
+                          <span>{(item.prix_vendeur * item.quantite).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                        {item.remise > 0 && (
+                          <div style={{ display:'flex', justifyContent:'space-between', color:'#e53e3e', marginTop:2 }}>
+                            <span>Remise</span>
+                            <span>− {item.remise.toLocaleString('fr-FR')} FCFA</span>
+                          </div>
+                        )}
+                        <div style={{ display:'flex', justifyContent:'space-between', color:'#1465BB', fontWeight:700, borderTop:'1px solid #bfdbfe', marginTop:4, paddingTop:4 }}>
+                          <span>Sous-total</span>
+                          <span>{Math.max(0,(item.prix_vendeur*item.quantite)-item.remise).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
                       </div>
                     </div>
                   ))}
-                  <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:10, padding:'12px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:14, color:'rgba(255,255,255,0.8)' }}>Total panier</span>
-                    <span style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color:'#d0a83a' }}>{totalPanier.toLocaleString('fr-FR')} FCFA</span>
+                  <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:10, padding:'14px 16px' }}>
+                    {panier.some(i=>i.remise>0) && (
+                      <>
+                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                          <span style={{ fontSize:13, color:'rgba(255,255,255,0.7)' }}>Sous-total brut</span>
+                          <span style={{ fontSize:13, color:'rgba(255,255,255,0.7)' }}>{panier.reduce((s,i)=>s+(i.prix_vendeur*i.quantite),0).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                        <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                          <span style={{ fontSize:13, color:'#fca5a5' }}>Total remises</span>
+                          <span style={{ fontSize:13, color:'#fca5a5' }}>− {panier.reduce((s,i)=>s+i.remise,0).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                        <div style={{ borderTop:'1px solid rgba(255,255,255,0.2)', paddingTop:8 }}/>
+                      </>
+                    )}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:14, color:'rgba(255,255,255,0.8)' }}>Total net</span>
+                      <span style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color:'#d0a83a' }}>{totalPanier.toLocaleString('fr-FR')} FCFA</span>
+                    </div>
                   </div>
                 </div>
               )}
