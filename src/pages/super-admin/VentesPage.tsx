@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { XCircle, Eye, X } from 'lucide-react';
+import { XCircle, Eye, X, Trash2 } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -28,6 +28,14 @@ export default function SAVentesPage() {
     if (!motif || !motif.trim()) { toast.error('Motif obligatoire — refus annulé'); return; }
     setSaving(true);
     try { await ventesService.annuler(id, motif); toast.success('Vente refusée'); setDetail(null); load(); }
+    catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
+    finally { setSaving(false); }
+  };
+
+  const doSupprimer = async (id: number) => {
+    if (!window.confirm(`Supprimer définitivement la vente #${id} ? Cette action est irréversible — la livraison liée sera aussi supprimée et le stock restitué.`)) return;
+    setSaving(true);
+    try { await ventesService.supprimer(id); toast.success('Vente supprimée définitivement'); setDetail(null); load(); }
     catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
@@ -101,6 +109,8 @@ export default function SAVentesPage() {
                       {v.statut === 'en_attente' && (
                         <button onClick={()=>doAnnuler(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><XCircle size={13}/></button>
                       )}
+                      <button onClick={()=>doSupprimer(v.id)} disabled={saving} title="Supprimer définitivement"
+                        style={{ ...T.iconBtn, color:'#7f1d1d', borderColor:'#fca5a5', background:'#fff1f2' }}><Trash2 size={13}/></button>
                     </div>
                   </td>
                 </tr>
@@ -130,6 +140,8 @@ export default function SAVentesPage() {
                   {v.statut === 'en_attente' && (
                     <button onClick={()=>doAnnuler(v.id)} disabled={saving} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}><XCircle size={13}/></button>
                   )}
+                  <button onClick={()=>doSupprimer(v.id)} disabled={saving} title="Supprimer"
+                    style={{ ...T.iconBtn, color:'#7f1d1d', borderColor:'#fca5a5', background:'#fff1f2' }}><Trash2 size={13}/></button>
                 </div>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
@@ -197,6 +209,13 @@ export default function SAVentesPage() {
                   <button onClick={()=>doAnnuler(detail.id)} disabled={saving} style={{ flex:1, padding:'10px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer' }}>{saving?'…':'Refuser cette vente'}</button>
                 </div>
               )}
+              <div style={{ marginTop:10 }}>
+                <button onClick={()=>doSupprimer(detail.id)} disabled={saving}
+                  style={{ width:'100%', padding:'10px', borderRadius:8, background:'#7f1d1d', color:'white', border:'none', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                  <Trash2 size={14}/> {saving?'…':'Supprimer définitivement'}
+                </button>
+                <p style={{ fontSize:11, color:'#8a96b0', textAlign:'center', marginTop:4 }}>Action irréversible — stock restitué</p>
+              </div>
             </div>
           </div>
         </div>

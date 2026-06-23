@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { Plus, X, Trash2, ShoppingCart, User, Phone, MapPin } from 'lucide-react';
+import { Plus, X, Trash2, ShoppingCart, User, Phone, MapPin, Edit2, AlertTriangle } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -28,11 +28,14 @@ export default function VendeurVentesPage() {
   const [zone,       setZone]       = useState(ZONES[0]);
   const [dateVente,  setDateVente]  = useState(new Date().toISOString().split('T')[0]);
   const [notes,      setNotes]      = useState('');
+  const [noteUrgence, setNoteUrgence] = useState('');
+  const [estExpedition, setEstExpedition] = useState(false);
   const [clientNom,      setClientNom]      = useState('');
   const [clientTel,      setClientTel]      = useState('');
   const [clientQuartier, setClientQuartier] = useState('');
   const [vendeurPos, setVendeurPos] = useState<{lat:number;lng:number}|null>(null);
   const [lienLocalisation, setLienLocalisation] = useState('');
+  const [editVente, setEditVente] = useState<any>(null); // vente en cours de modification
 
   // Extrait les coordonnées GPS depuis différents formats de liens de localisation
   // Supporte : Google Maps, WhatsApp location, liens directs lat,lng, geo:, etc.
@@ -98,6 +101,8 @@ export default function VendeurVentesPage() {
     setPanier([]); setZone(ZONES[0]); setNotes('');
     setClientNom(''); setClientTel(''); setClientQuartier('');
     setVendeurPos(null); setLienLocalisation('');
+    setNoteUrgence(''); setEstExpedition(false);
+    setEditVente(null);
     setModal(true);
   };
 
@@ -111,23 +116,63 @@ export default function VendeurVentesPage() {
     }
     setSaving(true);
     try {
-      await ventesService.create({
+      const payload = {
         items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise })),
         date_vente:        dateVente,
         zone_livraison:    zone,
         notes,
+        note_urgence:      noteUrgence || null,
+        est_expedition:    estExpedition,
         client_nom:        clientNom,
         client_telephone:  clientTel,
         client_quartier:   clientQuartier,
         vendeur_latitude:  vendeurPos?.lat ?? null,
         vendeur_longitude: vendeurPos?.lng ?? null,
-      });
-      toast.success('Vente soumise — course créée pour les livreurs 🚚');
+      };
+
+      if (editVente) {
+        // Mode modification — on envoie seulement les champs modifiables
+        await ventesService.update(editVente.id, {
+          zone_livraison:    zone,
+          notes,
+          note_urgence:      noteUrgence || null,
+          est_expedition:    estExpedition,
+          client_nom:        clientNom,
+          client_telephone:  clientTel,
+          client_quartier:   clientQuartier,
+          vendeur_latitude:  vendeurPos?.lat ?? null,
+          vendeur_longitude: vendeurPos?.lng ?? null,
+        });
+        toast.success('Vente modifiée ✓');
+      } else {
+        await ventesService.create(payload);
+        toast.success('Vente soumise — course créée pour les livreurs 🚚');
+      }
       setModal(false); setPanier([]); setNotes('');
-      setClientNom(''); setClientTel(''); setClientQuartier(''); setVendeurPos(null); setLienLocalisation('');
+      setClientNom(''); setClientTel(''); setClientQuartier('');
+      setVendeurPos(null); setLienLocalisation('');
+      setNoteUrgence(''); setEstExpedition(false); setEditVente(null);
       load();
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
+  };
+
+  // Ouvre le modal en mode modification pour une vente existante
+  const openEditModal = (v: any) => {
+    const peutModifier = !v.livraison || !['en_cours','livree_attente_validation','terminee'].includes(v.livraison?.statut);
+    if (!peutModifier) { toast.error('Impossible — un livreur a déjà pris cette course en charge'); return; }
+    setEditVente(v);
+    setZone(v.zone_livraison || ZONES[0]);
+    setNotes(v.notes || '');
+    setNoteUrgence(v.note_urgence || '');
+    setEstExpedition(v.est_expedition || false);
+    setClientNom(v.client_nom || '');
+    setClientTel(v.client_telephone || '');
+    setClientQuartier(v.client_quartier || '');
+    setVendeurPos(v.vendeur_latitude ? { lat: Number(v.vendeur_latitude), lng: Number(v.vendeur_longitude) } : null);
+    setLienLocalisation('');
+    setPanier([]); // le panier n'est pas modifiable
+    setModal(true);
   };
 
   const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
@@ -279,7 +324,7 @@ export default function VendeurVentesPage() {
         <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>
-              <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Livraison','Date'].map(h=>(
+              <tr>{['#','Produit(s)','Client','Total FCFA','Zone','Statut','Livraison','Date',''].map(h=>(
                 <th key={h} style={T.th}>{h}</th>
               ))}</tr>
             </thead>
@@ -327,6 +372,13 @@ export default function VendeurVentesPage() {
                       ) : <span style={{ color:'#8a96b0', fontSize:11 }}>—</span>}
                     </td>
                     <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{v.date_vente}</td>
+                    <td style={T.td}>
+                      {(!v.livraison || !['en_cours','livree_attente_validation','terminee'].includes(v.livraison?.statut)) && (
+                        <button onClick={()=>openEditModal(v)} style={{ ...T.iconBtn, color:'#1465BB' }} title="Modifier">
+                          <Edit2 size={12}/>
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -346,7 +398,16 @@ export default function VendeurVentesPage() {
               <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
                   <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{v.id}</span>
-                  <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                  <div style={{ display:'flex', gap:5, alignItems:'center' }}>
+                    {v.note_urgence && <span style={{ fontSize:10, background:'#fee2e2', color:'#991b1b', padding:'2px 7px', borderRadius:10, fontWeight:700 }}>🚨 Urgent</span>}
+                    {v.est_expedition && <span style={{ fontSize:10, background:'#fef9c3', color:'#854d0e', padding:'2px 7px', borderRadius:10, fontWeight:700 }}>📦 Expédition</span>}
+                    <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
+                    {(!v.livraison || !['en_cours','livree_attente_validation','terminee'].includes(v.livraison?.statut)) && (
+                      <button onClick={()=>openEditModal(v)} style={{ ...T.iconBtn, color:'#1465BB', width:28, height:28 }}>
+                        <Edit2 size={12}/>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
@@ -403,7 +464,10 @@ export default function VendeurVentesPage() {
         <div onClick={()=>setModal(false)} style={T.overlay}>
           <div onClick={e=>e.stopPropagation()} style={T.modalBox}>
             <div style={T.modalHeader}>
-              <h3 style={T.modalTitle}><ShoppingCart size={16}/>&nbsp; Nouvelle vente</h3>
+              <h3 style={T.modalTitle}>
+                <ShoppingCart size={16}/>&nbsp;
+                {editVente ? `Modifier vente #${editVente.id}` : 'Nouvelle vente'}
+              </h3>
               <button onClick={()=>setModal(false)} style={T.modalClose}><X size={15}/></button>
             </div>
             <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
@@ -516,6 +580,28 @@ export default function VendeurVentesPage() {
                   <input type="date" value={dateVente} onChange={e=>setDateVente(e.target.value)} style={T.inp}/>
                 </div>
               </div>
+
+              {/* Note d'urgence */}
+              <div>
+                <label style={T.lbl}>
+                  <AlertTriangle size={12} style={{marginRight:4, verticalAlign:'middle', color:'#e53e3e'}}/>
+                  Note d'urgence (optionnel)
+                </label>
+                <input value={noteUrgence} onChange={e=>setNoteUrgence(e.target.value)}
+                  placeholder="Ex: Livraison urgente avant 17h, client diabétique..."
+                  style={{ ...T.inp, borderColor: noteUrgence ? '#e53e3e' : undefined }}/>
+                {noteUrgence && <p style={{ fontSize:11, color:'#e53e3e', margin:'3px 0 0' }}>⚠ Sera affiché en rouge chez le livreur</p>}
+              </div>
+
+              {/* Expédition */}
+              <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', padding:'10px 14px', borderRadius:10, background: estExpedition?'#fef9c3':'#f8faff', border:`1.5px solid ${estExpedition?'#d0a83a':'#dde5f4'}` }}>
+                <input type="checkbox" checked={estExpedition} onChange={e=>setEstExpedition(e.target.checked)}
+                  style={{ width:18, height:18, cursor:'pointer', accentColor:'#d0a83a' }}/>
+                <div>
+                  <span style={{ fontSize:13, fontWeight:600, color: estExpedition?'#854d0e':'#0d1b3e' }}>📦 C'est une expédition</span>
+                  <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>La livraison sort de la zone normale de Ouagadougou</p>
+                </div>
+              </label>
 
               <div>
                 <label style={T.lbl}>Notes (optionnel)</label>

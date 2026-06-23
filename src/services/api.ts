@@ -71,6 +71,8 @@ export const produitsService = {
 export const ventesService = {
   getAll:     (params?: object) => api.get('/ventes', { params }),
   create:     (data: object)    => api.post('/ventes', data),
+  update:     (id: number, data: object) => api.put(`/ventes/${id}`, data),
+  supprimer:  (id: number)      => api.delete(`/ventes/${id}`),
   stats:      ()                => api.get('/ventes/stats'),
   classement: ()                => api.get('/ventes/classement'),
   annuler:    (id: number, motif: string) => api.post(`/ventes/${id}/annuler`, { motif }),
@@ -108,6 +110,7 @@ export const livraisonsService = {
   validerCloture: (id: number) => api.post(`/livraisons/${id}/valider-cloture`),
   refuserCloture: (id: number, motif: string) => api.post(`/livraisons/${id}/refuser-cloture`, { motif }),
   assigner:     (id: number, livreurId?: number) => api.post(`/livraisons/${id}/assigner`, livreurId ? { livreur_id: livreurId } : {}),
+  notifLue:     (id: number) => api.post(`/livraisons/${id}/notif-lue`),
 };
 
 // ── Dossiers ──────────────────────────────────────────────

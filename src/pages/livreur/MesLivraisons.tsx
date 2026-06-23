@@ -299,19 +299,45 @@ export default function MesCoursesPage() {
           const nomVendeur = vendeur ? `${vendeur.prenom||vendeur.name||''} ${vendeur.nom||''}`.trim() : null;
           // Produits de la vente
           const produits = l.vente?.items?.length > 0 ? l.vente.items : null;
+          const noteUrgence = l.vente?.note_urgence;
+          const estExpedition = l.vente?.est_expedition;
+          // Nouvelle assignation non lue par le livreur
+          const isNouvelle = isAssigneeParCoord && !l.notif_livreur_lu;
           return (
             <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
               border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
               padding:18,
               boxShadow:isDisponible||isAssigneeParCoord?'0 4px 14px rgba(59,130,246,0.15)':l.statut==='en_cours'?'0 4px 14px rgba(10,158,110,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
+              {/* Badge notification nouvelle assignation */}
+              {isNouvelle && (
+                <div onClick={()=>livraisonsService.notifLue(l.id).then(()=>load())}
+                  style={{ background:'linear-gradient(90deg,#e53e3e,#c53030)', borderRadius:8, padding:'8px 14px', marginBottom:10, cursor:'pointer', display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:18 }}>🔔</span>
+                  <div>
+                    <p style={{ fontSize:13, fontWeight:700, color:'white', margin:0 }}>Nouvelle course assignée !</p>
+                    <p style={{ fontSize:11, color:'rgba(255,255,255,0.8)', margin:0 }}>Toucher pour marquer comme vue</p>
+                  </div>
+                </div>
+              )}
+              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
                   <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
                   {l.vente_id && <span style={{ fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Vente #{l.vente_id}</span>}
                   {isAssigneeParCoord && <span style={{ fontSize:10, background:'#ede9fe', color:'#5b21b6', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Assignée par coordinateur</span>}
+                  {estExpedition && <span style={{ fontSize:10, background:'#fef9c3', color:'#854d0e', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap', fontWeight:700 }}>📦 Expédition</span>}
                 </div>
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
               </div>
+              {/* Note d'urgence — affichée en rouge bien visible */}
+              {noteUrgence && (
+                <div style={{ background:'#fee2e2', border:'1.5px solid #fca5a5', borderRadius:8, padding:'8px 12px', marginBottom:10, display:'flex', alignItems:'flex-start', gap:8 }}>
+                  <span style={{ fontSize:16, flexShrink:0 }}>🚨</span>
+                  <div>
+                    <p style={{ fontSize:12, fontWeight:700, color:'#991b1b', margin:0, textTransform:'uppercase', letterSpacing:'.5px' }}>URGENT</p>
+                    <p style={{ fontSize:13, color:'#7f1d1d', margin:'2px 0 0' }}>{noteUrgence}</p>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
                 {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
