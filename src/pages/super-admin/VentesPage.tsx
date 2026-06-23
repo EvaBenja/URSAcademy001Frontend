@@ -2,6 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { XCircle, Eye, X, Trash2 } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
@@ -40,7 +41,15 @@ export default function SAVentesPage() {
     finally { setSaving(false); }
   };
 
-  const filtered = filter === 'tous' ? ventes : ventes.filter(v => v.statut === filter);
+  const [querySA, setQuerySA] = useState('');
+  const filteredBase = filter === 'tous' ? ventes : ventes.filter((v:any) => v.statut === filter);
+  const filtered = filteredBase.filter((v:any) => {
+    if (!querySA.trim()) return true;
+    const q = querySA.toLowerCase();
+    const nomV = `${v.caissiere?.prenom||v.caissiere?.name||''} ${v.caissiere?.nom||''}`.toLowerCase();
+    return nomV.includes(q) || (v.zone_livraison||'').toLowerCase().includes(q) || String(v.id).includes(q) ||
+           (v.items||[]).some((it:any)=>(it.produit?.nom||'').toLowerCase().includes(q));
+  });
   const caTotal  = ventes.filter(v=>v.statut!=='annulee').reduce((s,v)=>s+Number(v.montant_total||0),0);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
@@ -78,6 +87,8 @@ export default function SAVentesPage() {
         ))}
         <span style={{ marginLeft:'auto', fontSize:12, color:'#8a96b0', alignSelf:'center' }}>{filtered.length} vente{filtered.length>1?'s':''}</span>
       </div>
+
+      <SearchBar value={querySA} onChange={setQuerySA} placeholder="Rechercher par vendeur, zone, produit, #id…" count={filteredBase.length} filtered={filtered.length} style={{ marginBottom:14 }}/>
 
       {/* Table desktop */}
       <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>

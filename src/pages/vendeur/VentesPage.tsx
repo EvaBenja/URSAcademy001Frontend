@@ -4,6 +4,7 @@ import { ventesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 import ZoneSelect from '../../components/ui/ZoneSelect';
 import { QUARTIERS_OUAGA } from '../../data/quartiersOuaga';
 
@@ -175,10 +176,19 @@ export default function VendeurVentesPage() {
     setModal(true);
   };
 
+  const [queryVentes, setQueryVentes] = useState('');
   const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
   const monRang    = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
 
   // Statuts livraison de mes ventes (temps réel)
+  const ventesFiltered = mesVentes.filter((v:any) => {
+    if (!queryVentes.trim()) return true;
+    const q = queryVentes.toLowerCase();
+    return (v.client_nom||'').toLowerCase().includes(q) ||
+           (v.zone_livraison||'').toLowerCase().includes(q) ||
+           (v.items||[]).some((it:any) => (it.produit?.nom||'').toLowerCase().includes(q)) ||
+           String(v.id).includes(q);
+  });
   const livEnAttente   = mesVentes.filter(v => !v.livraison || v.livraison.statut === 'en_attente').length;
   const livAssignee    = mesVentes.filter(v => v.livraison?.statut === 'validee').length;
   const livEnCours     = mesVentes.filter(v => v.livraison?.statut === 'en_cours').length;
@@ -317,6 +327,8 @@ export default function VendeurVentesPage() {
       )}
 
       {/* Historique */}
+      <SearchBar value={queryVentes} onChange={setQueryVentes} placeholder="Rechercher par client, zone, produit, #id…" count={mesVentes.length} filtered={ventesFiltered.length} style={{ marginBottom:14 }}/>
+
       <div style={{ ...T.card, padding:0, overflow:'hidden' }}>
         <div style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
           <h2 style={T.cardTitle}>Historique ({mesVentes.length})</h2>
@@ -329,11 +341,11 @@ export default function VendeurVentesPage() {
               ))}</tr>
             </thead>
             <tbody>
-              {mesVentes.length === 0 ? (
+              {ventesFiltered.length === 0 ? (
                 <tr><td colSpan={7} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
-              ) : mesVentes.map((v:any) => {
+              ) : ventesFiltered.map((v:any) => {
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 return (
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
@@ -404,11 +416,11 @@ export default function VendeurVentesPage() {
 
         {/* Cartes mobile */}
         <div className="urs-cards-mobile">
-          {mesVentes.length === 0 ? (
+          {ventesFiltered.length === 0 ? (
             <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
               Cliquez sur "Nouvelle vente" pour commencer
             </p>
-          ) : mesVentes.map((v:any) => {
+          ) : ventesFiltered.map((v:any) => {
             const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
             return (
               <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>

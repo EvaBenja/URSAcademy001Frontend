@@ -2,6 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { Plus, X, Edit2, Trash2, TrendingDown, RefreshCw } from 'lucide-react';
 import { depensesService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const CATEGORIES = [
   { value:'courant',    label:'⚡ Courant / Électricité' },
@@ -85,6 +86,7 @@ export default function DepensesPage() {
     catch { toast.error('Erreur'); }
   };
 
+  const [queryD, setQueryD] = useState('');
   const filtered = filterCat === 'tous' ? depenses : depenses.filter(d => d.categorie === filterCat);
   const totalFiltered = filtered.reduce((s, d) => s + Number(d.montant), 0);
 
@@ -152,6 +154,8 @@ export default function DepensesPage() {
 
       {/* Table */}
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
+        <SearchBar value={queryD} onChange={setQueryD} placeholder="Rechercher par motif, catégorie, notes…" count={filteredBase.length} filtered={filtered.length} style={{ marginBottom:12 }}/>
+
         <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
           <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
             <thead>

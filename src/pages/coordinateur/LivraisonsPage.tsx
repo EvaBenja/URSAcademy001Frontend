@@ -2,6 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw } from 'lucide-react';
 import { livraisonsService, utilisateursService, geoService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente:                {label:'En attente',                    bg:'#fef9c3', color:'#854d0e'},
@@ -70,8 +71,15 @@ export default function CoordLivraisonsPage() {
     } finally { setSaving(false); }
   };
 
+  const [queryC, setQueryC] = useState('');
   const rejetees   = livraisons.filter(l => l.statut === 'rejetee');
-  const filtered   = filter === 'tous' ? livraisons : livraisons.filter(l => l.statut === filter);
+  const filteredBase = filter === 'tous' ? livraisons : livraisons.filter((l:any) => l.statut === filter);
+  const filtered = filteredBase.filter((l:any) => {
+    if (!queryC.trim()) return true;
+    const q = queryC.toLowerCase();
+    const nomLiv = `${l.livreur?.prenom||l.livreur?.name||''} ${l.livreur?.nom||''}`.toLowerCase();
+    return nomLiv.includes(q) || (l.zone_livraison||'').toLowerCase().includes(q) || String(l.id).includes(q);
+  });
 
   // Livreur GPS actif = a une position récente
   const livreurActif = (livreurId: number) => positions.find((p:any) => p.id === livreurId);
@@ -138,6 +146,8 @@ export default function CoordLivraisonsPage() {
           </button>
         ))}
       </div>
+
+      <SearchBar value={queryC} onChange={setQueryC} placeholder="Rechercher par zone, livreur, #id…" count={filteredBase.length} filtered={filtered.length} style={{ marginBottom:12 }}/>
 
       {/* Table desktop */}
       <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>

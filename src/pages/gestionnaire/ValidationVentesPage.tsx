@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { Eye, X, Clock, RefreshCw, ChevronLeft, ChevronRight, Truck } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'Active',     bg:'#dbeafe', color:'#1e40af'},
@@ -39,6 +40,13 @@ export default function ValidationVentesPage() {
 
   const filtered  = filter === 'tous' ? ventes : ventes.filter(v => v.statut === filter);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const searched = filtered.filter((v:any) => {
+    if (!queryV.trim()) return true;
+    const q = queryV.toLowerCase();
+    const nom = `${v.caissiere?.prenom||v.caissiere?.name||''} ${v.caissiere?.nom||''}`.toLowerCase();
+    return nom.includes(q) || (v.zone_livraison||'').toLowerCase().includes(q) || String(v.id).includes(q) ||
+           (v.items||[]).some((it:any)=>(it.produit?.nom||'').toLowerCase().includes(q));
+  });
   const paginated  = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE);
 
   const actives  = ventes.filter(v => v.statut === 'en_attente').length;
@@ -91,6 +99,8 @@ export default function ValidationVentesPage() {
           {filtered.length} vente{filtered.length>1?'s':''} — page {page}/{Math.max(totalPages,1)}
         </span>
       </div>
+
+      <SearchBar value={queryV} onChange={setQueryV} placeholder="Rechercher par vendeur, zone, produit…" count={filtered.length} filtered={searched.length} style={{ marginBottom:14 }}/>
 
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflow:'hidden' }}>
         <div className="urs-table-desktop" style={{ overflowX:'auto' }}>

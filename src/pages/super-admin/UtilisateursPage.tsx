@@ -2,6 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { Plus, Edit2, Trash2, X, Search, CheckCircle, XCircle } from 'lucide-react';
 import { utilisateursService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur';
 
@@ -145,11 +146,7 @@ export default function UtilisateursPage() {
       <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
         {/* Toolbar */}
         <div style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb', display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-          <div style={{ position:'relative', minWidth:220, flex:1 }}>
-            <Search size={13} color="#8a96b0" style={{ position:'absolute', left:10, top:'50%', transform:'translateY(-50%)' }}/>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Nom, email…"
-              style={{ width:'100%', padding:'8px 12px 8px 30px', border:'1.5px solid #dde5f4', borderRadius:7, fontSize:13, outline:'none', background:'#f4f7fd', color:'#0d1b3e' }}/>
-          </div>
+          <SearchBar value={search} onChange={setSearch} placeholder="Rechercher par nom, email, téléphone…" count={users.length} filtered={filtered.length} style={{ minWidth:220, flex:1 }}/>
           <select value={roleFilter} onChange={e=>setRoleFilter(e.target.value)}
             style={{ padding:'8px 12px', border:'1.5px solid #dde5f4', borderRadius:7, fontSize:13, outline:'none', background:'#f4f7fd', color:'#0d1b3e' }}>
             <option value="tous">Tous les rôles</option>

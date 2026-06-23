@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { Eye, X, MapPin, Package, RefreshCw, CheckCircle, XCircle, User, Phone, Lock } from 'lucide-react';
 import { livraisonsService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT_CONFIG: Record<string,{label:string;bg:string;color:string}> = {
   en_attente:                 {label:'Disponible',                 bg:'#dbeafe', color:'#1e40af'},

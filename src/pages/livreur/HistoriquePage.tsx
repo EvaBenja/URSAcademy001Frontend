@@ -3,6 +3,7 @@ import { History, MapPin, Clock, CheckCircle, XCircle, Truck, User, Phone } from
 import { livraisonsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string;Icon:any}> = {
   terminee:   {label:'Terminée',   bg:'#dcfce7', color:'#166534', Icon:CheckCircle},
@@ -16,6 +17,7 @@ export default function LivreurHistoriquePage() {
   const { user }     = useAuth();
   const [courses,    setCourses]  = useState<any[]>([]);
   const [loading,    setLoading]  = useState(true);
+  const [queryH, setQueryH] = useState('');
   const [filter,     setFilter]   = useState('tous');
   const [detail,     setDetail]   = useState<any>(null);
 
@@ -36,7 +38,7 @@ export default function LivreurHistoriquePage() {
   const taux      = (terminees + rejetees) > 0
     ? Math.round((terminees / (terminees + rejetees)) * 100) : 0;
 
-  const filtered = filter === 'tous' ? courses : courses.filter(c => c.statut === filter);
+  const filteredBase = filter === 'tous' ? courses : courses.filter(c => c.statut === filter);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 

@@ -2,6 +2,7 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { produitsService } from '../../services/api';
 import toast from 'react-hot-toast';
+import SearchBar from '../../components/ui/SearchBar';
 
 const EMPTY = { reference:'', nom:'', prix_unitaire:0, prix_gros:0, quantite_stock:0, unite:'unité' };
 
@@ -13,6 +14,12 @@ export default function SAProduitsPage() {
   const [saving,   setSaving]   = useState(false);
 
   useEffect(() => { load(); }, []);
+  const filtered = produits.filter((p:any) => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return (p.nom||'').toLowerCase().includes(q) || (p.reference||'').toLowerCase().includes(q) || (p.unite||'').toLowerCase().includes(q);
+  });
+
   const load = async () => {
     try { const r = await produitsService.getAll(); setProduits(r.data || []); }
     catch { toast.error('Erreur chargement produits'); }
@@ -62,6 +69,8 @@ export default function SAProduitsPage() {
         ))}
       </div>
 
+      <SearchBar value={query} onChange={setQuery} placeholder="Rechercher par nom, référence…" count={produits.length} filtered={filtered.length} style={{ marginBottom:14 }}/>
+
       {/* Table desktop */}
       <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
         <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
@@ -71,11 +80,11 @@ export default function SAProduitsPage() {
             ))}</tr>
           </thead>
           <tbody>
-            {produits.length === 0 ? (
+            {filtered.length === 0 ? (
               <tr><td colSpan={8} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>
                 Aucun produit — ajoutez votre premier produit
               </td></tr>
-            ) : produits.map((p:any) => (
+            ) : filtered.map((p:any) => (
               <tr key={p.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
                 <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{p.reference}</td>
                 <td style={{ ...T.td, fontWeight:500 }}>{p.nom}</td>
@@ -101,11 +110,11 @@ export default function SAProduitsPage() {
 
       {/* Cartes mobile — tous les champs visibles */}
       <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
-        {produits.length === 0 ? (
+        {filtered.length === 0 ? (
           <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>
             Aucun produit — ajoutez votre premier produit
           </p>
-        ) : produits.map((p:any) => (
+        ) : filtered.map((p:any) => (
           <div key={p.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
               <div style={{ minWidth:0 }}>
