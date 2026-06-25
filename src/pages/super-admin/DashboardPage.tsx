@@ -4,13 +4,16 @@ import { dashboardService, geoService } from '../../services/api';
 import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 
 interface Stats {
-  total_ventes: number;
+  total_ventes: number;      // CA réel = livraisons terminées
+  ca_en_cours: number;       // CA en attente de clôture
   nombre_ventes: number;
   ventes_en_attente: number;
+  ventes_annulees: number;
   total_produits: number;
   stock_faible: number;
   livraisons_en_cours: number;
   livraisons_en_attente: number;
+  livraisons_terminees: number;
   total_livreurs: number;
 }
 
@@ -60,10 +63,10 @@ export default function DashboardPage() {
   const maxVal = Math.max(...ventes, 1);
 
   const STAT_CARDS = stats ? [
-    { label: "Chiffre d'affaires", value: Number(stats.total_ventes).toLocaleString(), unit: 'FCFA', Icon: TrendingUp, color: '#1465BB', bg: '#e0f0ff', evo: `${stats.nombre_ventes} ventes` },
-    { label: 'Produits en stock',  value: stats.total_produits,  unit: '',     Icon: Package,    color: '#0a9e6e', bg: '#dcfce7', evo: `${stats.stock_faible} alertes` },
-    { label: 'Livraisons en cours',value: stats.livraisons_en_cours, unit: '', Icon: Truck,      color: '#d0a83a', bg: '#fdf3d7', evo: `${stats.livraisons_en_attente} en attente` },
-    { label: 'Livreurs actifs',    value: stats.total_livreurs,  unit: '',     Icon: Users,      color: '#7c3aed', bg: '#ede9fe', evo: 'Enregistrés' },
+    { label: "CA réel (livré)",      value: Number(stats.total_ventes).toLocaleString(), unit: 'FCFA', Icon: TrendingUp, color: '#1465BB', bg: '#e0f0ff', evo: `${stats.livraisons_terminees} livraisons terminées` },
+    { label: 'CA en cours',           value: Number(stats.ca_en_cours||0).toLocaleString(), unit: 'FCFA', Icon: Clock, color: '#d0a83a', bg: '#fdf3d7', evo: `${stats.ventes_en_attente} en attente` },
+    { label: 'Livraisons en cours',   value: stats.livraisons_en_cours, unit: '', Icon: Truck, color: '#0a9e6e', bg: '#dcfce7', evo: `${stats.livraisons_en_attente} en attente` },
+    { label: 'Livreurs enregistrés',  value: stats.total_livreurs, unit: '', Icon: Users, color: '#7c3aed', bg: '#ede9fe', evo: `${stats.total_produits} produits` },
   ] : [];
 
   return (
