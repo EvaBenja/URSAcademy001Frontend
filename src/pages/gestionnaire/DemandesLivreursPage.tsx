@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, type CSSProperties } from 'react';
 import { CheckCircle, XCircle, Eye, X, Clock, MapPin, Package, RefreshCw, Lock } from 'lucide-react';
 import { demandesService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -13,6 +14,10 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
 interface ProduitStatut { id: number; statut: 'livre'|'non_livre'; }
 
 export default function DemandesLivreursPage() {
+  const { user } = useAuth();
+  // Seuls gestionnaire et super_admin peuvent valider/refuser
+  const canValider = user?.role === 'gestionnaire' || user?.role === 'super_admin';
+
   const [demandes,     setDemandes]     = useState<any[]>([]);
   const [loading,      setLoading]      = useState(true);
   const [detail,       setDetail]       = useState<any>(null);
@@ -125,7 +130,7 @@ export default function DemandesLivreursPage() {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={T.h1}>Demandes des Livreurs</h1>
-          <p style={T.sub}>Validez, refusez ou clôturez les demandes avec le statut de chaque produit</p>
+          <p style={T.sub}>{canValider ? 'Validez, refusez ou clôturez les demandes avec le statut de chaque produit' : 'Consultation des demandes — la validation est réservée au gestionnaire'}</p>
         </div>
         <button onClick={()=>load(false)}
           style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:12, color:'#4a5578' }}>
@@ -228,7 +233,7 @@ export default function DemandesLivreursPage() {
                   style={{ flex:1, minWidth:70, padding:'8px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:12, color:'#4a5578', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
                   <Eye size={12}/> Détail
                 </button>
-                {d.statut === 'en_attente' && (
+                {d.statut === 'en_attente' && canValider && (
                   <>
                     <button onClick={()=>{setValiderModal(d);setCarburant(0);}}
                       style={{ flex:1, minWidth:70, padding:'8px', borderRadius:8, border:'none', background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
@@ -240,7 +245,12 @@ export default function DemandesLivreursPage() {
                     </button>
                   </>
                 )}
-                {d.statut === 'validee' && (
+                {d.statut === 'en_attente' && !canValider && (
+                  <span style={{ flex:1, padding:'8px', borderRadius:8, background:'#f1f5f9', color:'#8a96b0', fontSize:11, textAlign:'center', fontStyle:'italic' }}>
+                    Validation réservée au gestionnaire
+                  </span>
+                )}
+                {d.statut === 'validee' && canValider && (
                   <button onClick={()=>openCloture(d)}
                     style={{ flex:2, padding:'8px', borderRadius:8, border:'none', background:'linear-gradient(90deg,#7c3aed,#5b21b6)', color:'white', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
                     <Lock size={12}/> Clôturer
@@ -302,7 +312,7 @@ export default function DemandesLivreursPage() {
               )}
 
               <div style={{ display:'flex', gap:10, marginTop:10, flexWrap:'wrap' }}>
-                {detail.statut === 'en_attente' && (
+                {detail.statut === 'en_attente' && canValider && (
                   <>
                     <button onClick={()=>{setRefusModal(detail);setDetail(null);setMotif('');}}
                       style={{ flex:1, padding:'10px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer', minWidth:90 }}>
@@ -314,7 +324,12 @@ export default function DemandesLivreursPage() {
                     </button>
                   </>
                 )}
-                {detail.statut === 'validee' && (
+                {detail.statut === 'en_attente' && !canValider && (
+                  <p style={{ fontSize:12, color:'#8a96b0', fontStyle:'italic', margin:0 }}>
+                    La validation est réservée au gestionnaire.
+                  </p>
+                )}
+                {detail.statut === 'validee' && canValider && (
                   <button onClick={()=>{openCloture(detail);setDetail(null);}}
                     style={{ width:'100%', padding:'11px', borderRadius:8, background:'linear-gradient(90deg,#7c3aed,#5b21b6)', color:'white', border:'none', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                     <Lock size={15}/> Clôturer cette livraison
