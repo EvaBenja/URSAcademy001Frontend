@@ -3,6 +3,7 @@ import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw, Us
 import { livraisonsService, geoService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
+import CopyPhone from '../../components/ui/CopyPhone';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -356,45 +357,49 @@ export default function MesCoursesPage() {
                 </div>
               )}
 
-              <div style={{ display:'flex', flexDirection:'column', gap:5, marginBottom:12 }}>
+              <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
                 {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
                 <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0' }}><Clock size={11} color="#d0a83a"/> {l.date_livraison||'—'}</div>
-                {/* Vendeur source */}
-                {nomVendeur && (
-                  <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#7c3aed', background:'#f5f3ff', borderRadius:6, padding:'3px 8px', width:'fit-content' }}>
-                    <span style={{ fontSize:10 }}>👤</span> De : <strong>{nomVendeur}</strong>
-                  </div>
-                )}
+
+                {/* Vendeur source — toutes infos visibles */}
+                <div style={{ background:'#f5f3ff', borderRadius:8, padding:'8px 10px', border:'1px solid #ddd6fe' }}>
+                  <p style={{ fontSize:10, fontWeight:700, color:'#5b21b6', textTransform:'uppercase', margin:'0 0 5px', letterSpacing:'.5px' }}>👤 Vendeur / Source</p>
+                  {nomVendeur
+                    ? <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{nomVendeur}</p>
+                    : <p style={{ fontSize:12, color:'#8a96b0', margin:0, fontStyle:'italic' }}>Non renseigné</p>}
+                  {vendeur?.telephone
+                    ? <div style={{ marginTop:4 }}><CopyPhone tel={vendeur.telephone}/></div>
+                    : <p style={{ fontSize:11, color:'#8a96b0', margin:'3px 0 0' }}>Pas de numéro renseigné</p>}
+                </div>
+
                 {/* Produits de la vente */}
-                {produits && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                    {produits.map((it:any) => (
-                      <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'4px 8px', fontSize:11 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
-                          {it.produit?.nom} ×{it.quantite}
-                          {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                {produits && produits.length > 0 && (
+                  <div>
+                    <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>📦 Produits</p>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                      {produits.map((it:any) => (
+                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'4px 8px', fontSize:11 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
+                            {it.produit?.nom} ×{it.quantite}
+                            {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                          </div>
+                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:1 }}>
+                            {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
+                            {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                          </div>
                         </div>
-                        <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:1 }}>
-                          {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                          {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
-                {client_nom && (
-                  <div style={{ background:isDisponible?'#eff6ff':'#f0f4ff', borderRadius:8, padding:'8px 10px', marginTop:4, overflow:'hidden' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e', minWidth:0 }}>
-                      <User size={12} color="#1465BB" style={{flexShrink:0}}/>
-                      <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client_nom}</span>
-                    </div>
-                    {client_tel && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#1465BB', marginTop:2 }}><Phone size={11} style={{flexShrink:0}}/> {client_tel}</div>}
-                    {client_quartier && (
-                      <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0', marginTop:2, minWidth:0 }}>
-                        <MapPin size={11} style={{flexShrink:0}}/>
-                        <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client_quartier}</span>
-                      </div>
-                    )}
+
+                {/* Client */}
+                {(client_nom || client_tel || client_quartier) && (
+                  <div style={{ background:'#eff6ff', borderRadius:8, padding:'8px 10px', border:'1px solid #bfdbfe' }}>
+                    <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 5px', letterSpacing:'.5px' }}>📍 Client</p>
+                    {client_nom && <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{client_nom}</p>}
+                    {client_tel && <div style={{ marginTop:4 }}><CopyPhone tel={client_tel}/></div>}
+                    {client_quartier && <p style={{ fontSize:12, color:'#4a5578', margin:'3px 0 0', display:'flex', alignItems:'center', gap:4 }}><MapPin size={10}/> {client_quartier}</p>}
                   </div>
                 )}
                 {l.motif_rejet && <p style={{ fontSize:12, color:'#e53e3e', margin:0 }}>⚠ {l.motif_rejet}</p>}

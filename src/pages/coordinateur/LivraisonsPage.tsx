@@ -336,27 +336,24 @@ export default function CoordLivraisonsPage() {
                   const nom = `${lv.prenom||lv.name||''} ${lv.nom||''}`.trim();
                   return (
                     <div key={lv.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', borderRadius:10,
-                      background: estRejeteur ? '#fff5f5' : '#f8faff',
-                      border: `1px solid ${estRejeteur?'#fecaca':'#dde5f4'}`,
-                      opacity: estRejeteur ? 0.5 : 1 }}>
-                      <div style={{ width:34, height:34, borderRadius:'50%', background: estRejeteur?'#fee2e2':'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color: estRejeteur?'#e53e3e':'white', fontSize:12, fontWeight:700, flexShrink:0 }}>
+                      background: estRejeteur ? '#fffbeb' : '#f8faff',
+                      border: `1px solid ${estRejeteur?'#fde68a':'#dde5f4'}` }}>
+                      <div style={{ width:34, height:34, borderRadius:'50%', background: estRejeteur?'#fef3c7':'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color: estRejeteur?'#92400e':'white', fontSize:12, fontWeight:700, flexShrink:0 }}>
                         {(nom[0]||'?')}
                       </div>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontSize:13, fontWeight:600, color: estRejeteur?'#991b1b':'#0d1b3e', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                          {nom} {estRejeteur && '(a rejeté cette course)'}
+                        <p style={{ fontSize:13, fontWeight:600, color: estRejeteur?'#92400e':'#0d1b3e', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {nom}
                         </p>
                         <p style={{ fontSize:11, margin:0, color: gps?'#0a9e6e':'#8a96b0' }}>
                           {gps ? '📍 GPS actif' : '📍 GPS non disponible'}
-                          {lv.telephone && ` · ${lv.telephone}`}
+                          {estRejeteur && <span style={{ color:'#d97706', marginLeft:6 }}>⚠ a rejeté (réassignable)</span>}
                         </p>
                       </div>
-                      {!estRejeteur && (
-                        <button onClick={()=>doAssignerManuel(reassignModal, lv.id, nom)} disabled={saving}
-                          style={{ padding:'6px 14px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontSize:12, fontWeight:600, cursor:'pointer', flexShrink:0, opacity:saving?0.6:1 }}>
-                          Assigner
-                        </button>
-                      )}
+                      <button onClick={()=>doAssignerManuel(reassignModal, lv.id, nom)} disabled={saving}
+                        style={{ padding:'6px 12px', borderRadius:8, background: estRejeteur?'#d97706':'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', fontSize:11, fontWeight:600, cursor:'pointer', flexShrink:0, opacity:saving?0.6:1 }}>
+                        {estRejeteur ? 'Réassigner ⚠' : 'Assigner'}
+                      </button>
                     </div>
                   );
                 })}

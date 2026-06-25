@@ -3,6 +3,7 @@ import { Plus, X, Trash2, ShoppingCart, User, Phone, MapPin, Edit2, AlertTriangl
 import { ventesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import CopyPhone from '../../components/ui/CopyPhone';
 import toast from 'react-hot-toast';
 import SearchBar from '../../components/ui/SearchBar';
 import ZoneSelect from '../../components/ui/ZoneSelect';
@@ -280,7 +281,9 @@ export default function VendeurVentesPage() {
                   {nomLivreur && (
                     <span style={{ display:'flex', alignItems:'center', gap:4 }}>
                       🚚 {nomLivreur}
-                      {liv.livreur?.telephone && ` · ${liv.livreur.telephone}`}
+                      {liv.livreur?.telephone && (
+                        <CopyPhone tel={liv.livreur.telephone} style={{ marginLeft:4 }}/>
+                      )}
                     </span>
                   )}
                   {(v.client_nom) && <span>👤 {v.client_nom}</span>}
@@ -288,6 +291,23 @@ export default function VendeurVentesPage() {
                 </div>
                 {liv.statut === 'rejetee' && liv.motif_rejet && (
                   <p style={{ fontSize:11, color:'#e53e3e', margin:'6px 0 0' }}>⚠ Rejeté : {liv.motif_rejet}</p>
+                )}
+                {/* Point 3: le vendeur confirme la réception quand le livreur arrive */}
+                {liv.statut === 'en_cours' && (
+                  <div style={{ marginTop:10, padding:'8px 12px', background:'#f0fdf4', borderRadius:8, border:'1px solid #86efac' }}>
+                    <p style={{ fontSize:11, color:'#166534', margin:'0 0 6px', fontWeight:600 }}>Le livreur est arrivé chez vous ?</p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await api.post(`/livraisons/${liv.id}/confirmer-remise`);
+                          toast.success('Remise confirmée ✓ — le livreur peut continuer');
+                          load();
+                        } catch (e:any) { toast.error(e.response?.data?.message||'Erreur'); }
+                      }}
+                      style={{ padding:'6px 14px', borderRadius:8, background:'#0a9e6e', color:'white', border:'none', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                      ✓ Confirmer la remise au livreur
+                    </button>
+                  </div>
                 )}
               </div>
             );
@@ -587,8 +607,14 @@ export default function VendeurVentesPage() {
                       <div className="cart-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Quantité</label>
-                          <input type="number" min={1} value={item.quantite}
-                            onChange={e=>{ const v=parseInt(e.target.value); if(!isNaN(v)&&v>=1) updateItem(item.produit_id,'quantite',v); }}
+                          <input type="number" min={1} value={item.quantite||''}
+                            onChange={e=>{
+                              const raw = e.target.value;
+                              if (raw === '' || raw === '0') { updateItem(item.produit_id,'quantite',1); return; }
+                              const v = parseInt(raw);
+                              if (!isNaN(v) && v >= 1) updateItem(item.produit_id,'quantite',v);
+                            }}
+                            onBlur={e=>{ if(!e.target.value||parseInt(e.target.value)<1) updateItem(item.produit_id,'quantite',1); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>

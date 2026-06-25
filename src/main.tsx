@@ -22,6 +22,7 @@ import SARapports     from './pages/super-admin/RapportsPage';
 import SAUtilisateurs from './pages/super-admin/UtilisateursPage';
 import SAPositions    from './pages/super-admin/PositionsPage';
 import SAHistoriqueCA from './pages/super-admin/HistoriqueCAPage';
+import SAComptabilite from './pages/super-admin/ComptabilitePage';
 
 // Gestionnaire
 import GestDashboard  from './pages/gestionnaire/DashboardPage';
@@ -84,6 +85,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="suivi-livraisons"     element={<SASuivi />} />
             <Route path="positions"            element={<SAPositions />} />
             <Route path="historique-ca"        element={<SAHistoriqueCA />} />
+            <Route path="comptabilite"         element={<SAComptabilite />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
