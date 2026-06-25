@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import { Eye, X, MapPin, Package, RefreshCw, CheckCircle, XCircle, User, Phone, Lock } from 'lucide-react';
 import { livraisonsService } from '../../services/api';
+import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -23,14 +24,36 @@ export default function GestLivraisonsPage() {
   const [filter,      setFilter]      = useState('livree_attente_validation');
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
+  const knownCloIds = useRef<Set<number>>(new Set());
+  const firstLoad   = useRef(true);
+  const { play }    = useNotificationSound();
+
   const load = useCallback(async (silent = false) => {
     try {
       const r = await livraisonsService.getAll();
-      setLivraisons(r.data || []);
+      const data = r.data || [];
+      setLivraisons(data);
       setLastRefresh(new Date());
+
+      // Détecter les nouvelles clôtures en attente de validation
+      const cloIds = new Set<number>(
+        data.filter((l:any) => l.statut === 'livree_attente_validation').map((l:any) => l.id)
+      );
+      if (!firstLoad.current) {
+        const nouvelles = [...cloIds].filter(id => !knownCloIds.current.has(id));
+        if (nouvelles.length > 0) {
+          play();
+          toast.success(
+            `📋 ${nouvelles.length} livraison${nouvelles.length>1?'s':''} clôturée${nouvelles.length>1?'s':''} — validation requise`,
+            { duration: 8000 }
+          );
+        }
+      }
+      knownCloIds.current = cloIds;
+      firstLoad.current = false;
     } catch { if (!silent) toast.error('Erreur chargement livraisons'); }
     finally { setLoading(false); }
-  }, []);
+  }, [play]);
 
   useEffect(() => {
     load();

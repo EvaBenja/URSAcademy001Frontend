@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, type CSSProperties } from 're
 import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw, User, Phone, Bell } from 'lucide-react';
 import { livraisonsService, geoService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -39,8 +40,10 @@ export default function MesCoursesPage() {
   const [gpsActif,    setGpsActif]    = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  const knownDispoIds = useRef<Set<number>>(new Set());
+  const knownDispoIds  = useRef<Set<number>>(new Set());
+  const knownAssignIds = useRef<Set<number>>(new Set());
   const firstLoad      = useRef(true);
+  const { play }       = useNotificationSound();
 
   const load = useCallback(async (silent = false) => {
     try {
@@ -53,20 +56,34 @@ export default function MesCoursesPage() {
         data.filter((l:any) => !l.livreur_id && ['en_attente','validee'].includes(l.statut))
             .map((l:any) => l.id)
       );
+      // Courses nouvellement assignées à CE livreur (non lues)
+      const assignIds = new Set<number>(
+        data.filter((l:any) => l.notif_livreur_lu === false && l.statut === 'validee')
+            .map((l:any) => l.id)
+      );
+
       if (!firstLoad.current) {
-        const nouvelles = [...dispoIds].filter(id => !knownDispoIds.current.has(id));
-        if (nouvelles.length > 0) {
+        const nouvelleDispo   = [...dispoIds].filter(id => !knownDispoIds.current.has(id));
+        const nouvelleAssign  = [...assignIds].filter(id => !knownAssignIds.current.has(id));
+
+        if (nouvelleDispo.length > 0) {
+          play();
           toast.success(
-            `🔔 ${nouvelles.length} nouvelle${nouvelles.length>1?'s':''} course${nouvelles.length>1?'s':''} disponible${nouvelles.length>1?'s':''} !`,
+            `🔔 ${nouvelleDispo.length} nouvelle${nouvelleDispo.length>1?'s':''} course${nouvelleDispo.length>1?'s':''} disponible${nouvelleDispo.length>1?'s':''} !`,
             { duration: 6000 }
           );
         }
+        if (nouvelleAssign.length > 0) {
+          play();
+          toast.success(`📦 Course assignée — vous avez une nouvelle livraison !`, { duration: 8000 });
+        }
       }
-      knownDispoIds.current = dispoIds;
+      knownDispoIds.current  = dispoIds;
+      knownAssignIds.current = assignIds;
       firstLoad.current = false;
     } catch { if (!silent) toast.error('Erreur chargement courses'); }
     finally { setLoading(false); }
-  }, []);
+  }, [play]);
 
   const watchIdRef = useRef<number|null>(null);
 

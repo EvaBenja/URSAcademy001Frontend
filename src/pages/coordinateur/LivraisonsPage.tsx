@@ -1,6 +1,7 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw } from 'lucide-react';
 import { livraisonsService, utilisateursService, geoService } from '../../services/api';
+import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -29,6 +30,10 @@ export default function CoordLivraisonsPage() {
     return () => clearInterval(t);
   }, []);
 
+  const knownRejetIds = useRef<Set<number>>(new Set());
+  const firstLoad     = useRef(true);
+  const { play }      = useNotificationSound();
+
   const load = async (silent = false) => {
     try {
       const [lr, ur, pr] = await Promise.all([
@@ -36,9 +41,27 @@ export default function CoordLivraisonsPage() {
         utilisateursService.getAll({ role: 'livreur' }),
         geoService.livreurs().catch(() => ({ data: [] })),
       ]);
-      setLivraisons(lr.data || []);
+      const data = lr.data || [];
+      setLivraisons(data);
       setLivreurs(ur.data?.filter((u:any) => u.role?.nom === 'livreur' || u.role_nom === 'livreur') || []);
       setPositions(pr.data || []);
+
+      // Détecter les nouvelles courses rejetées
+      const rejetIds = new Set<number>(
+        data.filter((l:any) => l.statut === 'rejetee').map((l:any) => l.id)
+      );
+      if (!firstLoad.current) {
+        const nouvelles = [...rejetIds].filter(id => !knownRejetIds.current.has(id));
+        if (nouvelles.length > 0) {
+          play();
+          toast.error(
+            `⚠️ ${nouvelles.length} course${nouvelles.length>1?'s':''} rejetée${nouvelles.length>1?'s':''} — réassignation nécessaire`,
+            { duration: 8000 }
+          );
+        }
+      }
+      knownRejetIds.current = rejetIds;
+      firstLoad.current = false;
     } catch { if (!silent) toast.error('Erreur chargement livraisons'); }
     finally { setLoading(false); }
   };
