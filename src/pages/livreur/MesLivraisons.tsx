@@ -378,18 +378,27 @@ export default function MesCoursesPage() {
                     <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>📦 Produits</p>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
                       {produits.map((it:any) => (
-                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'4px 8px', fontSize:11 }}>
+                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'5px 10px', fontSize:11 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
                             {it.produit?.nom} ×{it.quantite}
                             {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
                           </div>
-                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:1 }}>
-                            {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                            {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
+                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:2, fontSize:12 }}>
+                            À solder : {Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)).toLocaleString('fr-FR')} FCFA
                           </div>
                         </div>
                       ))}
                     </div>
+                    {/* Total à collecter — mis en évidence */}
+                    {produits.length > 0 && (() => {
+                      const total = produits.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0);
+                      return (
+                        <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:8, padding:'8px 12px', marginTop:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                          <span style={{ fontSize:12, color:'rgba(255,255,255,0.8)' }}>💰 Total à encaisser</span>
+                          <span style={{ fontSize:16, fontWeight:700, color:'#d0a83a' }}>{total.toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -474,15 +483,13 @@ export default function MesCoursesPage() {
                   {detail.vente?.items?.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:8 }}>
                       {detail.vente.items.map((it:any) => (
-                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'5px 10px', fontSize:11 }}>
+                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'6px 12px', fontSize:12 }}>
                           <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
                             {it.produit?.nom} ×{it.quantite}
                             {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
                           </div>
-                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:2 }}>
-                            {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                            {it.remise > 0 && <span style={{ color:'#e53e3e', fontWeight:400, marginLeft:4 }}>−{Number(it.remise).toLocaleString('fr-FR')}</span>}
-                            {it.sous_total > 0 && it.quantite > 1 && <span style={{ color:'#8a96b0', fontWeight:400, marginLeft:4 }}>= {Number(it.sous_total).toLocaleString('fr-FR')}</span>}
+                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:3, fontSize:14 }}>
+                            💰 Client doit : {Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)).toLocaleString('fr-FR')} FCFA
                           </div>
                         </div>
                       ))}

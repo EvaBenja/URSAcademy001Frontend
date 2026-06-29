@@ -3,6 +3,8 @@ import { History, MapPin, Clock, CheckCircle, XCircle, Truck, User, Phone } from
 import { livraisonsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string;Icon:any}> = {
@@ -18,6 +20,8 @@ export default function LivreurHistoriquePage() {
   const [courses,    setCourses]  = useState<any[]>([]);
   const [loading,    setLoading]  = useState(true);
   const [queryH, setQueryH] = useState('');
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const [filter,     setFilter]   = useState('tous');
   const [detail,     setDetail]   = useState<any>(null);
 
@@ -39,6 +43,9 @@ export default function LivreurHistoriquePage() {
     ? Math.round((terminees / (terminees + rejetees)) * 100) : 0;
 
   const filteredBase = filter === 'tous' ? courses : courses.filter(c => c.statut === filter);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
@@ -93,7 +100,7 @@ export default function LivreurHistoriquePage() {
 
       {/* Liste */}
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-        {filtered.length === 0 ? (
+        {paginated.length === 0 ? (
           <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:40, textAlign:'center' }}>
             <History size={36} color="#dde5f4" style={{ marginBottom:12 }}/>
             <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:17, color:'#8a96b0' }}>Aucune course dans l'historique</p>

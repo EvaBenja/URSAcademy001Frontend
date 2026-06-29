@@ -3,6 +3,8 @@ import { MapPin, Truck, Trophy, RefreshCw, Clock, AlertTriangle } from 'lucide-r
 import { livraisonsService, ventesService, geoService } from '../../services/api';
 import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
@@ -20,6 +22,8 @@ export default function SuiviLivraisonsPage() {
   const [positions,   setPositions]   = useState<any[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [tab,         setTab]         = useState<'carte'|'classement'|'livraisons'>('livraisons');
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   const load = async () => {
@@ -38,6 +42,10 @@ export default function SuiviLivraisonsPage() {
   };
 
   useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, []);
+
+  const totalLiv = livraisons.length;
+  const totalPages = Math.ceil(totalLiv / PAGE_SIZE);
+  const paginatedLiv = livraisons.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
   const dansZone = positions.filter((p:any) => !isHorsZone(Number(p.latitude), Number(p.longitude)));
   const horsZone = positions.filter((p:any) => isHorsZone(Number(p.latitude), Number(p.longitude)));
@@ -99,9 +107,9 @@ export default function SuiviLivraisonsPage() {
                 ))}</tr>
               </thead>
               <tbody>
-                {livraisons.length === 0 ? (
+                {paginatedLiv.length === 0 ? (
                   <tr><td colSpan={5} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
-                ) : livraisons.map((l:any) => {
+                ) : paginatedLiv.map((l:any) => {
                   const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
                   return (
                     <tr key={l.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
@@ -121,7 +129,7 @@ export default function SuiviLivraisonsPage() {
           <div className="urs-cards-mobile">
             {livraisons.length === 0 ? (
               <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
-            ) : livraisons.map((l:any) => {
+            ) : paginatedLiv.map((l:any) => {
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
               return (
                 <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
@@ -148,6 +156,7 @@ export default function SuiviLivraisonsPage() {
             })}
           </div>
         </div>
+        <Pagination page={pageNum} totalPages={totalPages} total={totalLiv} pageSize={PAGE_SIZE} onChange={setPageNum}/>
       )}
 
       {/* Classement */}

@@ -2,6 +2,8 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { XCircle, Eye, X, Trash2 } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -15,6 +17,8 @@ export default function SAVentesPage() {
   const [loading, setLoading] = useState(true);
   const [detail,  setDetail]  = useState<any>(null);
   const [filter,  setFilter]  = useState('tous');
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const [saving,  setSaving]  = useState(false);
 
   useEffect(() => { load(); }, []);
@@ -42,6 +46,7 @@ export default function SAVentesPage() {
   };
 
   const [querySA, setQuerySA] = useState('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const filteredBase = filter === 'tous' ? ventes : ventes.filter((v:any) => v.statut === filter);
   const filtered = filteredBase.filter((v:any) => {
     if (!querySA.trim()) return true;
@@ -50,6 +55,9 @@ export default function SAVentesPage() {
     return nomV.includes(q) || (v.zone_livraison||'').toLowerCase().includes(q) || String(v.id).includes(q) ||
            (v.items||[]).some((it:any)=>(it.produit?.nom||'').toLowerCase().includes(q));
   });
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+  // Auto-reset page on filter change - handled by useEffect
   const caTotal  = ventes.filter(v=>v.statut!=='annulee').reduce((s,v)=>s+Number(v.montant_total||0),0);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
@@ -101,7 +109,7 @@ export default function SAVentesPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={8} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>Aucune vente</td></tr>
-            ) : filtered.map((v:any) => {
+            ) : paginated.map((v:any) => {
               const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
               const nomV = v.caissiere ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim() : '—';
               const produits = v.items?.length > 0 ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ') : `${v.produit?.nom||'—'} ×${v.quantite}`;
@@ -135,7 +143,7 @@ export default function SAVentesPage() {
       <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
         {filtered.length === 0 ? (
           <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>Aucune vente</p>
-        ) : filtered.map((v:any) => {
+        ) : paginated.map((v:any) => {
           const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
           const nomV = v.caissiere ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim() : '—';
           const produits = v.items?.length > 0 ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ') : `${v.produit?.nom||'—'} ×${v.quantite}`;
@@ -183,6 +191,8 @@ export default function SAVentesPage() {
       </div>
 
       {/* Modal détail */}
+      <Pagination page={pageNum} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onChange={p=>{setPageNum(p);window.scrollTo(0,0)}}/>
+
       {detail && (
         <div onClick={()=>setDetail(null)} style={T.overlay}>
           <div onClick={e=>e.stopPropagation()} style={T.modalBox}>

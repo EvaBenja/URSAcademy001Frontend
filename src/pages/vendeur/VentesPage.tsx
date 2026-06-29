@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import CopyPhone from '../../components/ui/CopyPhone';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 import ZoneSelect from '../../components/ui/ZoneSelect';
 import { QUARTIERS_OUAGA } from '../../data/quartiersOuaga';
@@ -178,6 +180,8 @@ export default function VendeurVentesPage() {
   };
 
   const [queryVentes, setQueryVentes] = useState('');
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
   const monRang    = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
 
@@ -190,6 +194,9 @@ export default function VendeurVentesPage() {
            (v.items||[]).some((it:any) => (it.produit?.nom||'').toLowerCase().includes(q)) ||
            String(v.id).includes(q);
   });
+  const totalPages = Math.ceil(ventesFiltered.length / PAGE_SIZE);
+  const ventesPage  = ventesFiltered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+
   const livEnAttente   = mesVentes.filter(v => !v.livraison || v.livraison.statut === 'en_attente').length;
   const livAssignee    = mesVentes.filter(v => v.livraison?.statut === 'validee').length;
   const livEnCours     = mesVentes.filter(v => v.livraison?.statut === 'en_cours').length;
@@ -315,6 +322,8 @@ export default function VendeurVentesPage() {
         </div>
       )}
 
+      <Pagination page={pageNum} totalPages={totalPages} total={ventesFiltered.length} pageSize={PAGE_SIZE} onChange={p=>{setPageNum(p);window.scrollTo(0,0)}}/>
+
       {/* Classement TOUS les vendeurs */}
       {classement.length > 0 && (
         <div style={{ ...T.card, marginBottom:20 }}>
@@ -365,7 +374,7 @@ export default function VendeurVentesPage() {
                 <tr><td colSpan={7} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
-              ) : ventesFiltered.map((v:any) => {
+              ) : ventesPage.map((v:any) => {
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 return (
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
@@ -440,7 +449,7 @@ export default function VendeurVentesPage() {
             <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
               Cliquez sur "Nouvelle vente" pour commencer
             </p>
-          ) : ventesFiltered.map((v:any) => {
+          ) : ventesPage.map((v:any) => {
             const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
             return (
               <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>

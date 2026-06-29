@@ -3,6 +3,8 @@ import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw } from
 import { livraisonsService, utilisateursService, geoService } from '../../services/api';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -95,6 +97,8 @@ export default function CoordLivraisonsPage() {
   };
 
   const [queryC, setQueryC] = useState('');
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const rejetees   = livraisons.filter(l => l.statut === 'rejetee');
   const filteredBase = filter === 'tous' ? livraisons : livraisons.filter((l:any) => l.statut === filter);
   const filtered = filteredBase.filter((l:any) => {
@@ -105,6 +109,9 @@ export default function CoordLivraisonsPage() {
   });
 
   // Livreur GPS actif = a une position récente
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+
   const livreurActif = (livreurId: number) => positions.find((p:any) => p.id === livreurId);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
@@ -183,7 +190,7 @@ export default function CoordLivraisonsPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
-            ) : filtered.map((l:any) => {
+            ) : paginated.map((l:any) => {
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
               const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
               return (
@@ -237,7 +244,7 @@ export default function CoordLivraisonsPage() {
       <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
         {filtered.length === 0 ? (
           <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
-        ) : filtered.map((l:any) => {
+        ) : paginated.map((l:any) => {
           const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
           const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
           return (
@@ -278,6 +285,8 @@ export default function CoordLivraisonsPage() {
           );
         })}
       </div>
+
+      <Pagination page={pageNum} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onChange={p=>{setPageNum(p);window.scrollTo(0,0)}}/>
 
       {/* Modal Réassignation */}
       {reassignModal && (

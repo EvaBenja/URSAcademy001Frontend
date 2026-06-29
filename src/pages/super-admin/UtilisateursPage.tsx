@@ -2,6 +2,8 @@ import { useState, useEffect, type CSSProperties } from 'react';
 import { Plus, Edit2, Trash2, X, Search, CheckCircle, XCircle } from 'lucide-react';
 import { utilisateursService } from '../../services/api';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 
 type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur';
@@ -25,6 +27,8 @@ export default function UtilisateursPage() {
   const [search,       setSearch]       = useState('');
   const [roleFilter,   setRoleFilter]   = useState('tous');
   const [deleteConfirm,setDeleteConfirm]= useState<number|null>(null);
+  const [pageNum, setPageNum] = useState(1);
+  const PAGE_SIZE = 15;
   const [loading,      setLoading]      = useState(true);
   const [saving,       setSaving]       = useState(false);
 
@@ -105,6 +109,9 @@ export default function UtilisateursPage() {
     }
   };
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+
   const getRoleNom = (u: any) => typeof u.role === 'string' ? u.role : u.role?.nom || '';
 
   const inp = { width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', color:'#0d1b3e', background:'white', boxSizing:'border-box' as const } as CSSProperties;
@@ -165,7 +172,7 @@ export default function UtilisateursPage() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>Aucun utilisateur trouvé</td></tr>
-              ) : filtered.map(u => {
+              ) : paginated.map(u => {
                 const roleNom = getRoleNom(u);
                 const rc = ROLE_CONFIG[roleNom] || { label:roleNom, color:'#475569', bg:'#f1f5f9' };
                 return (
@@ -207,7 +214,7 @@ export default function UtilisateursPage() {
         <div className="urs-cards-mobile">
           {filtered.length === 0 ? (
             <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>Aucun utilisateur trouvé</p>
-          ) : filtered.map(u => {
+          ) : paginated.map(u => {
             const roleNom = getRoleNom(u);
             const rc = ROLE_CONFIG[roleNom] || { label:roleNom, color:'#475569', bg:'#f1f5f9' };
             return (

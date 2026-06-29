@@ -3,6 +3,8 @@ import { Eye, X, MapPin, Package, RefreshCw, CheckCircle, XCircle, User, Phone, 
 import { livraisonsService } from '../../services/api';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
+import Pagination from '../../components/ui/Pagination';
+
 import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT_CONFIG: Record<string,{label:string;bg:string;color:string}> = {
@@ -204,6 +206,8 @@ export default function GestLivraisonsPage() {
         })}
       </div>
 
+      <Pagination page={pageNum} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onChange={p=>{setPageNum(p);window.scrollTo(0,0)}}/>
+
       {detail && (
         <div onClick={()=>setDetail(null)} style={T.overlay}>
           <div onClick={e=>e.stopPropagation()} style={T.modalBox}>
@@ -305,3 +309,6 @@ const T = {
   modalTitle:{ fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0 } as CSSProperties,
   modalClose:{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
 };
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+
