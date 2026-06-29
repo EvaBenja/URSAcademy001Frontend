@@ -62,6 +62,16 @@ export default function DashboardPage() {
 
   const maxVal = Math.max(...ventes, 1);
 
+  // Calcul carte GPS hors JSX pour éviter les IIFE
+  const dansZoneDash = positions.filter((p:any) => !isHorsZone(Number(p.latitude), Number(p.longitude)));
+  const mapPointsDash: LivreurPoint[] = dansZoneDash.map((p:any, i:number) => ({
+    id: p.id,
+    nom: `${p.livreur?.prenom||p.prenom||p.name||''} ${p.livreur?.nom||p.nom||''}`.trim() || 'Livreur',
+    latitude: Number(p.latitude),
+    longitude: Number(p.longitude),
+    couleur: ['#2196F3','#0a9e6e','#d0a83a','#e53e3e','#7c3aed'][i % 5],
+  }));
+
   const STAT_CARDS = stats ? [
     { label: "CA réel (livré)",      value: Number(stats.total_ventes).toLocaleString(), unit: 'FCFA', Icon: TrendingUp, color: '#1465BB', bg: '#e0f0ff', evo: `${stats.livraisons_terminees} livraisons terminées` },
     { label: 'CA en cours',           value: Number(stats.ca_en_cours||0).toLocaleString(), unit: 'FCFA', Icon: Clock, color: '#d0a83a', bg: '#fdf3d7', evo: `${stats.ventes_en_attente} en attente` },
@@ -137,20 +147,12 @@ export default function DashboardPage() {
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#0a9e6e', background: '#dcfce7', padding: '3px 9px', borderRadius: 20 }}>En direct</span>
               </div>
               {(() => {
-                const dansZone = positions.filter((p:any) => !isHorsZone(Number(p.latitude), Number(p.longitude)));
-                const mapPoints: LivreurPoint[] = dansZone.map((p:any, i:number) => ({
-                  id: p.id,
-                  nom: `${p.livreur?.prenom||p.prenom||p.name||''} ${p.livreur?.nom||p.nom||''}`.trim() || 'Livreur',
-                  latitude: Number(p.latitude),
-                  longitude: Number(p.longitude),
-                  couleur: ['#2196F3','#0a9e6e','#d0a83a','#e53e3e','#7c3aed'][i % 5],
-                }));
-                return mapPoints.length === 0 ? (
+                return mapPointsDash.length === 0 ? (
                   <div style={{ background: '#f8faff', borderRadius: 10, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dde5f4' }}>
                     <span style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 13, color: '#8a96b0' }}>Aucun livreur à Ouagadougou actuellement</span>
                   </div>
                 ) : (
-                  <LivreurMap points={mapPoints} height={150} />
+                  <LivreurMap points={mapPointsDash} height={150} />
                 );
               })()}
             </div>

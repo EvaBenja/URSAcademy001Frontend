@@ -321,6 +321,10 @@ export default function MesCoursesPage() {
           const estExpedition = l.vente?.est_expedition;
           // Nouvelle assignation non lue par le livreur
           const isNouvelle = isAssigneeParCoord && !l.notif_livreur_lu;
+          // Total à encaisser (calculé hors JSX pour éviter les IIFE)
+          const totalCourse = produits
+            ? produits.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0)
+            : 0;
           return (
             <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
               border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
@@ -390,15 +394,12 @@ export default function MesCoursesPage() {
                       ))}
                     </div>
                     {/* Total à collecter — mis en évidence */}
-                    {produits.length > 0 && (() => {
-                      const total = produits.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0);
-                      return (
-                        <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:8, padding:'8px 12px', marginTop:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                          <span style={{ fontSize:12, color:'rgba(255,255,255,0.8)' }}>💰 Total à encaisser</span>
-                          <span style={{ fontSize:16, fontWeight:700, color:'#d0a83a' }}>{total.toLocaleString('fr-FR')} FCFA</span>
-                        </div>
-                      );
-                    })()}
+                    {totalCourse > 0 && (
+                      <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:8, padding:'8px 12px', marginTop:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <span style={{ fontSize:12, color:'rgba(255,255,255,0.8)' }}>💰 Total à encaisser</span>
+                        <span style={{ fontSize:16, fontWeight:700, color:'#d0a83a' }}>{totalCourse.toLocaleString('fr-FR')} FCFA</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
