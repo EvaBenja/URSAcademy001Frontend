@@ -146,15 +146,13 @@ export default function DashboardPage() {
                 <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: 15, fontWeight: 600, color: '#0d1b3e' }}>Localisation des livreurs</h3>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#0a9e6e', background: '#dcfce7', padding: '3px 9px', borderRadius: 20 }}>En direct</span>
               </div>
-              {(() => {
-                return mapPointsDash.length === 0 ? (
-                  <div style={{ background: '#f8faff', borderRadius: 10, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dde5f4' }}>
-                    <span style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 13, color: '#8a96b0' }}>Aucun livreur à Ouagadougou actuellement</span>
-                  </div>
-                ) : (
-                  <LivreurMap points={mapPointsDash} height={150} />
-                );
-              })()}
+              {mapPointsDash.length === 0 ? (
+                <div style={{ background: '#f8faff', borderRadius: 10, height: 150, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #dde5f4' }}>
+                  <span style={{ fontFamily: 'Cormorant Garamond,serif', fontSize: 13, color: '#8a96b0' }}>Aucun livreur à Ouagadougou actuellement</span>
+                </div>
+              ) : (
+                <LivreurMap points={mapPointsDash} height={150} />
+              )}
             </div>
 
             {/* Demandes récentes */}
