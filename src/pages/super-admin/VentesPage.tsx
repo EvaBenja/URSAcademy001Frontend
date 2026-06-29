@@ -38,7 +38,13 @@ export default function SAVentesPage() {
   };
 
   const doSupprimer = async (id: number) => {
-    if (!window.confirm(`Supprimer définitivement la vente #${id} ? Cette action est irréversible — la livraison liée sera aussi supprimée et le stock restitué.`)) return;
+    const confirm1 = window.confirm(`⚠️ ATTENTION — Supprimer définitivement la vente #${id} ?\n\nCette action est IRRÉVERSIBLE.\nLa livraison liée sera supprimée et le stock restitué.\n\nCliquer OK pour continuer.`);
+    if (!confirm1) return;
+    const mot = window.prompt(`Pour confirmer, tapez exactement : SUPPRIMER`);
+    if (mot?.trim() !== 'SUPPRIMER') {
+      toast.error('Suppression annulée — mot de confirmation incorrect');
+      return;
+    }
     setSaving(true);
     try { await ventesService.supprimer(id); toast.success('Vente supprimée définitivement'); setDetail(null); load(); }
     catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
