@@ -98,6 +98,7 @@ export default function SuiviLivraisonsPage() {
 
       {/* Livraisons */}
       {tab === 'livraisons' && (
+        <>
         <div style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
           <div className="urs-table-desktop" style={{ overflowX:'auto' }}>
             <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
@@ -157,6 +158,7 @@ export default function SuiviLivraisonsPage() {
           </div>
         </div>
         <Pagination page={pageNum} totalPages={totalPages} total={totalLiv} pageSize={PAGE_SIZE} onChange={setPageNum}/>
+        </>
       )}
 
       {/* Classement */}
