@@ -372,33 +372,138 @@ export default function CoordLivraisonsPage() {
         </div>
       )}
 
-      {/* Modal détail */}
+      {/* Modal détail — toutes les infos comme le livreur */}
       {detail && (
         <div onClick={()=>setDetail(null)} style={T.overlay}>
-          <div onClick={e=>e.stopPropagation()} style={T.modalBox}>
+          <div onClick={e=>e.stopPropagation()} style={{ ...T.modalBox, maxWidth:540 }}>
             <div style={T.modalHeader}>
               <h3 style={T.modalTitle}>Course #{detail.id}</h3>
               <button onClick={()=>setDetail(null)} style={T.modalClose}><X size={15}/></button>
             </div>
-            <div style={{ padding:22, display:'flex', flexDirection:'column', gap:10 }}>
-              {[
-                ['Zone',         detail.zone_livraison||'—'],
-                ['Livreur',      detail.livreur ? `${detail.livreur.prenom||detail.livreur.name||''} ${detail.livreur.nom||''}`.trim() : 'Non assigné'],
-                ['Client',       detail.client_nom||'—'],
-                ['Téléphone',    detail.client_telephone||'—'],
-                ['Quartier',     detail.client_quartier||'—'],
-                ['Statut',       STATUT[detail.statut]?.label||detail.statut],
-                ['Date',         detail.date_livraison||'—'],
-                ['Motif rejet',  detail.motif_rejet||'—'],
-              ].map(([l,v])=>(
-                <div key={l} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid #f0f4fb' }}>
-                  <span style={{ fontSize:13, color:'#8a96b0' }}>{l}</span>
-                  <span style={{ fontSize:13, fontWeight:600, color: l==='Motif rejet'&&v!=='—'?'#e53e3e':'#0d1b3e', textAlign:'right', maxWidth:'60%' }}>{v}</span>
+            <div style={{ padding:20, display:'flex', flexDirection:'column', gap:12 }}>
+
+              {/* Statut + urgence */}
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                {(() => { const sc = STATUT[detail.statut]||{label:detail.statut,bg:'#f1f5f9',color:'#475569'}; return (
+                  <span style={{ background:sc.bg, color:sc.color, fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20 }}>{sc.label}</span>
+                );})()}
+                {detail.vente?.est_expedition && <span style={{ background:'#fef9c3', color:'#854d0e', fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:20 }}>📦 Expédition</span>}
+              </div>
+
+              {/* Note urgence */}
+              {detail.vente?.note_urgence && (
+                <div style={{ background:'#fee2e2', border:'1.5px solid #fca5a5', borderRadius:8, padding:'10px 14px', display:'flex', gap:8 }}>
+                  <span style={{ fontSize:16 }}>🚨</span>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, color:'#991b1b', margin:0, textTransform:'uppercase' }}>URGENT</p>
+                    <p style={{ fontSize:13, color:'#7f1d1d', margin:'2px 0 0' }}>{detail.vente.note_urgence}</p>
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {/* Vendeur source */}
+              {detail.vente?.caissiere && (
+                <div style={{ background:'#f5f3ff', borderRadius:10, padding:'12px 14px', border:'1px solid #ddd6fe' }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#5b21b6', textTransform:'uppercase', margin:'0 0 6px', letterSpacing:'.5px' }}>👤 Vendeur source</p>
+                  <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                    {`${detail.vente.caissiere.prenom||detail.vente.caissiere.name||''} ${detail.vente.caissiere.nom||''}`.trim()}
+                  </p>
+                  {detail.vente.caissiere.telephone && (
+                    <a href={`tel:${detail.vente.caissiere.telephone}`} style={{ fontSize:13, color:'#7c3aed', margin:'4px 0 0', display:'block', textDecoration:'none' }}>
+                      📞 {detail.vente.caissiere.telephone}
+                    </a>
+                  )}
+                  {/* Lien Maps vendeur */}
+                  {(detail.vendeur_latitude||detail.vente?.vendeur_latitude) && (
+                    <a href={`https://www.google.com/maps?q=${detail.vendeur_latitude||detail.vente?.vendeur_latitude},${detail.vendeur_longitude||detail.vente?.vendeur_longitude}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#7c3aed', color:'white', borderRadius:7, padding:'5px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                      <MapPin size={11}/> Point de récupération
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Produits */}
+              {detail.vente?.items?.length > 0 && (
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 6px', letterSpacing:'.5px' }}>📦 Produits</p>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {detail.vente.items.map((it:any) => {
+                      const aFaire = Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0));
+                      return (
+                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'8px 12px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                          <div>
+                            <span style={{ fontWeight:600, color:'#1e40af', fontSize:13 }}>{it.produit?.nom} ×{it.quantite}</span>
+                            {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 6px', marginLeft:6, fontSize:10, fontWeight:700 }}>{it.couleur}</span>}
+                          </div>
+                          <span style={{ fontWeight:700, color:'#0d1b3e', fontSize:14 }}>{aFaire.toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      );
+                    })}
+                    {/* Total */}
+                    <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:8, padding:'8px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:13, color:'rgba(255,255,255,0.8)' }}>💰 Total à encaisser</span>
+                      <span style={{ fontSize:16, fontWeight:700, color:'#d0a83a' }}>
+                        {detail.vente.items.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0).toLocaleString('fr-FR')} FCFA
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Client */}
+              {(detail.client_nom||detail.vente?.client_nom) && (
+                <div style={{ background:'#eff6ff', borderRadius:10, padding:'12px 14px', border:'1px solid #bfdbfe' }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 6px', letterSpacing:'.5px' }}>📍 Client</p>
+                  <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{detail.client_nom||detail.vente?.client_nom}</p>
+                  {(detail.client_telephone||detail.vente?.client_telephone) && (
+                    <a href={`tel:${detail.client_telephone||detail.vente?.client_telephone}`}
+                      style={{ fontSize:13, color:'#1465BB', margin:'4px 0 0', display:'block', textDecoration:'none' }}>
+                      📞 {detail.client_telephone||detail.vente?.client_telephone}
+                    </a>
+                  )}
+                  {(detail.client_quartier||detail.vente?.client_quartier) && (
+                    <p style={{ fontSize:12, color:'#4a5578', margin:'3px 0 0' }}>📍 {detail.client_quartier||detail.vente?.client_quartier}</p>
+                  )}
+                  {detail.client_latitude && (
+                    <a href={`https://www.google.com/maps?q=${detail.client_latitude},${detail.client_longitude}`}
+                      target="_blank" rel="noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#1465BB', color:'white', borderRadius:7, padding:'5px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                      <MapPin size={11}/> Naviguer vers le client
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Livreur assigné */}
+              {detail.livreur && (
+                <div style={{ background:'#f0fdf4', borderRadius:10, padding:'12px 14px', border:'1px solid #86efac' }}>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#166534', textTransform:'uppercase', margin:'0 0 6px', letterSpacing:'.5px' }}>🚚 Livreur assigné</p>
+                  <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                    {`${detail.livreur.prenom||detail.livreur.name||''} ${detail.livreur.nom||''}`.trim()}
+                  </p>
+                  {detail.livreur.telephone && (
+                    <a href={`tel:${detail.livreur.telephone}`} style={{ fontSize:13, color:'#0a9e6e', margin:'4px 0 0', display:'block', textDecoration:'none' }}>
+                      📞 {detail.livreur.telephone}
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Motif rejet */}
+              {detail.motif_rejet && (
+                <div style={{ background:'#fff5f5', borderRadius:8, padding:'10px 14px', border:'1px solid #fecaca' }}>
+                  <p style={{ fontSize:12, fontWeight:700, color:'#991b1b', margin:'0 0 3px' }}>⚠ Motif du rejet</p>
+                  <p style={{ fontSize:13, color:'#e53e3e', margin:0 }}>{detail.motif_rejet}</p>
+                </div>
+              )}
+
+              {/* Actions */}
               {(detail.statut === 'rejetee' || detail.statut === 'en_attente') && (
-                <button onClick={()=>{setReassignModal(detail);setDetail(null);}} style={{ marginTop:8, padding:'10px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-                  <Navigation size={14}/> {detail.statut==='rejetee'?'Réassigner ce livreur':'Assigner un livreur'}
+                <button onClick={()=>{setReassignModal(detail);setDetail(null);}}
+                  style={{ padding:'12px', borderRadius:8, background:'linear-gradient(90deg,#1465BB,#003785)', color:'white', border:'none', fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+                  <Navigation size={14}/> {detail.statut==='rejetee'?'Réassigner':'Assigner un livreur'}
                 </button>
               )}
             </div>
