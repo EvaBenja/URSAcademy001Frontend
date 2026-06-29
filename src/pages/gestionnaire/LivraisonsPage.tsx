@@ -86,6 +86,8 @@ export default function GestLivraisonsPage() {
 
   const filtered    = filter === 'tous' ? livraisons : livraisons.filter(l => l.statut === filter);
   const aValider     = livraisons.filter(l => l.statut === 'livree_attente_validation').length;
+  const totalPages   = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated    = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
@@ -309,6 +311,3 @@ const T = {
   modalTitle:{ fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0 } as CSSProperties,
   modalClose:{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
 };
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
-

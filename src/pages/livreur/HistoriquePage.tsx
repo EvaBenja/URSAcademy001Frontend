@@ -43,9 +43,9 @@ export default function LivreurHistoriquePage() {
     ? Math.round((terminees / (terminees + rejetees)) * 100) : 0;
 
   const filteredBase = filter === 'tous' ? courses : courses.filter(c => c.statut === filter);
-
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
+  const filtered     = filteredBase; // alias pour la SearchBar
+  const totalPages   = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated    = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
