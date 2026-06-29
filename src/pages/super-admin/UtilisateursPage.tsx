@@ -6,7 +6,7 @@ import Pagination from '../../components/ui/Pagination';
 
 import SearchBar from '../../components/ui/SearchBar';
 
-type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur';
+type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur' | 'compta';
 
 const ROLE_CONFIG: Record<string, { label:string; color:string; bg:string }> = {
   super_admin:  { label:'Super Admin',  color:'#003785', bg:'#e0f0ff' },

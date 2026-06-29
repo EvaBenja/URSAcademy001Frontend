@@ -10,6 +10,7 @@ const ROLE_HOME: Record<Role, string> = {
   coordinateur: '/coordinateur/livraisons',
   vendeur:      '/vendeur/produits',
   livreur:      '/livreur/livraisons',
+  compta:       '/compta/dashboard',
 };
 
 // ── helpers persistance ────────────────────────────────────────────────
@@ -95,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(t);
       setUser(u);
       toast.success(`Bienvenue, ${u.prenom} !`);
-      window.location.href = ROLE_HOME[u.role];
+      window.location.href = ROLE_HOME[u.role] || '/login';
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Email ou mot de passe incorrect';
       toast.error(msg);

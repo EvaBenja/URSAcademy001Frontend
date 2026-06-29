@@ -1,5 +1,5 @@
 // Type definitions - kept here to avoid circular imports
-export type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur';
+export type Role = 'super_admin' | 'gestionnaire' | 'coordinateur' | 'vendeur' | 'livreur' | 'compta';
 
 export interface User {
   id:        number;

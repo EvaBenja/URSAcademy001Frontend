@@ -128,6 +128,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="dossiers"   element={<LivreurDossiers />} />
           </Route>
 
+          {/* Comptable */}
+          <Route path="/compta" element={<ProtectedRoute roles={['compta','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="dashboard"    element={<SAComptabilite />} />
+            <Route path="comptabilite" element={<SAComptabilite />} />
+            <Route path="historique-ca" element={<SAHistoriqueCA />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

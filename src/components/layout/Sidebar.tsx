@@ -49,6 +49,11 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Mes dossiers',          to:'/livreur/dossiers',              Icon:ClipboardList   },
     { label:'Mes demandes',          to:'/livreur/demandes',             Icon:Bell            },
   ],
+  compta: [
+    { label:'Tableau de bord',      to:'/compta/dashboard',              Icon:LayoutDashboard },
+    { label:'Comptabilité',         to:'/compta/comptabilite',           Icon:BarChart2       },
+    { label:'CA & Historique',      to:'/compta/historique-ca',          Icon:TrendingUp      },
+  ],
 };
 
 interface Props { isOpen?: boolean; onClose?: () => void; }
