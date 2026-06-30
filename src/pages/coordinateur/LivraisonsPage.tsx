@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
 import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw } from 'lucide-react';
-import { livraisonsService, utilisateursService, geoService } from '../../services/api';
+import { livraisonsService, utilisateursService, geoService, storageUrl } from '../../services/api';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
@@ -496,6 +496,16 @@ export default function CoordLivraisonsPage() {
                 <div style={{ background:'#fff5f5', borderRadius:8, padding:'10px 14px', border:'1px solid #fecaca' }}>
                   <p style={{ fontSize:12, fontWeight:700, color:'#991b1b', margin:'0 0 3px' }}>⚠ Motif du rejet</p>
                   <p style={{ fontSize:13, color:'#e53e3e', margin:0 }}>{detail.motif_rejet}</p>
+                </div>
+              )}
+
+              {/* Photo du reçu */}
+              {detail.photo_recu && (
+                <div>
+                  <p style={{ fontSize:11, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 6px', letterSpacing:'.5px' }}>📸 Photo du reçu</p>
+                  <a href={storageUrl(detail.photo_recu)!} target="_blank" rel="noopener noreferrer">
+                    <img src={storageUrl(detail.photo_recu)!} alt="Reçu" style={{ width:'100%', maxHeight:280, objectFit:'contain', borderRadius:10, border:'1.5px solid #dde5f4', background:'#f8faff', cursor:'pointer' }}/>
+                  </a>
                 </div>
               )}
 

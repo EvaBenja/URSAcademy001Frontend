@@ -34,6 +34,8 @@ export default function MesCoursesPage() {
   const [motifCat,    setMotifCat]    = useState(MOTIFS_REJET[0]);
   const [motifLibre,  setMotifLibre]  = useState('');
   const [clotureModal,    setClotureModal]    = useState<any>(null);
+  const [photoRecu,       setPhotoRecu]       = useState<File|null>(null);
+  const [photoPreview,    setPhotoPreview]    = useState<string|null>(null);
   const [produitsStatuts, setProduitsStatuts] = useState<{id:number;statut:'livre'|'non_livre'}[]>([]);
   const [notesCloture,    setNotesCloture]    = useState('');
   const [saving,      setSaving]      = useState(false);
@@ -179,6 +181,8 @@ export default function MesCoursesPage() {
     const statuts = (livraison.produits || []).map((lp: any) => ({ id: lp.id, statut: 'livre' as const }));
     setProduitsStatuts(statuts);
     setNotesCloture('');
+    setPhotoRecu(null);
+    setPhotoPreview(null);
     setClotureModal(livraison);
   };
 
@@ -186,16 +190,32 @@ export default function MesCoursesPage() {
     setProduitsStatuts(prev => prev.map(p => p.id === id ? { ...p, statut } : p));
   };
 
+  const handlePhotoSelect = (file: File | null) => {
+    setPhotoRecu(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview(null);
+    }
+  };
+
   const doCloturer = async () => {
     if (!clotureModal) return;
     setSaving(true);
     try {
-      await livraisonsService.cloturer(clotureModal.id, {
-        produits_statuts: produitsStatuts,
-        notes_cloture: notesCloture,
+      const fd = new FormData();
+      produitsStatuts.forEach((p, i) => {
+        fd.append(`produits_statuts[${i}][id]`, String(p.id));
+        fd.append(`produits_statuts[${i}][statut]`, p.statut);
       });
+      if (notesCloture) fd.append('notes_cloture', notesCloture);
+      if (photoRecu) fd.append('photo_recu', photoRecu);
+
+      await livraisonsService.cloturer(clotureModal.id, fd);
       toast.success('Course clôturée — en attente de validation du gestionnaire');
-      setClotureModal(null); setDetail(null); load(true);
+      setClotureModal(null); setDetail(null); setPhotoRecu(null); setPhotoPreview(null); load(true);
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
@@ -619,6 +639,35 @@ export default function MesCoursesPage() {
                 <textarea value={notesCloture} onChange={e=>setNotesCloture(e.target.value)}
                   placeholder="Ex: Client absent pour 1 article, remis en stock…" rows={3}
                   style={{ width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:14, outline:'none', resize:'none', boxSizing:'border-box' as const }}/>
+              </div>
+
+              {/* Photo du reçu — optionnel, utile surtout pour les expéditions */}
+              <div>
+                <label style={T.lbl}>📸 Photo du reçu (optionnel)</label>
+                {photoPreview ? (
+                  <div style={{ position:'relative', marginTop:6 }}>
+                    <img src={photoPreview} alt="Reçu" style={{ width:'100%', maxHeight:220, objectFit:'contain', borderRadius:10, border:'1.5px solid #dde5f4', background:'#f8faff' }}/>
+                    <button onClick={()=>handlePhotoSelect(null)}
+                      style={{ position:'absolute', top:8, right:8, background:'rgba(229,62,62,0.9)', color:'white', border:'none', borderRadius:8, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                      <X size={16}/>
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display:'flex', gap:8, marginTop:6 }}>
+                    <label style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'16px 10px', borderRadius:10, border:'1.5px dashed #1465BB', background:'#eff6ff', cursor:'pointer' }}>
+                      <span style={{ fontSize:22 }}>📷</span>
+                      <span style={{ fontSize:12, color:'#1465BB', fontWeight:600 }}>Prendre une photo</span>
+                      <input type="file" accept="image/*" capture="environment" style={{ display:'none' }}
+                        onChange={e=>handlePhotoSelect(e.target.files?.[0]||null)}/>
+                    </label>
+                    <label style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:6, padding:'16px 10px', borderRadius:10, border:'1.5px dashed #8a96b0', background:'#f8faff', cursor:'pointer' }}>
+                      <span style={{ fontSize:22 }}>🖼️</span>
+                      <span style={{ fontSize:12, color:'#4a5578', fontWeight:600 }}>Choisir un fichier</span>
+                      <input type="file" accept="image/*" style={{ display:'none' }}
+                        onChange={e=>handlePhotoSelect(e.target.files?.[0]||null)}/>
+                    </label>
+                  </div>
+                )}
               </div>
 
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>

@@ -6,6 +6,14 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 });
 
+// Construit l'URL complète d'un fichier stocké (ex: photo_recu) à partir du chemin relatif
+// VITE_API_URL se termine par /api, on l'enlève pour pointer vers /storage
+export const storageUrl = (path?: string | null): string | null => {
+  if (!path) return null;
+  const base = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
+  return `${base}/storage/${path}`;
+};
+
 api.interceptors.request.use((cfg) => {
   const t = Cookies.get('urs_token') || localStorage.getItem('urs_token');
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
@@ -105,8 +113,8 @@ export const livraisonsService = {
   accepter:     (id: number) => api.post(`/livraisons/${id}/accepter`),
   rejeter:      (id: number, motif: string, motifCategorie?: string) =>
     api.post(`/livraisons/${id}/rejeter`, { motif, motif_categorie: motifCategorie }),
-  cloturer:     (id: number, data: { produits_statuts?: { id: number; statut: string }[]; notes_cloture?: string }) =>
-    api.post(`/livraisons/${id}/cloturer`, data),
+  cloturer:     (id: number, data: { produits_statuts?: { id: number; statut: string }[]; notes_cloture?: string } | FormData) =>
+    api.post(`/livraisons/${id}/cloturer`, data, data instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined),
   validerCloture: (id: number) => api.post(`/livraisons/${id}/valider-cloture`),
   refuserCloture: (id: number, motif: string) => api.post(`/livraisons/${id}/refuser-cloture`, { motif }),
   assigner:     (id: number, livreurId?: number) => api.post(`/livraisons/${id}/assigner`, livreurId ? { livreur_id: livreurId } : {}),
