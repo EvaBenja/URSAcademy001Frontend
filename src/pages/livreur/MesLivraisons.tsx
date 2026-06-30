@@ -312,6 +312,10 @@ export default function MesCoursesPage() {
           const client_nom      = l.client_nom      || l.vente?.client_nom;
           const client_tel      = l.client_telephone || l.vente?.client_telephone;
           const client_quartier = l.client_quartier  || l.vente?.client_quartier;
+          // Coordonnées de localisation client (stockées en vendeur_latitude/longitude car le vendeur
+          // colle le lien de localisation envoyé PAR le client)
+          const client_lat = l.client_latitude || l.vendeur_latitude || l.vente?.vendeur_latitude;
+          const client_lng = l.client_longitude || l.vendeur_longitude || l.vente?.vendeur_longitude;
           // Infos vendeur (source de la vente)
           const vendeur = l.vente?.caissiere;
           const nomVendeur = vendeur ? `${vendeur.prenom||vendeur.name||''} ${vendeur.nom||''}`.trim() : null;
@@ -410,6 +414,14 @@ export default function MesCoursesPage() {
                     {client_nom && <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{client_nom}</p>}
                     {client_tel && <div style={{ marginTop:4 }}><CopyPhone tel={client_tel}/></div>}
                     {client_quartier && <p style={{ fontSize:12, color:'#4a5578', margin:'3px 0 0', display:'flex', alignItems:'center', gap:4 }}><MapPin size={10}/> {client_quartier}</p>}
+                    {client_lat && client_lng && (
+                      <a href={`https://www.google.com/maps?q=${client_lat},${client_lng}`}
+                        target="_blank" rel="noopener noreferrer"
+                        onClick={e=>e.stopPropagation()}
+                        style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:6, background:'#1465BB', color:'white', borderRadius:7, padding:'5px 12px', fontSize:12, fontWeight:700, textDecoration:'none' }}>
+                        <MapPin size={12}/> Suivre la localisation
+                      </a>
+                    )}
                   </div>
                 )}
                 {l.motif_rejet && <p style={{ fontSize:12, color:'#e53e3e', margin:0 }}>⚠ {l.motif_rejet}</p>}
@@ -472,14 +484,6 @@ export default function MesCoursesPage() {
                     {`${detail.vente.caissiere.prenom||detail.vente.caissiere.name||''} ${detail.vente.caissiere.nom||''}`.trim()}
                   </p>
                   {detail.vente.caissiere.telephone && <p style={{ fontSize:13, color:'#7c3aed', margin:'3px 0 0' }}>📞 {detail.vente.caissiere.telephone}</p>}
-                  {/* Bouton GPS point de récupération */}
-                  {(detail.vendeur_latitude || detail.vente?.vendeur_latitude) && (
-                    <a href={`https://www.google.com/maps?q=${detail.vendeur_latitude||detail.vente?.vendeur_latitude},${detail.vendeur_longitude||detail.vente?.vendeur_longitude}`}
-                      target="_blank" rel="noreferrer"
-                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#5b21b6', color:'white', borderRadius:8, padding:'6px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
-                      <MapPin size={12}/> Voir le point de récupération
-                    </a>
-                  )}
                   {/* Produits de la vente */}
                   {detail.vente?.items?.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:8 }}>
@@ -504,12 +508,13 @@ export default function MesCoursesPage() {
                   <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{detail.client_nom||detail.vente?.client_nom}</p>
                   {(detail.client_telephone||detail.vente?.client_telephone) && <p style={{ fontSize:13, color:'#1465BB', margin:'4px 0 0', display:'flex', alignItems:'center', gap:5 }}><Phone size={12}/>{detail.client_telephone||detail.vente?.client_telephone}</p>}
                   {(detail.client_quartier||detail.vente?.client_quartier) && <p style={{ fontSize:13, color:'#4a5578', margin:'2px 0 0', display:'flex', alignItems:'center', gap:5 }}><MapPin size={12}/>{detail.client_quartier||detail.vente?.client_quartier}</p>}
-                  {/* Lien Maps client */}
-                  {(detail.client_latitude) && (
-                    <a href={`https://www.google.com/maps?q=${detail.client_latitude},${detail.client_longitude}`}
-                      target="_blank" rel="noreferrer"
-                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#1465BB', color:'white', borderRadius:8, padding:'6px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
-                      <MapPin size={12}/> Naviguer vers le client
+                  {/* Lien Maps client — les coordonnées sont stockées dans vendeur_latitude/longitude 
+                      (le vendeur colle le lien de localisation ENVOYÉ PAR LE CLIENT) */}
+                  {(detail.client_latitude || detail.vendeur_latitude || detail.vente?.vendeur_latitude) && (
+                    <a href={`https://www.google.com/maps?q=${detail.client_latitude||detail.vendeur_latitude||detail.vente?.vendeur_latitude},${detail.client_longitude||detail.vendeur_longitude||detail.vente?.vendeur_longitude}`}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:8, background:'#1465BB', color:'white', borderRadius:8, padding:'8px 14px', fontSize:13, fontWeight:700, textDecoration:'none' }}>
+                      <MapPin size={14}/> 📍 Suivre la localisation du client
                     </a>
                   )}
                 </div>
