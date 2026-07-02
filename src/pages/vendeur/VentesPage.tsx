@@ -99,7 +99,7 @@ export default function VendeurVentesPage() {
 
   const removeItem = (id: number) => setPanier(prev => prev.filter(i => i.produit_id !== id));
 
-  const totalPanier = panier.reduce((s,i) => s + ((i.prix_vendeur * i.quantite) - i.remise), 0);
+  const totalPanier = panier.reduce((s,i) => s + ((i.prix_vendeur * i.quantite) - (i.remise * i.quantite)), 0);
 
   const openModal = () => {
     setPanier([]); setZone(ZONES[0]); setNotes('');
@@ -116,7 +116,7 @@ export default function VendeurVentesPage() {
     setSaving(true);
     try {
       const payload = {
-        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise, couleur:i.couleur||null })),
+        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise*i.quantite, couleur:i.couleur||null })),
         date_vente:        dateVente,
         zone_livraison:    zone,
         notes,
@@ -650,7 +650,7 @@ export default function VendeurVentesPage() {
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
-                          <label style={{ ...T.lbl, fontSize:10 }}>Remise (FCFA)</label>
+                          <label style={{ ...T.lbl, fontSize:10 }}>Remise / unité (FCFA)</label>
                           <input type="number" min={0} value={item.remise||''}
                             onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'remise', isNaN(v)?0:v); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
@@ -666,7 +666,7 @@ export default function VendeurVentesPage() {
                           style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}
                         />
                       </div>
-                      {/* Récapitulatif calcul par ligne */}
+                      {/* Récapitulatif calcul par ligne — remise × quantité */}
                       <div style={{ background:'#e0f0ff', borderRadius:8, padding:'8px 12px', marginTop:8, fontSize:12 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', color:'#4a5578' }}>
                           <span>{item.prix_vendeur.toLocaleString('fr-FR')} FCFA × {item.quantite}</span>
@@ -674,13 +674,13 @@ export default function VendeurVentesPage() {
                         </div>
                         {item.remise > 0 && (
                           <div style={{ display:'flex', justifyContent:'space-between', color:'#e53e3e', marginTop:2 }}>
-                            <span>Remise</span>
-                            <span>− {item.remise.toLocaleString('fr-FR')} FCFA</span>
+                            <span>Remise ({item.remise.toLocaleString('fr-FR')} × {item.quantite})</span>
+                            <span>− {(item.remise * item.quantite).toLocaleString('fr-FR')} FCFA</span>
                           </div>
                         )}
                         <div style={{ display:'flex', justifyContent:'space-between', color:'#1465BB', fontWeight:700, borderTop:'1px solid #bfdbfe', marginTop:4, paddingTop:4 }}>
                           <span>Sous-total</span>
-                          <span>{Math.max(0,(item.prix_vendeur*item.quantite)-item.remise).toLocaleString('fr-FR')} FCFA</span>
+                          <span>{Math.max(0,(item.prix_vendeur*item.quantite)-(item.remise*item.quantite)).toLocaleString('fr-FR')} FCFA</span>
                         </div>
                       </div>
                     </div>
@@ -694,7 +694,7 @@ export default function VendeurVentesPage() {
                         </div>
                         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
                           <span style={{ fontSize:13, color:'#fca5a5' }}>Total remises</span>
-                          <span style={{ fontSize:13, color:'#fca5a5' }}>− {panier.reduce((s,i)=>s+i.remise,0).toLocaleString('fr-FR')} FCFA</span>
+                          <span style={{ fontSize:13, color:'#fca5a5' }}>− {panier.reduce((s,i)=>s+(i.remise*i.quantite),0).toLocaleString('fr-FR')} FCFA</span>
                         </div>
                         <div style={{ borderTop:'1px solid rgba(255,255,255,0.2)', paddingTop:8 }}/>
                       </>
