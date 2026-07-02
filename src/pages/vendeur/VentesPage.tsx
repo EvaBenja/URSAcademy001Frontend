@@ -112,12 +112,7 @@ export default function VendeurVentesPage() {
 
   const handleSubmit = async () => {
     if (panier.length === 0) { toast.error('Ajoutez au moins un produit'); return; }
-    for (const item of panier) {
-      if (item.prix_vendeur < item.prix_unitaire) {
-        toast.error(`Prix min pour "${item.nom}" : ${item.prix_unitaire.toLocaleString('fr-FR')} FCFA`);
-        return;
-      }
-    }
+    // Plus de validation de prix minimum — le vendeur est libre de fixer son prix
     setSaving(true);
     try {
       const payload = {
@@ -627,13 +622,32 @@ export default function VendeurVentesPage() {
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
-                          <label style={{ ...T.lbl, fontSize:10 }}>Prix vente (FCFA)</label>
-                          <input type="number" min={0} value={item.prix_vendeur||''}
-                            onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'prix_vendeur', isNaN(v)?0:v); }}
-                            style={{ ...T.inp, padding:'6px 8px', fontSize:13, borderColor:item.prix_vendeur>0&&item.prix_vendeur<item.prix_unitaire?'#e53e3e':'#dde5f4' }}/>
-                          {item.prix_vendeur > 0 && item.prix_vendeur < item.prix_unitaire && (
-                            <p style={{ fontSize:10, color:'#e53e3e', margin:'2px 0 0' }}>Min: {item.prix_unitaire.toLocaleString('fr-FR')}</p>
-                          )}
+                          <label style={{ ...T.lbl, fontSize:10 }}>
+                            Prix vente (FCFA)
+                            {item.prix_gros && <span style={{ color:'#7c3aed', marginLeft:4, fontWeight:400 }}>gros: {Number(item.prix_gros).toLocaleString('fr-FR')}</span>}
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            value={item.prix_vendeur === 0 ? '' : item.prix_vendeur}
+                            onChange={e=>{
+                              const raw = e.target.value;
+                              // Permettre le champ vide pendant la saisie
+                              if (raw === '') {
+                                updateItem(item.produit_id,'prix_vendeur', 0);
+                                return;
+                              }
+                              const v = parseFloat(raw);
+                              if (!isNaN(v)) updateItem(item.produit_id,'prix_vendeur', v);
+                            }}
+                            onBlur={e=>{
+                              // Si le champ est vide au blur, remettre le prix unitaire par défaut
+                              if (!e.target.value || parseFloat(e.target.value) <= 0) {
+                                updateItem(item.produit_id,'prix_vendeur', item.prix_unitaire);
+                              }
+                            }}
+                            placeholder={item.prix_unitaire.toLocaleString('fr-FR')}
+                            style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>Remise (FCFA)</label>
