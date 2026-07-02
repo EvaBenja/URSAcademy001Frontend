@@ -18,7 +18,7 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
 };
 const ZONES = QUARTIERS_OUAGA;
 
-interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; }
+interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; prix_total_vendeur?: number; }
 
 export default function VendeurVentesPage() {
   const { user } = useAuth();
@@ -99,7 +99,10 @@ export default function VendeurVentesPage() {
 
   const removeItem = (id: number) => setPanier(prev => prev.filter(i => i.produit_id !== id));
 
-  const totalPanier = panier.reduce((s,i) => s + ((i.prix_vendeur * i.quantite) - (i.remise * i.quantite)), 0);
+  const totalPanier = panier.reduce((s,i) => {
+    const montant = i.prix_total_vendeur !== undefined ? i.prix_total_vendeur : Math.max(0,(i.prix_vendeur * i.quantite) - i.remise);
+    return s + montant;
+  }, 0);
 
   const openModal = () => {
     setPanier([]); setZone(ZONES[0]); setNotes('');
@@ -116,7 +119,17 @@ export default function VendeurVentesPage() {
     setSaving(true);
     try {
       const payload = {
-        items: panier.map(i => ({ produit_id:i.produit_id, quantite:i.quantite, prix_vendeur:i.prix_vendeur, remise:i.remise*i.quantite, couleur:i.couleur||null })),
+        items: panier.map(i => ({
+          produit_id:   i.produit_id,
+          quantite:     i.quantite,
+          prix_vendeur: i.prix_vendeur,
+          remise:       i.remise,
+          couleur:      i.couleur||null,
+          // Le vendeur peut fixer le total à encaisser librement
+          prix_total_vendeur: i.prix_total_vendeur !== undefined
+            ? i.prix_total_vendeur
+            : Math.max(0,(i.prix_vendeur * i.quantite) - i.remise),
+        })),
         date_vente:        dateVente,
         zone_livraison:    zone,
         notes,
@@ -623,39 +636,52 @@ export default function VendeurVentesPage() {
                         </div>
                         <div>
                           <label style={{ ...T.lbl, fontSize:10 }}>
-                            Prix vente (FCFA)
+                            Prix unitaire (FCFA)
                             {item.prix_gros && <span style={{ color:'#7c3aed', marginLeft:4, fontWeight:400 }}>gros: {Number(item.prix_gros).toLocaleString('fr-FR')}</span>}
                           </label>
                           <input
-                            type="number"
-                            min={0}
+                            type="number" min={0}
                             value={item.prix_vendeur === 0 ? '' : item.prix_vendeur}
                             onChange={e=>{
                               const raw = e.target.value;
-                              // Permettre le champ vide pendant la saisie
-                              if (raw === '') {
-                                updateItem(item.produit_id,'prix_vendeur', 0);
-                                return;
-                              }
+                              if (raw === '') { updateItem(item.produit_id,'prix_vendeur', 0); return; }
                               const v = parseFloat(raw);
                               if (!isNaN(v)) updateItem(item.produit_id,'prix_vendeur', v);
                             }}
-                            onBlur={e=>{
-                              // Si le champ est vide au blur, remettre le prix unitaire par défaut
-                              if (!e.target.value || parseFloat(e.target.value) <= 0) {
-                                updateItem(item.produit_id,'prix_vendeur', item.prix_unitaire);
-                              }
-                            }}
+                            onBlur={e=>{ if(!e.target.value||parseFloat(e.target.value)<=0) updateItem(item.produit_id,'prix_vendeur', item.prix_unitaire); }}
                             placeholder={item.prix_unitaire.toLocaleString('fr-FR')}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
-                          <label style={{ ...T.lbl, fontSize:10 }}>Remise / unité (FCFA)</label>
+                          <label style={{ ...T.lbl, fontSize:10 }}>Remise (FCFA)</label>
                           <input type="number" min={0} value={item.remise||''}
                             onChange={e=>{ const v=parseFloat(e.target.value); updateItem(item.produit_id,'remise', isNaN(v)?0:v); }}
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                       </div>
+
+                      {/* Prix total à encaisser — libre, saisi par le vendeur */}
+                      <div style={{ marginTop:8, background:'#f0fdf4', borderRadius:8, padding:'8px 12px', border:'1.5px solid #86efac' }}>
+                        <label style={{ ...T.lbl, fontSize:10, color:'#166534' }}>
+                          💰 Prix total à encaisser par le livreur (FCFA)
+                          <span style={{ color:'#4a5578', fontWeight:400, marginLeft:4 }}>— calculé auto ou modifiable</span>
+                        </label>
+                        <input
+                          type="number" min={0}
+                          value={item.prix_total_vendeur === undefined
+                            ? Math.max(0, item.prix_vendeur * item.quantite - item.remise)
+                            : (item.prix_total_vendeur === 0 ? '' : item.prix_total_vendeur)}
+                          onChange={e=>{
+                            const raw = e.target.value;
+                            const v = raw === '' ? 0 : parseFloat(raw);
+                            setPanier(prev => prev.map(i => i.produit_id === item.produit_id ? {...i, prix_total_vendeur: isNaN(v)?0:v} : i));
+                          }}
+                          style={{ ...T.inp, padding:'7px 10px', fontSize:14, fontWeight:700, borderColor:'#0a9e6e', marginTop:4 }}/>
+                        <p style={{ fontSize:10, color:'#166534', margin:'3px 0 0' }}>
+                          Ce montant sera affiché chez le livreur et coordinateur comme "À encaisser"
+                        </p>
+                      </div>
+
                       {/* Couleur / description visuelle — optionnel */}
                       <div style={{ marginTop:6 }}>
                         <label style={{ ...T.lbl, fontSize:10 }}>Couleur / description (optionnel)</label>
@@ -666,21 +692,22 @@ export default function VendeurVentesPage() {
                           style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}
                         />
                       </div>
-                      {/* Récapitulatif calcul par ligne — remise × quantité */}
+
+                      {/* Récapitulatif */}
                       <div style={{ background:'#e0f0ff', borderRadius:8, padding:'8px 12px', marginTop:8, fontSize:12 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', color:'#4a5578' }}>
-                          <span>{item.prix_vendeur.toLocaleString('fr-FR')} FCFA × {item.quantite}</span>
+                          <span>{item.prix_vendeur.toLocaleString('fr-FR')} × {item.quantite}</span>
                           <span>{(item.prix_vendeur * item.quantite).toLocaleString('fr-FR')} FCFA</span>
                         </div>
                         {item.remise > 0 && (
                           <div style={{ display:'flex', justifyContent:'space-between', color:'#e53e3e', marginTop:2 }}>
-                            <span>Remise ({item.remise.toLocaleString('fr-FR')} × {item.quantite})</span>
-                            <span>− {(item.remise * item.quantite).toLocaleString('fr-FR')} FCFA</span>
+                            <span>Remise</span>
+                            <span>− {item.remise.toLocaleString('fr-FR')} FCFA</span>
                           </div>
                         )}
-                        <div style={{ display:'flex', justifyContent:'space-between', color:'#1465BB', fontWeight:700, borderTop:'1px solid #bfdbfe', marginTop:4, paddingTop:4 }}>
-                          <span>Sous-total</span>
-                          <span>{Math.max(0,(item.prix_vendeur*item.quantite)-(item.remise*item.quantite)).toLocaleString('fr-FR')} FCFA</span>
+                        <div style={{ display:'flex', justifyContent:'space-between', color:'#0a9e6e', fontWeight:700, borderTop:'1px solid #bfdbfe', marginTop:4, paddingTop:4 }}>
+                          <span>💰 À encaisser</span>
+                          <span>{(item.prix_total_vendeur !== undefined ? item.prix_total_vendeur : Math.max(0,(item.prix_vendeur*item.quantite)-item.remise)).toLocaleString('fr-FR')} FCFA</span>
                         </div>
                       </div>
                     </div>
