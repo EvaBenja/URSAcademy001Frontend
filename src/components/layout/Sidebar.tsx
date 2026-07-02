@@ -14,6 +14,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Produits',             to:'/dashboard/produits',            Icon:Package         },
     { label:'Ventes',               to:'/dashboard/ventes',              Icon:TrendingUp      },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
+    { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
     { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
     { label:'CA & Historique',      to:'/dashboard/historique-ca',       Icon:TrendingUp      },
     { label:'Comptabilité',         to:'/dashboard/comptabilite',        Icon:BarChart2       },

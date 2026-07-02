@@ -23,7 +23,8 @@ export default function CoordLivraisonsPage() {
   const [loading,      setLoading]      = useState(true);
   const [detail,       setDetail]       = useState<any>(null);
   const [reassignModal,setReassignModal]= useState<any>(null);
-  const [filter,       setFilter]       = useState('tous');
+  const [filter,       setFilter]       = useState('actives');
+  const [voirArchives, setVoirArchives] = useState(false);
   const [saving,       setSaving]       = useState(false);
 
   useEffect(() => {
@@ -100,7 +101,19 @@ export default function CoordLivraisonsPage() {
   const [pageNum, setPageNum] = useState(1);
   const PAGE_SIZE = 15;
   const rejetees   = livraisons.filter(l => l.statut === 'rejetee');
-  const filteredBase = filter === 'tous' ? livraisons : livraisons.filter((l:any) => l.statut === filter);
+
+  // Par défaut : livraisons actives seulement (exclut terminée)
+  // Archives : terminée uniquement
+  const STATUTS_ACTIFS = ['en_attente','validee','en_cours','rejetee','livree_attente_validation'];
+
+  const livraisonsAffichees = voirArchives
+    ? livraisons.filter(l => l.statut === 'terminee')
+    : livraisons.filter(l => STATUTS_ACTIFS.includes(l.statut));
+
+  const filteredBase = filter === 'actives' || filter === 'tous'
+    ? livraisonsAffichees
+    : livraisonsAffichees.filter((l:any) => l.statut === filter);
+
   const filtered = filteredBase.filter((l:any) => {
     if (!queryC.trim()) return true;
     const q = queryC.toLowerCase();
@@ -121,11 +134,17 @@ export default function CoordLivraisonsPage() {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <h1 style={T.h1}>Coordination des Livraisons</h1>
-          <p style={T.sub}>Assignez les livreurs — GPS auto ou choix manuel</p>
+          <p style={T.sub}>{voirArchives ? 'Historique — livraisons terminées' : 'Livraisons actives — assignez et suivez'}</p>
         </div>
-        <button onClick={()=>load()} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:12, color:'#4a5578' }}>
-          <RefreshCw size={13}/>
-        </button>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={()=>{setVoirArchives(!voirArchives); setFilter('actives'); setPageNum(1);}}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:8, border:`1.5px solid ${voirArchives?'#7c3aed':'#dde5f4'}`, background:voirArchives?'#f5f3ff':'white', cursor:'pointer', fontSize:12, color:voirArchives?'#7c3aed':'#4a5578', fontWeight:voirArchives?700:400 }}>
+            {voirArchives ? '← Livraisons actives' : '📦 Voir archives'}
+          </button>
+          <button onClick={()=>load()} style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 12px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:12, color:'#4a5578' }}>
+            <RefreshCw size={13}/>
+          </button>
+        </div>
       </div>
 
       {/* Alerte courses rejetées */}
@@ -166,16 +185,18 @@ export default function CoordLivraisonsPage() {
         ))}
       </div>
 
-      {/* Filtres */}
-      <div className="tabs-scroll" style={{ display:'flex', gap:8, marginBottom:14 }}>
-        {(['tous','en_attente','validee','en_cours','rejetee','terminee']).map(s => (
-          <button key={s} onClick={()=>setFilter(s)}
-            style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${filter===s?'#1465BB':'#dde5f4'}`, background:filter===s?'#1465BB':'white', color:filter===s?'white':'#4a5578', fontSize:12, cursor:'pointer', whiteSpace:'nowrap' }}>
-            {s==='tous'?'Toutes':STATUT[s]?.label||s}
-            {s==='rejetee' && rejetees.length > 0 && <span style={{ marginLeft:5, background:'#e53e3e', color:'white', borderRadius:10, padding:'0 6px', fontSize:10, fontWeight:700 }}>{rejetees.length}</span>}
-          </button>
-        ))}
-      </div>
+      {/* Filtres — seulement en mode actif */}
+      {!voirArchives && (
+        <div className="tabs-scroll" style={{ display:'flex', gap:8, marginBottom:14 }}>
+          {(['actives','en_attente','validee','en_cours','rejetee','livree_attente_validation']).map(s => (
+            <button key={s} onClick={()=>{setFilter(s);setPageNum(1);}}
+              style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${filter===s?'#1465BB':'#dde5f4'}`, background:filter===s?'#1465BB':'white', color:filter===s?'white':'#4a5578', fontSize:12, cursor:'pointer', whiteSpace:'nowrap' }}>
+              {s==='actives'?'Toutes actives':STATUT[s]?.label||s}
+              {s==='rejetee' && rejetees.length > 0 && <span style={{ marginLeft:5, background:'#e53e3e', color:'white', borderRadius:10, padding:'0 6px', fontSize:10, fontWeight:700 }}>{rejetees.length}</span>}
+            </button>
+          ))}
+        </div>
+      )}
 
       <SearchBar value={queryC} onChange={setQueryC} placeholder="Rechercher par zone, livreur, #id…" count={filteredBase.length} filtered={filtered.length} style={{ marginBottom:12 }}/>
 
