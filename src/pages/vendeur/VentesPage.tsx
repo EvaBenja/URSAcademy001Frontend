@@ -635,12 +635,8 @@ export default function VendeurVentesPage() {
                             style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}/>
                         </div>
                         <div>
-                          <label style={{ ...T.lbl, fontSize:10 }}>
-                            Prix unitaire (FCFA)
-                            {item.prix_gros && <span style={{ color:'#7c3aed', marginLeft:4, fontWeight:400 }}>gros: {Number(item.prix_gros).toLocaleString('fr-FR')}</span>}
-                          </label>
-                          <input
-                            type="number" min={0}
+                          <label style={{ ...T.lbl, fontSize:10 }}>Prix unitaire</label>
+                          <input type="number" min={0}
                             value={item.prix_vendeur === 0 ? '' : item.prix_vendeur}
                             onChange={e=>{
                               const raw = e.target.value;
@@ -660,14 +656,10 @@ export default function VendeurVentesPage() {
                         </div>
                       </div>
 
-                      {/* Prix total à encaisser — libre, saisi par le vendeur */}
-                      <div style={{ marginTop:8, background:'#f0fdf4', borderRadius:8, padding:'8px 12px', border:'1.5px solid #86efac' }}>
-                        <label style={{ ...T.lbl, fontSize:10, color:'#166534' }}>
-                          💰 Prix total à encaisser par le livreur (FCFA)
-                          <span style={{ color:'#4a5578', fontWeight:400, marginLeft:4 }}>— calculé auto ou modifiable</span>
-                        </label>
-                        <input
-                          type="number" min={0}
+                      {/* Prix total à encaisser */}
+                      <div style={{ marginTop:6, display:'flex', alignItems:'center', gap:8 }}>
+                        <label style={{ ...T.lbl, fontSize:10, whiteSpace:'nowrap', margin:0 }}>💰 Total client (FCFA)</label>
+                        <input type="number" min={0}
                           value={item.prix_total_vendeur === undefined
                             ? Math.max(0, item.prix_vendeur * item.quantite - item.remise)
                             : (item.prix_total_vendeur === 0 ? '' : item.prix_total_vendeur)}
@@ -676,19 +668,16 @@ export default function VendeurVentesPage() {
                             const v = raw === '' ? 0 : parseFloat(raw);
                             setPanier(prev => prev.map(i => i.produit_id === item.produit_id ? {...i, prix_total_vendeur: isNaN(v)?0:v} : i));
                           }}
-                          style={{ ...T.inp, padding:'7px 10px', fontSize:14, fontWeight:700, borderColor:'#0a9e6e', marginTop:4 }}/>
-                        <p style={{ fontSize:10, color:'#166534', margin:'3px 0 0' }}>
-                          Ce montant sera affiché chez le livreur et coordinateur comme "À encaisser"
-                        </p>
+                          style={{ ...T.inp, padding:'6px 10px', fontSize:14, fontWeight:700, borderColor:'#0a9e6e', flex:1 }}/>
                       </div>
 
-                      {/* Couleur / description visuelle — optionnel */}
+                      {/* Couleur */}
                       <div style={{ marginTop:6 }}>
-                        <label style={{ ...T.lbl, fontSize:10 }}>Couleur / description (optionnel)</label>
+                        <label style={{ ...T.lbl, fontSize:10 }}>Couleur (optionnel)</label>
                         <input
                           value={item.couleur}
                           onChange={e => setPanier(prev => prev.map(i => i.produit_id === item.produit_id ? {...i, couleur: e.target.value} : i))}
-                          placeholder="Ex: Rouge, Taille L, Bleu marine..."
+                          placeholder="Ex: Rouge, Taille L…"
                           style={{ ...T.inp, padding:'6px 8px', fontSize:13 }}
                         />
                       </div>
@@ -748,70 +737,50 @@ export default function VendeurVentesPage() {
 
               {/* Note d'urgence */}
               <div>
-                <label style={T.lbl}>
-                  <AlertTriangle size={12} style={{marginRight:4, verticalAlign:'middle', color:'#e53e3e'}}/>
-                  Note d'urgence (optionnel)
-                </label>
+                <label style={T.lbl}>🚨 Urgence</label>
                 <input value={noteUrgence} onChange={e=>setNoteUrgence(e.target.value)}
-                  placeholder="Ex: Livraison urgente avant 17h, client diabétique..."
+                  placeholder="Ex: Avant 17h, fragile…"
                   style={{ ...T.inp, borderColor: noteUrgence ? '#e53e3e' : undefined }}/>
-                {noteUrgence && <p style={{ fontSize:11, color:'#e53e3e', margin:'3px 0 0' }}>⚠ Sera affiché en rouge chez le livreur</p>}
               </div>
 
               {/* Expédition */}
-              <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', padding:'10px 14px', borderRadius:10, background: estExpedition?'#fef9c3':'#f8faff', border:`1.5px solid ${estExpedition?'#d0a83a':'#dde5f4'}` }}>
+              <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', padding:'8px 12px', borderRadius:8, background: estExpedition?'#fef9c3':'#f8faff', border:`1.5px solid ${estExpedition?'#d0a83a':'#dde5f4'}` }}>
                 <input type="checkbox" checked={estExpedition} onChange={e=>setEstExpedition(e.target.checked)}
                   style={{ width:18, height:18, cursor:'pointer', accentColor:'#d0a83a' }}/>
-                <div>
-                  <span style={{ fontSize:13, fontWeight:600, color: estExpedition?'#854d0e':'#0d1b3e' }}>📦 C'est une expédition</span>
-                  <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>La livraison sort de la zone normale de Ouagadougou</p>
-                </div>
+                <span style={{ fontSize:13, fontWeight:600, color: estExpedition?'#854d0e':'#0d1b3e' }}>📦 Expédition</span>
               </label>
 
               <div>
-                <label style={T.lbl}>Notes (optionnel)</label>
-                <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Ex: Livraison urgente…" style={T.inp}/>
+                <label style={T.lbl}>Notes</label>
+                <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Notes…" style={T.inp}/>
               </div>
 
-              {/* Localisation client — le client partage son lien et le vendeur le colle ici */}
-              <div style={{ background:'#f0f4ff', borderRadius:10, padding:'12px 14px', border:'1px solid #dde5f4' }}>
-                <p style={{ fontSize:12, fontWeight:600, color:'#4a5578', margin:'0 0 8px', textTransform:'uppercase', letterSpacing:'.5px' }}>
-                  📍 Localisation client (optionnel)
-                </p>
+              {/* Localisation client */}
+              <div>
+                <label style={T.lbl}>📍 Lien localisation client</label>
                 {vendeurPos ? (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
-                    <div>
-                      <span style={{ fontSize:12, color:'#0a9e6e', fontWeight:600 }}>
-                        ✓ Position extraite ({vendeurPos.lat.toFixed(5)}, {vendeurPos.lng.toFixed(5)})
-                      </span>
-                      <a href={`https://www.google.com/maps?q=${vendeurPos.lat},${vendeurPos.lng}`} target="_blank" rel="noreferrer"
-                        style={{ display:'block', fontSize:11, color:'#1465BB', marginTop:2 }}>
-                        Vérifier sur Maps →
-                      </a>
-                    </div>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8, padding:'8px 12px', background:'#f0fdf4', borderRadius:8, border:'1px solid #86efac' }}>
+                    <a href={`https://www.google.com/maps?q=${vendeurPos.lat},${vendeurPos.lng}`} target="_blank" rel="noreferrer"
+                      style={{ fontSize:12, color:'#0a9e6e', fontWeight:600, textDecoration:'none' }}>
+                      ✓ Position extraite — Vérifier →
+                    </a>
                     <button type="button" onClick={()=>{setVendeurPos(null); setLienLocalisation('');}}
                       style={{ fontSize:11, color:'#e53e3e', background:'#fee2e2', border:'none', borderRadius:6, padding:'3px 10px', cursor:'pointer' }}>
-                      Retirer
+                      ✕
                     </button>
                   </div>
                 ) : (
-                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                    <input
-                      value={lienLocalisation}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setLienLocalisation(val);
-                        // Extraction automatique des coordonnées depuis différents formats de liens
-                        const coords = extraireCoordonnees(val);
-                        if (coords) setVendeurPos(coords);
-                      }}
-                      placeholder="Coller le lien de localisation du client (Google Maps, WhatsApp…)"
-                      style={{ ...T.inp, fontSize:12 }}
-                    />
-                    <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>
-                      Le client envoie sa position via WhatsApp ou Google Maps → copiez le lien ici → les coordonnées sont extraites automatiquement pour guider le livreur.
-                    </p>
-                  </div>
+                  <input
+                    value={lienLocalisation}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setLienLocalisation(val);
+                      const coords = extraireCoordonnees(val);
+                      if (coords) setVendeurPos(coords);
+                    }}
+                    placeholder="Coller lien Google Maps / WhatsApp…"
+                    style={T.inp}
+                  />
                 )}
               </div>
 
