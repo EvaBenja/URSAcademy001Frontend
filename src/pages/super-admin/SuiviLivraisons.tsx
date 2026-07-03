@@ -20,10 +20,6 @@ export default function SuiviLivraisonsPage() {
   const [livraisons,  setLivraisons]  = useState<any[]>([]);
   const [classement,  setClassement]  = useState<any[]>([]);
   const [positions,   setPositions]   = useState<any[]>([]);
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
-  const toggleCollapsed = (id: number) => setCollapsed(prev => {
-    const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s;
-  });
   const [loading,     setLoading]     = useState(true);
   const [tab,         setTab]         = useState<'carte'|'classement'|'livraisons'>('livraisons');
   const [pageNum, setPageNum] = useState(1);
@@ -136,24 +132,8 @@ export default function SuiviLivraisonsPage() {
               <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
             ) : paginatedLiv.map((l:any) => {
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
-              const isReplie = ['terminee'].includes(l.statut);
-              const isOpen = !isReplie || collapsed.has(l.id);
               return (
-                <div key={l.id} onClick={!isOpen?()=>toggleCollapsed(l.id):undefined}
-                  style={{ borderBottom:'1px solid #f0f4fb', cursor:!isOpen?'pointer':undefined }}>
-                {!isOpen ? (
-                  <div style={{ padding:'10px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
-                      <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison||'—'}</span>
-                    </div>
-                    <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                      <span style={{ background:sc.bg, color:sc.color, fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:20 }}>{sc.label}</span>
-                      <span style={{ color:'#8a96b0' }}>▼</span>
-                    </div>
-                  </div>
-                ) : (
-                <div style={{ padding:'14px 16px' }}>
+                <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
                     <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
                     <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
@@ -172,8 +152,6 @@ export default function SuiviLivraisonsPage() {
                       <span style={{ color:'#4a5578' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
                   </div>
-                </div>
-                )}
                 </div>
               );
             })}

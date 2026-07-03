@@ -27,10 +27,6 @@ export default function CoordLivraisonsPage() {
   const [reassignModal,setReassignModal]= useState<any>(null);
   const [filter,       setFilter]       = useState('actives');
   const [voirArchives, setVoirArchives] = useState(false);
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
-  const toggleCollapsed = (id: number) => setCollapsed(prev => {
-    const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s;
-  });
   const [saving,       setSaving]       = useState(false);
 
   useEffect(() => {
@@ -289,25 +285,8 @@ export default function CoordLivraisonsPage() {
         ) : paginated.map((l:any) => {
           const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
           const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
-          const isReplie = ['terminee', 'livree_attente_validation'].includes(l.statut);
-          const isOpen = !isReplie || collapsed.has(l.id);
           return (
-            <div key={l.id} onClick={!isOpen?()=>toggleCollapsed(l.id):undefined}
-              style={{ borderBottom:'1px solid #f0f4fb', background:l.statut==='rejetee'?'#fff5f5':'white', cursor:!isOpen?'pointer':undefined }}>
-              {!isOpen ? (
-                <div style={{ padding:'10px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
-                    <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison||'—'}</span>
-                    {nomL && <span style={{ fontSize:12, color:'#0a9e6e' }}>🚚 {nomL}</span>}
-                  </div>
-                  <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                    <span style={{ background:sc.bg, color:sc.color, fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:20 }}>{sc.label}</span>
-                    <span style={{ color:'#8a96b0', fontSize:12 }}>▼</span>
-                  </div>
-                </div>
-              ) : (
-              <div style={{ padding:'14px 16px' }}>
+            <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb', background:l.statut==='rejetee'?'#fff5f5':'white' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
                 <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
                 <div style={{ display:'flex', gap:5 }}>
@@ -341,9 +320,6 @@ export default function CoordLivraisonsPage() {
                 </div>
               </div>
             </div>
-              </div>
-            )}
-          </div>
           );
         })}
       </div>

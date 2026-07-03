@@ -24,10 +24,6 @@ export default function GestLivraisonsPage() {
   const [detail,      setDetail]      = useState<any>(null);
   const [refusModal,  setRefusModal]  = useState<any>(null);
   const [motif,       setMotif]       = useState('');
-  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
-  const toggleCollapsed = (id: number) => setCollapsed(prev => {
-    const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s;
-  });
   const [saving,      setSaving]      = useState(false);
   const [filter,      setFilter]      = useState('livree_attente_validation');
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -175,25 +171,8 @@ export default function GestLivraisonsPage() {
           const client_nom      = l.client_nom      || l.vente?.client_nom;
           const client_tel      = l.client_telephone || l.vente?.client_telephone;
           const client_quartier = l.client_quartier  || l.vente?.client_quartier;
-          const isReplie = ['terminee'].includes(l.statut);
-          const isOpen = !isReplie || collapsed.has(l.id);
           return (
-            <div key={l.id} onClick={!isOpen?()=>toggleCollapsed(l.id):undefined}
-              style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, cursor:!isOpen?'pointer':undefined, boxShadow:'0 2px 8px rgba(0,55,133,0.04)' }}>
-              {!isOpen ? (
-                <div style={{ padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
-                    {l.livreur && <span style={{ fontSize:12, color:'#0a9e6e' }}>🚚 {l.livreur.prenom||l.livreur.name}</span>}
-                    <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison||'—'}</span>
-                  </div>
-                  <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                    <span style={{ background:sc.bg, color:sc.color, fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:20 }}>{sc.label}</span>
-                    <span style={{ color:'#8a96b0' }}>▼</span>
-                  </div>
-                </div>
-              ) : (
-              <div style={{ padding:18 }}>
+            <div key={l.id} style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, padding:18, boxShadow:l.statut==='livree_attente_validation'?'0 4px 14px rgba(124,58,237,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
                   <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
@@ -242,8 +221,6 @@ export default function GestLivraisonsPage() {
                 )}
               </div>
             </div>
-            )}
-          </div>
           );
         })}
       </div>
