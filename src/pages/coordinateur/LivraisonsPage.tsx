@@ -4,6 +4,8 @@ import { livraisonsService, utilisateursService, geoService, storageUrl } from '
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import DateSeparator, { grouperParDate } from '../../components/ui/DateSeparator';
+
 
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -122,6 +124,7 @@ export default function CoordLivraisonsPage() {
   });
 
   // Livreur GPS actif = a une position récente
+  const groupes_LIV = grouperParDate(paginated, 'date_livraison');
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated  = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
@@ -211,7 +214,9 @@ export default function CoordLivraisonsPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
-            ) : paginated.map((l:any) => {
+            ) : paginated.map((l:any, idx:number) => {
+          const prevDate = idx > 0 ? paginated[idx-1].date_livraison : null;
+          const showDate = (l.date_livraison||'').slice(0,10) !== (prevDate||'').slice(0,10);
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
               const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
               return (
@@ -265,7 +270,9 @@ export default function CoordLivraisonsPage() {
       <div className="urs-cards-mobile" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4' }}>
         {filtered.length === 0 ? (
           <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
-        ) : paginated.map((l:any) => {
+        ) : paginated.map((l:any, idx:number) => {
+          const prevDate = idx > 0 ? paginated[idx-1].date_livraison : null;
+          const showDate = (l.date_livraison||'').slice(0,10) !== (prevDate||'').slice(0,10);
           const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
           const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
           return (

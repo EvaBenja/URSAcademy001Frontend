@@ -6,6 +6,8 @@ import api from '../../services/api';
 import CopyPhone from '../../components/ui/CopyPhone';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import DateSeparator, { grouperParDate } from '../../components/ui/DateSeparator';
+
 
 import SearchBar from '../../components/ui/SearchBar';
 import ZoneSelect from '../../components/ui/ZoneSelect';
@@ -202,6 +204,7 @@ export default function VendeurVentesPage() {
            (v.items||[]).some((it:any) => (it.produit?.nom||'').toLowerCase().includes(q)) ||
            String(v.id).includes(q);
   });
+  const groupes_VEN = grouperParDate(ventesPage, 'date_vente');
   const totalPages = Math.ceil(ventesFiltered.length / PAGE_SIZE);
   const ventesPage  = ventesFiltered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
@@ -382,7 +385,9 @@ export default function VendeurVentesPage() {
                 <tr><td colSpan={7} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
-              ) : ventesPage.map((v:any) => {
+              ) : ventesPage.map((v:any, idx:number) => {
+            const prevDate = idx > 0 ? ventesPage[idx-1].date_vente : null;
+            const showDate = (v.date_vente||'').slice(0,10) !== (prevDate||'').slice(0,10);
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 return (
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
@@ -457,7 +462,9 @@ export default function VendeurVentesPage() {
             <p style={{ padding:'40px 18px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
               Cliquez sur "Nouvelle vente" pour commencer
             </p>
-          ) : ventesPage.map((v:any) => {
+          ) : ventesPage.map((v:any, idx:number) => {
+            const prevDate = idx > 0 ? ventesPage[idx-1].date_vente : null;
+            const showDate = (v.date_vente||'').slice(0,10) !== (prevDate||'').slice(0,10);
             const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
             return (
               <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
@@ -542,6 +549,8 @@ export default function VendeurVentesPage() {
                 </div>
               </div>
             );
+                  </div>
+                </div>
           })}
         </div>
       </div>
