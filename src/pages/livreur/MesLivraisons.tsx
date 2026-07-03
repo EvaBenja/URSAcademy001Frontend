@@ -4,6 +4,7 @@ import { livraisonsService, geoService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import CopyPhone from '../../components/ui/CopyPhone';
+import AccordionCard from '../../components/ui/AccordionCard';
 import toast from 'react-hot-toast';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -38,6 +39,8 @@ export default function MesCoursesPage() {
   const [photoPreview,    setPhotoPreview]    = useState<string|null>(null);
   const [produitsStatuts, setProduitsStatuts] = useState<{id:number;statut:'livre'|'non_livre'}[]>([]);
   const [notesCloture,    setNotesCloture]    = useState('');
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const toggleC = (id: number) => setCollapsed(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const [saving,      setSaving]      = useState(false);
   const [onglet,      setOnglet]      = useState<'dispo'|'miennes'>('dispo');
   const [gpsActif,    setGpsActif]    = useState(false);
@@ -349,7 +352,14 @@ export default function MesCoursesPage() {
           const totalCourse = produits
             ? produits.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0)
             : 0;
+          const isCollapsed3 = ['terminee'].includes(l.statut) && !collapsed.has(l.id);
           return (
+            <AccordionCard
+              key={l.id} id={l.id}
+              collapsed={isCollapsed3} onToggle={()=>toggleC(l.id)}
+              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span><span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span>{nomVendeur&&<span style={{fontSize:12,color:'#7c3aed'}}>{nomVendeur}</span>}</>}
+              summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
+            >
             <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
               border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
               padding:18,
@@ -484,6 +494,7 @@ export default function MesCoursesPage() {
                 )}
               </div>
             </div>
+            </AccordionCard>
           );
         })}
       </div>

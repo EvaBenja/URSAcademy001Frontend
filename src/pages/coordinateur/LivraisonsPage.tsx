@@ -5,8 +5,7 @@ import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
 import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
-
-
+import AccordionCard from '../../components/ui/AccordionCard';
 import SearchBar from '../../components/ui/SearchBar';
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -28,6 +27,8 @@ export default function CoordLivraisonsPage() {
   const [filter,       setFilter]       = useState('actives');
   const [voirArchives, setVoirArchives] = useState(false);
   const [saving,       setSaving]       = useState(false);
+  const [collapsed,    setCollapsed]    = useState<Set<number>>(new Set());
+  const toggleC = (id: number) => setCollapsed(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
 
   useEffect(() => {
     load();
@@ -285,8 +286,22 @@ export default function CoordLivraisonsPage() {
         ) : paginated.map((l:any) => {
           const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
           const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
+          const isCollapsed = ['terminee','livree_attente_validation'].includes(l.statut) && !collapsed.has(l.id);
           return (
-            <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb', background:l.statut==='rejetee'?'#fff5f5':'white' }}>
+            <AccordionCard
+              key={l.id}
+              id={l.id}
+              collapsed={isCollapsed}
+              onToggle={()=>toggleC(l.id)}
+              summaryLeft={<>
+                <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
+                <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison||'—'}</span>
+                {nomL && <span style={{ fontSize:12, color:'#0a9e6e' }}>🚚 {nomL}</span>}
+              </>}
+              summaryRight={<span style={{ background:sc.bg, color:sc.color, fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:20 }}>{sc.label}</span>}
+              style={{ background:l.statut==='rejetee'?'#fff5f5':'white' }}
+            >
+              <div style={{ padding:'14px 16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
                 <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
                 <div style={{ display:'flex', gap:5 }}>
@@ -319,7 +334,8 @@ export default function CoordLivraisonsPage() {
                   <span style={{ color:'#4a5578' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</span>
                 </div>
               </div>
-            </div>
+              </div>
+            </AccordionCard>
           );
         })}
       </div>

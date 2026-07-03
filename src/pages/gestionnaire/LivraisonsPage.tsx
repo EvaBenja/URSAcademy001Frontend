@@ -4,6 +4,8 @@ import { livraisonsService, storageUrl } from '../../services/api';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import AccordionCard from '../../components/ui/AccordionCard';
+
 import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
 
 
@@ -24,6 +26,8 @@ export default function GestLivraisonsPage() {
   const [detail,      setDetail]      = useState<any>(null);
   const [refusModal,  setRefusModal]  = useState<any>(null);
   const [motif,       setMotif]       = useState('');
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const toggleC = (id: number) => setCollapsed(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const [saving,      setSaving]      = useState(false);
   const [filter,      setFilter]      = useState('livree_attente_validation');
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -171,8 +175,16 @@ export default function GestLivraisonsPage() {
           const client_nom      = l.client_nom      || l.vente?.client_nom;
           const client_tel      = l.client_telephone || l.vente?.client_telephone;
           const client_quartier = l.client_quartier  || l.vente?.client_quartier;
+          const isCollapsed = ['terminee'].includes(l.statut) && !collapsed.has(l.id);
+          const nomLiv = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
           return (
-            <div key={l.id} style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, padding:18, boxShadow:l.statut==='livree_attente_validation'?'0 4px 14px rgba(124,58,237,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
+            <AccordionCard
+              key={l.id} id={l.id}
+              collapsed={isCollapsed} onToggle={()=>toggleC(l.id)}
+              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span>{nomLiv&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
+              summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
+            >
+            <div style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, padding:18, boxShadow:l.statut==='livree_attente_validation'?'0 4px 14px rgba(124,58,237,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
                   <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
@@ -221,6 +233,7 @@ export default function GestLivraisonsPage() {
                 )}
               </div>
             </div>
+            </AccordionCard>
           );
         })}
       </div>

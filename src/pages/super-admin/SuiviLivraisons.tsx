@@ -4,6 +4,8 @@ import { livraisonsService, ventesService, geoService } from '../../services/api
 import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import AccordionCard from '../../components/ui/AccordionCard';
+
 
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
@@ -20,6 +22,8 @@ export default function SuiviLivraisonsPage() {
   const [livraisons,  setLivraisons]  = useState<any[]>([]);
   const [classement,  setClassement]  = useState<any[]>([]);
   const [positions,   setPositions]   = useState<any[]>([]);
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const toggleC = (id: number) => setCollapsed(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const [loading,     setLoading]     = useState(true);
   const [tab,         setTab]         = useState<'carte'|'classement'|'livraisons'>('livraisons');
   const [pageNum, setPageNum] = useState(1);
@@ -132,8 +136,16 @@ export default function SuiviLivraisonsPage() {
               <p style={{ padding:'40px 18px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</p>
             ) : paginatedLiv.map((l:any) => {
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
+              const isCollapsed2 = ['terminee'].includes(l.statut) && !collapsed.has(l.id);
+              const nomLiv2 = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
               return (
-                <div key={l.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+                <AccordionCard
+                  key={l.id} id={l.id}
+                  collapsed={isCollapsed2} onToggle={()=>toggleC(l.id)}
+                  summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span>{nomLiv2&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv2}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
+                  summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
+                >
+                <div style={{ padding:'14px 16px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
                     <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
                     <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
@@ -153,6 +165,7 @@ export default function SuiviLivraisonsPage() {
                     </div>
                   </div>
                 </div>
+                </AccordionCard>
               );
             })}
           </div>
