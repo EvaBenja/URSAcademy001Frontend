@@ -4,6 +4,8 @@ import { livraisonsService, utilisateursService, geoService, storageUrl } from '
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
+
 
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -127,6 +129,21 @@ export default function CoordLivraisonsPage() {
 
   const livreurActif = (livreurId: number) => positions.find((p:any) => p.id === livreurId);
 
+
+  const flatLiv = (() => {
+    const groups = new Map<string, any[]>();
+    for (const it of paginated) {
+      const k = (it.date_livraison||'').slice(0,10);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(it);
+    }
+    const out: any[] = [];
+    Array.from(groups.entries()).forEach(([date, items]) => {
+      out.push({_sep:true, date, label:formatDateLabel(date), count:items.length});
+      items.forEach(i => out.push(i));
+    });
+    return out;
+  })();
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
@@ -211,7 +228,7 @@ export default function CoordLivraisonsPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={6} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif' }}>Aucune livraison</td></tr>
-            ) : paginated.map((l:any) => {
+            ) : flatLiv.map((l:any) => { if (l._sep) return <DateSeparator key={l.date} label={l.label} count={l.count}/>;
               const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
               const nomL = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : null;
               return (

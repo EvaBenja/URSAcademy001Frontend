@@ -53,6 +53,21 @@ export default function ValidationVentesPage() {
   const annulees = ventes.filter(v => v.statut === 'annulee').length;
   const livrees  = ventes.filter(v => v.livraison?.statut === 'terminee').length;
 
+
+  const flatVal = (() => {
+    const groups = new Map<string, any[]>();
+    for (const it of paginated) {
+      const k = (it.date_vente||'').slice(0,10);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(it);
+    }
+    const out: any[] = [];
+    Array.from(groups.entries()).forEach(([date, items]) => {
+      out.push({_sep:true, date, label:formatDateLabel(date), count:items.length, total: items.reduce((s:number,x:any)=>s+Number(x.montant_total||0),0)});
+      items.forEach(i => out.push(i));
+    });
+    return out;
+  })();
   if (loading) return (
     <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>
       Chargement…
@@ -115,7 +130,7 @@ export default function ValidationVentesPage() {
                 <tr><td colSpan={9} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   Aucune vente
                 </td></tr>
-              ) : paginated.map((v:any) => {
+              ) : flatVal.map((v:any) => { if (v._sep) return <DateSeparator key={v.date} label={v.label} count={v.count} total={v.total}/>;
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 const nomV = v.caissiere
                   ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim()

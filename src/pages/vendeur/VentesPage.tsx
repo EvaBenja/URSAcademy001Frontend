@@ -6,6 +6,8 @@ import api from '../../services/api';
 import CopyPhone from '../../components/ui/CopyPhone';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
+
 
 import SearchBar from '../../components/ui/SearchBar';
 import ZoneSelect from '../../components/ui/ZoneSelect';
@@ -211,6 +213,21 @@ export default function VendeurVentesPage() {
   const livTerminee    = mesVentes.filter(v => v.livraison?.statut === 'terminee').length;
   const livActives     = mesVentes.filter(v => v.livraison && !['terminee','annulee'].includes(v.livraison.statut));
 
+
+  const flatVen = (() => {
+    const groups = new Map<string, any[]>();
+    for (const it of ventesPage) {
+      const k = (it.date_vente||'').slice(0,10);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(it);
+    }
+    const out: any[] = [];
+    Array.from(groups.entries()).forEach(([date, items]) => {
+      out.push({_sep:true, date, label:formatDateLabel(date), count:items.length, total: items.reduce((s:number,x:any)=>s+Number(x.montant_total||0),0)});
+      items.forEach(i => out.push(i));
+    });
+    return out;
+  })();
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
@@ -382,7 +399,7 @@ export default function VendeurVentesPage() {
                 <tr><td colSpan={7} style={{ padding:'40px', textAlign:'center', fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#8a96b0' }}>
                   Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
-              ) : ventesPage.map((v:any) => {
+              ) : flatVen.map((v:any) => { if (v._sep) return <DateSeparator key={v.date} label={v.label} count={v.count} total={v.total}/>;
                 const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
                 return (
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>

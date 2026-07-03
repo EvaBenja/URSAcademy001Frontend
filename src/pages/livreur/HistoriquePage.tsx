@@ -4,6 +4,8 @@ import { livraisonsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
+import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
+
 
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -47,6 +49,21 @@ export default function LivreurHistoriquePage() {
   const totalPages   = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated    = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
+
+  const flatHis = (() => {
+    const groups = new Map<string, any[]>();
+    for (const it of filtered) {
+      const k = (it.date_livraison||'').slice(0,10);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(it);
+    }
+    const out: any[] = [];
+    Array.from(groups.entries()).forEach(([date, items]) => {
+      out.push({_sep:true, date, label:formatDateLabel(date), count:items.length});
+      items.forEach(i => out.push(i));
+    });
+    return out;
+  })();
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
