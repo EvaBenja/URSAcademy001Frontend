@@ -38,6 +38,10 @@ export default function MesCoursesPage() {
   const [photoPreview,    setPhotoPreview]    = useState<string|null>(null);
   const [produitsStatuts, setProduitsStatuts] = useState<{id:number;statut:'livre'|'non_livre'}[]>([]);
   const [notesCloture,    setNotesCloture]    = useState('');
+  const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const toggleCollapsed = (id: number) => setCollapsed(prev => {
+    const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s;
+  });
   const [saving,      setSaving]      = useState(false);
   const [onglet,      setOnglet]      = useState<'dispo'|'miennes'>('dispo');
   const [gpsActif,    setGpsActif]    = useState(false);
@@ -349,10 +353,25 @@ export default function MesCoursesPage() {
           const totalCourse = produits
             ? produits.reduce((s:number,it:any)=>s+Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)),0)
             : 0;
+          const isReplie = ['terminee'].includes(l.statut);
+          const isOpen = !isReplie || collapsed.has(l.id);
           return (
-            <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
-              border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`,
-              padding:18,
+            <div key={l.id} onClick={!isOpen?()=>toggleCollapsed(l.id):undefined}
+              style={{ borderRadius:14, border:`1.5px solid ${isDisponible||isAssigneeParCoord?'#3b82f6':l.statut==='en_cours'?'#0a9e6e':'#dde5f4'}`, cursor:!isOpen?'pointer':undefined, background:'white' }}>
+            {!isOpen ? (
+              <div style={{ padding:'10px 14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
+                  {l.zone_livraison && <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison}</span>}
+                  {nomVendeur && <span style={{ fontSize:12, color:'#7c3aed' }}>{nomVendeur}</span>}
+                </div>
+                <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                  <span style={{ background:sc.bg, color:sc.color, fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:20 }}>{sc.label}</span>
+                  <span style={{ color:'#8a96b0' }}>▼</span>
+                </div>
+              </div>
+            ) : (
+            <div className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ padding:18,
               boxShadow:isDisponible||isAssigneeParCoord?'0 4px 14px rgba(59,130,246,0.15)':l.statut==='en_cours'?'0 4px 14px rgba(10,158,110,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
               {/* Badge notification nouvelle assignation */}
               {isNouvelle && (
@@ -484,6 +503,8 @@ export default function MesCoursesPage() {
                 )}
               </div>
             </div>
+            )}
+          </div>
           );
         })}
       </div>
