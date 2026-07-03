@@ -3,8 +3,6 @@ import { XCircle, Eye, X, Trash2 } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
-import DateSeparator, { grouperParDate } from '../../components/ui/DateSeparator';
-
 
 import SearchBar from '../../components/ui/SearchBar';
 
@@ -66,8 +64,6 @@ export default function SAVentesPage() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
   // Auto-reset page on filter change - handled by useEffect
-  // Groupement par date pour affichage séparé
-  const groupesV = grouperParDate(paginated, 'date_vente');
   const caTotal  = ventes.filter(v=>v.statut!=='annulee').reduce((s,v)=>s+Number(v.montant_total||0),0);
 
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
@@ -119,9 +115,7 @@ export default function SAVentesPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr><td colSpan={8} style={{ padding:'40px', textAlign:'center', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:16 }}>Aucune vente</td></tr>
-            ) : paginated.map((v:any, idx:number) => {
-          const prevDate = idx > 0 ? paginated[idx-1].date_vente : null;
-          const showDate = v.date_vente !== prevDate;
+            ) : paginated.map((v:any) => {
               const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
               const nomV = v.caissiere ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim() : '—';
               const produits = v.items?.length > 0 ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ') : `${v.produit?.nom||'—'} ×${v.quantite}`;
@@ -160,9 +154,7 @@ export default function SAVentesPage() {
           const nomV = v.caissiere ? `${v.caissiere.prenom||v.caissiere.name||''} ${v.caissiere.nom||''}`.trim() : '—';
           const produits = v.items?.length > 0 ? v.items.map((i:any)=>`${i.produit?.nom} ×${i.quantite}`).join(', ') : `${v.produit?.nom||'—'} ×${v.quantite}`;
           return (
-            <div key={v.id}>
-            {showDate && <DateSeparator date={v.date_vente} count={groupesV.find(g=>g.date===v.date_vente?.slice(0,10))?.items.length} totalMontant={groupesV.find(g=>g.date===v.date_vente?.slice(0,10))?.items.reduce((s:number,x:any)=>s+Number(x.montant_total||0),0)}/>}
-            <div style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
+            <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
                 <div style={{ minWidth:0 }}>
                   <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{v.id}</span>
