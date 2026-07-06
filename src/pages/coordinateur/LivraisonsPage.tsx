@@ -270,6 +270,15 @@ export default function CoordLivraisonsPage() {
                           <Navigation size={11}/> Assigner
                         </button>
                       )}
+                      {l.statut === 'validee' && nomL && (
+                        <button onClick={async()=>{
+                          if(!window.confirm(`Retirer ${nomL} de la course #${l.id} ?`)) return;
+                          try { await livraisonsService.retirerLivreur(l.id); toast.success('Livreur retiré'); load(); }
+                          catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                        }} style={{ ...T.iconBtn, color:'#d97706', borderColor:'#fde68a', background:'#fffbeb', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
+                          ✕ Retirer
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -310,6 +319,15 @@ export default function CoordLivraisonsPage() {
                     <button onClick={()=>setReassignModal(l)}
                       style={{ ...T.iconBtn, color: l.statut==='rejetee'?'#e53e3e':'#7c3aed', borderColor: l.statut==='rejetee'?'#fecaca':'#ddd6fe', background: l.statut==='rejetee'?'#fff5f5':'#f5f3ff', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
                       <Navigation size={11}/> {l.statut==='rejetee'?'Réassigner':'Assigner'}
+                    </button>
+                  )}
+                  {l.statut === 'validee' && nomL && (
+                    <button onClick={async()=>{
+                      if(!window.confirm(`Retirer ${nomL} ?`)) return;
+                      try { await livraisonsService.retirerLivreur(l.id); toast.success('Livreur retiré'); load(); }
+                      catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                    }} style={{ ...T.iconBtn, color:'#d97706', borderColor:'#fde68a', background:'#fffbeb', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
+                      ✕ Retirer
                     </button>
                   )}
                 </div>

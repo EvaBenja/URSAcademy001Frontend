@@ -118,6 +118,7 @@ export const livraisonsService = {
   validerCloture: (id: number) => api.post(`/livraisons/${id}/valider-cloture`),
   refuserCloture: (id: number, motif: string) => api.post(`/livraisons/${id}/refuser-cloture`, { motif }),
   assigner:     (id: number, livreurId?: number) => api.post(`/livraisons/${id}/assigner`, livreurId ? { livreur_id: livreurId } : {}),
+  retirerLivreur: (id: number) => api.post(`/livraisons/${id}/retirer-livreur`),
   notifLue:     (id: number) => api.post(`/livraisons/${id}/notif-lue`),
 };
 
