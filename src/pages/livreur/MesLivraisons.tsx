@@ -59,7 +59,7 @@ export default function MesCoursesPage() {
       setLastRefresh(new Date());
 
       const dispoIds = new Set<number>(
-        data.filter((l:any) => !l.livreur_id && ['en_attente','validee'].includes(l.statut))
+        data.filter((l:any) => (!l.livreur_id && ['en_attente','validee'].includes(l.statut)) || l.statut === 'rejetee')
             .map((l:any) => l.id)
       );
       // Courses nouvellement assignées à CE livreur (non lues)
@@ -223,7 +223,7 @@ export default function MesCoursesPage() {
     finally { setSaving(false); }
   };
 
-  const dispos     = livraisons.filter(l => !l.livreur_id && ['en_attente','validee'].includes(l.statut));
+  const dispos     = livraisons.filter(l => (!l.livreur_id && ['en_attente','validee'].includes(l.statut)) || l.statut === 'rejetee');
   const miennes    = livraisons.filter(l => Number(l.livreur_id) === Number(user?.id));
   const aConfirmer = miennes.filter(l => l.statut === 'validee').length;
   const enCours    = miennes.filter(l => l.statut === 'en_cours').length;
@@ -330,7 +330,7 @@ export default function MesCoursesPage() {
           </div>
         ) : liste.map((l:any) => {
           const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
-          const isDisponible = !l.livreur_id;
+          const isDisponible = !l.livreur_id || l.statut === 'rejetee';
           const isAssigneeParCoord = Number(l.livreur_id) === Number(user?.id) && l.statut === 'validee';
           const client_nom      = l.client_nom      || l.vente?.client_nom;
           const client_tel      = l.client_telephone || l.vente?.client_telephone;
