@@ -154,7 +154,7 @@ export const depensesService = {
   stats:   ()                => api.get('/depenses/stats'),
 };
 
-// ── Géolocalisation ───────────────────────────────────────
+// ── Retraits ───────────────────────────────────────────────
 export const retraitsService = {
   getAll:    ()                              => api.get('/retraits'),
   stats:     ()                              => api.get('/retraits/stats'),
@@ -163,6 +163,9 @@ export const retraitsService = {
   refuser:   (id: number, motif: string)    => api.post(`/retraits/${id}/refuser`, { motif_refus: motif }),
   payer:     (id: number)                   => api.post(`/retraits/${id}/payer`),
 };
+
+// ── Géolocalisation ───────────────────────────────────────
+export const geoService = {
   updatePosition: (latitude: number, longitude: number) =>
     api.post('/position', { latitude, longitude }),
   livreurs:   () => api.get('/livreurs/positions'),
