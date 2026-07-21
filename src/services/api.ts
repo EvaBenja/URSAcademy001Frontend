@@ -155,7 +155,14 @@ export const depensesService = {
 };
 
 // ── Géolocalisation ───────────────────────────────────────
-export const geoService = {
+export const retraitsService = {
+  getAll:    ()                              => api.get('/retraits'),
+  stats:     ()                              => api.get('/retraits/stats'),
+  create:    (data: object)                  => api.post('/retraits', data),
+  approuver: (id: number)                   => api.post(`/retraits/${id}/approuver`),
+  refuser:   (id: number, motif: string)    => api.post(`/retraits/${id}/refuser`, { motif_refus: motif }),
+  payer:     (id: number)                   => api.post(`/retraits/${id}/payer`),
+};
   updatePosition: (latitude: number, longitude: number) =>
     api.post('/position', { latitude, longitude }),
   livreurs:   () => api.get('/livreurs/positions'),

@@ -51,6 +51,10 @@ import LivreurHistorique from './pages/livreur/HistoriquePage';
 import LivreurDemandes   from './pages/livreur/DemandesPage';
 import LivreurDossiers   from './pages/livreur/DossierPage';
 
+// Retraits
+import VendeurRetraits     from './pages/vendeur/RetraitPage';
+import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
+
 const Soon = ({ title }: { title: string }) => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
     <div style={{ textAlign:'center' }}>
@@ -88,6 +92,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="positions"            element={<SAPositions />} />
             <Route path="historique-ca"        element={<SAHistoriqueCA />} />
             <Route path="comptabilite"         element={<SAComptabilite />} />
+            <Route path="retraits"             element={<GestionRetraits />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
@@ -102,6 +107,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="ventes"     element={<GestValidation />} />
             <Route path="classement" element={<GestClassement />} />
             <Route path="livraisons" element={<GestLivraisons />} />
+            <Route path="retraits"   element={<GestionRetraits />} />
             <Route path="demandes"   element={<GestDemandes />} />
             <Route path="dossiers"   element={<SADossiers />} />
             <Route path="rapports"   element={<GestRapports />} />
@@ -120,6 +126,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/vendeur" element={<ProtectedRoute roles={['vendeur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
             <Route path="produits" element={<VendeurProduits />} />
             <Route path="ventes"   element={<VendeurVentes />} />
+            <Route path="retraits" element={<VendeurRetraits />} />
           </Route>
 
           {/* Livreur */}
@@ -135,6 +142,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="dashboard"    element={<SAComptabilite />} />
             <Route path="comptabilite" element={<SAComptabilite />} />
             <Route path="historique-ca" element={<SAHistoriqueCA />} />
+            <Route path="retraits"     element={<GestionRetraits />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

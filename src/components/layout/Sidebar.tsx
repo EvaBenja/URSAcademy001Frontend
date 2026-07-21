@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from '../../types';
 import {
   LayoutDashboard, Package, TrendingUp, TrendingDown, Truck,
-  Users, FolderOpen, BarChart2, MapPin,
+  Users, FolderOpen, BarChart2, MapPin, Banknote,
   LogOut, ChevronRight, Settings, Trophy,
   CheckSquare, Bell, ClipboardList, X,
 } from 'lucide-react';
@@ -13,13 +13,12 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Tableau de bord',      to:'/dashboard',                     Icon:LayoutDashboard },
     { label:'Produits',             to:'/dashboard/produits',            Icon:Package         },
     { label:'Ventes',               to:'/dashboard/ventes',              Icon:TrendingUp      },
+    { label:'Retraits',             to:'/dashboard/retraits',            Icon:Banknote        },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
     { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
     { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
     { label:'CA & Historique',      to:'/dashboard/historique-ca',       Icon:TrendingUp      },
     { label:'Comptabilité',         to:'/dashboard/comptabilite',        Icon:BarChart2       },
-    { label:'Dossiers journaliers', to:'/dashboard/dossiers-journaliers',Icon:FolderOpen      },
-    { label:'Rapports & Analyses',  to:'/dashboard/rapports',            Icon:BarChart2       },
     { label:'Utilisateurs',         to:'/dashboard/utilisateurs',        Icon:Users           },
     { label:'Paramètres',           to:'/dashboard/parametres',          Icon:Settings        },
   ],
@@ -28,6 +27,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Stocks & Produits',    to:'/gestionnaire/produits',         Icon:Package         },
     { label:'Suivi ventes',         to:'/gestionnaire/ventes',           Icon:CheckSquare     },
     { label:'Validation livraisons',to:'/gestionnaire/livraisons',       Icon:Truck           },
+    { label:'Retraits',             to:'/gestionnaire/retraits',         Icon:Banknote        },
     { label:'Demandes livreurs',    to:'/gestionnaire/demandes',         Icon:ClipboardList   },
     { label:'Classement vendeurs',  to:'/gestionnaire/classement',       Icon:Trophy          },
     { label:'Dossiers journaliers', to:'/gestionnaire/dossiers',         Icon:FolderOpen      },
@@ -43,6 +43,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   vendeur: [
     { label:'Produits',             to:'/vendeur/produits',              Icon:Package         },
     { label:'Mes ventes',           to:'/vendeur/ventes',                Icon:TrendingUp      },
+    { label:'Mes retraits',         to:'/vendeur/retraits',              Icon:Banknote        },
   ],
   livreur: [
     { label:'Mes courses',       to:'/livreur/livraisons',            Icon:Truck           },
@@ -54,6 +55,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Tableau de bord',      to:'/compta/dashboard',              Icon:LayoutDashboard },
     { label:'Comptabilité',         to:'/compta/comptabilite',           Icon:BarChart2       },
     { label:'CA & Historique',      to:'/compta/historique-ca',          Icon:TrendingUp      },
+    { label:'Retraits',             to:'/compta/retraits',               Icon:Banknote        },
   ],
 };
 
