@@ -1,7 +1,8 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { Calendar, TrendingUp, TrendingDown, Package, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, TrendingUp, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import api from '../../services/api';
 import CopyPhone from '../../components/ui/CopyPhone';
+import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
 import toast from 'react-hot-toast';
 
 const STATUT_LIV: Record<string,{label:string;color:string}> = {
@@ -15,165 +16,181 @@ const STATUT_LIV: Record<string,{label:string;color:string}> = {
 };
 
 export default function ComptabilitePage() {
-  const [date,      setDate]      = useState(new Date().toISOString().split('T')[0]);
-  const [data,      setData]      = useState<any>(null);
+  const [jours,     setJours]     = useState<any[]>([]);
   const [loading,   setLoading]   = useState(true);
-  const [expanded,  setExpanded]  = useState<Record<number,boolean>>({});
+  const [expanded,  setExpanded]  = useState<Record<string,boolean>>({});
+  const [openJours, setOpenJours] = useState<Record<string,boolean>>({});
 
-  const load = async (d = date) => {
+  const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/comptabilite/journalier?date=${d}`);
-      setData(res.data);
+      const res = await api.get('/comptabilite/journal');
+      const data = res.data.jours || [];
+      setJours(data);
+      // Ouvrir le premier jour (le plus récent) par défaut
+      if (data.length > 0) {
+        setOpenJours({ [data[0].date]: true });
+      }
     } catch { toast.error('Erreur chargement comptabilité'); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [date]);
+  useEffect(() => { load(); }, []);
 
-  const toggle = (i: number) => setExpanded(prev => ({ ...prev, [i]: !prev[i] }));
+  const toggleJour = (date: string) => setOpenJours(prev => ({ ...prev, [date]: !prev[date] }));
+  const toggleVend = (key: string) => setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
+
+  const totalCA    = jours.reduce((s,j) => s + j.ca_reel, 0);
+  const totalVentes = jours.reduce((s,j) => s + j.nb_ventes, 0);
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
-          <h1 style={T.h1}>Comptabilité Journalière</h1>
-          <p style={T.sub}>Détail des ventes par vendeur — CA réel (livraisons terminées)</p>
+          <h1 style={T.h1}>Journal Comptable</h1>
+          <p style={T.sub}>Toutes les journées — CA réel par vendeur</p>
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-            style={{ padding:'8px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:13, color:'#0d1b3e' }}/>
-          <button onClick={()=>load()} style={{ padding:'8px 12px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer' }}>
-            <RefreshCw size={14} color="#4a5578"/>
-          </button>
-        </div>
+        <button onClick={load} style={{ padding:'8px 12px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer' }}>
+          <RefreshCw size={14} color="#4a5578"/>
+        </button>
+      </div>
+
+      {/* Totaux globaux */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:22 }}>
+        {[
+          { label:'CA Total réel',   val:`${totalCA.toLocaleString('fr-FR')} FCFA`,    color:'#0a9e6e' },
+          { label:'Jours enregistrés', val:jours.length,                                color:'#1465BB' },
+          { label:'Total ventes',    val:totalVentes,                                   color:'#d0a83a' },
+        ].map(({label,val,color}) => (
+          <div key={label} style={T.card}>
+            <p style={{ fontFamily:'Playfair Display,serif', fontSize:22, fontWeight:700, color, margin:0 }}>{val}</p>
+            <p style={{ fontSize:11, color:'#8a96b0', margin:'4px 0 0' }}>{label}</p>
+          </div>
+        ))}
       </div>
 
       {loading ? (
         <p style={{ textAlign:'center', padding:'60px', fontFamily:'Cormorant Garamond,serif', fontSize:18, color:'#8a96b0' }}>Chargement…</p>
-      ) : !data ? null : (
-        <>
-          {/* KPI du jour */}
-          <div className="stats-4" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:22 }}>
-            {[
-              { label:'CA Réel du jour',    val:`${Number(data.ca_reel).toLocaleString('fr-FR')} FCFA`,    color:'#1465BB', icon:'✅' },
-              { label:'CA en cours',         val:`${Number(data.ca_en_cours).toLocaleString('fr-FR')} FCFA`, color:'#d0a83a', icon:'🔄' },
-              { label:'Ventes soumises',     val:data.nb_ventes,    color:'#0a9e6e', icon:'📦' },
-              { label:'Ventes annulées',     val:data.nb_annulees,  color:'#e53e3e', icon:'❌' },
-            ].map(({label,val,color,icon}) => (
-              <div key={label} style={T.card}>
-                <p style={{ fontFamily:'Playfair Display,serif', fontSize:22, fontWeight:700, color, margin:0 }}>{icon} {val}</p>
-                <p style={{ fontSize:11, color:'#8a96b0', margin:'4px 0 0' }}>{label}</p>
-              </div>
-            ))}
-          </div>
+      ) : jours.length === 0 ? (
+        <div style={{ ...T.card, textAlign:'center', padding:'40px' }}>
+          <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:18, color:'#8a96b0' }}>Aucune donnée enregistrée</p>
+        </div>
+      ) : jours.map((jour: any) => {
+        const isOpen = !!openJours[jour.date];
+        const label  = formatDateLabel(jour.date);
+        const isToday = label === "Aujourd'hui";
 
-          {data.par_vendeur.length === 0 ? (
-            <div style={{ ...T.card, textAlign:'center', padding:'40px' }}>
-              <p style={{ fontFamily:'Cormorant Garamond,serif', fontSize:18, color:'#8a96b0' }}>
-                Aucune vente enregistrée pour le {new Date(date).toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'})}
-              </p>
+        return (
+          <div key={jour.date} style={{ marginBottom:16 }}>
+            {/* Header jour — cliquable */}
+            <div onClick={()=>toggleJour(jour.date)}
+              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 18px',
+                background: isToday ? 'linear-gradient(90deg,#003785,#1465BB)' : '#f4f7fd',
+                borderRadius: isOpen ? '12px 12px 0 0' : 12,
+                border:`1.5px solid ${isToday?'#1465BB':'#dde5f4'}`,
+                cursor:'pointer', gap:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <Calendar size={16} color={isToday?'white':'#1465BB'}/>
+                <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:isToday?'white':'#0d1b3e' }}>
+                  {label}
+                  {isToday && <span style={{ fontSize:11, background:'rgba(255,255,255,0.2)', borderRadius:10, padding:'1px 8px', marginLeft:8, fontFamily:'DM Sans,sans-serif', fontWeight:400 }}>Aujourd'hui</span>}
+                </span>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:20 }}>
+                <div style={{ textAlign:'right' }}>
+                  <p style={{ fontSize:15, fontWeight:700, color:isToday?'#d0a83a':'#0a9e6e', margin:0 }}>{jour.ca_reel.toLocaleString('fr-FR')} FCFA</p>
+                  <p style={{ fontSize:11, color:isToday?'rgba(255,255,255,0.7)':'#8a96b0', margin:0 }}>{jour.nb_ventes} vente{jour.nb_ventes>1?'s':''}</p>
+                </div>
+                {isOpen ? <ChevronUp size={16} color={isToday?'white':'#4a5578'}/> : <ChevronDown size={16} color={isToday?'white':'#4a5578'}/>}
+              </div>
             </div>
-          ) : data.par_vendeur.map((vendeur: any, i: number) => (
-            <div key={i} style={{ ...T.card, padding:0, overflow:'hidden', marginBottom:14 }}>
-              {/* Header vendeur */}
-              <div style={{ padding:'14px 18px', background:'#f8faff', borderBottom:'2px solid #e8eef8', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8, cursor:'pointer' }}
-                onClick={()=>toggle(i)}>
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:15, flexShrink:0 }}>
-                    {vendeur.vendeur[0]||'?'}
-                  </div>
-                  <div>
-                    <p style={{ fontSize:15, fontWeight:700, color:'#0d1b3e', margin:0 }}>{vendeur.vendeur}</p>
-                    {vendeur.telephone && vendeur.telephone !== '—' && (
-                      <div onClick={e=>e.stopPropagation()}>
-                        <CopyPhone tel={vendeur.telephone} style={{ fontSize:11 }}/>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-                  <div style={{ textAlign:'right' }}>
-                    <p style={{ fontSize:18, fontWeight:700, color:'#0a9e6e', margin:0 }}>{Number(vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</p>
-                    <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>CA réel · {vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''}</p>
-                    {vendeur.total_remises > 0 && <p style={{ fontSize:11, color:'#e53e3e', margin:0 }}>−{Number(vendeur.total_remises).toLocaleString('fr-FR')} remises</p>}
-                  </div>
-                  {expanded[i] ? <ChevronUp size={18} color="white"/> : <ChevronDown size={18} color="white"/>}
-                </div>
-              </div>
 
-              {/* Détail des ventes */}
-              {expanded[i] && (
-                <div>
-                  {vendeur.ventes.map((vente: any, j: number) => {
-                    const sl = STATUT_LIV[vente.statut_liv] || { label: vente.statut_liv, color:'#475569' };
-                    const isTerminee = vente.statut_liv === 'terminee';
-                    return (
-                      <div key={j} style={{ padding:'12px 18px', borderBottom:'1px solid #f0f4fb', background: isTerminee?'#f0fdf4':j%2===0?'white':'#fafbff' }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:8, marginBottom:8 }}>
+            {/* Contenu du jour */}
+            {isOpen && (
+              <div style={{ border:'1.5px solid #dde5f4', borderTop:'none', borderRadius:'0 0 12px 12px', overflow:'hidden', background:'white' }}>
+                {jour.par_vendeur.map((vendeur: any, vi: number) => {
+                  const vKey = `${jour.date}-${vi}`;
+                  const isVOpen = !!expanded[vKey];
+                  return (
+                    <div key={vKey} style={{ borderBottom:'1px solid #f0f4fb' }}>
+                      {/* Header vendeur */}
+                      <div onClick={()=>toggleVend(vKey)}
+                        style={{ padding:'12px 18px', display:'flex', justifyContent:'space-between', alignItems:'center', cursor:'pointer', background:isVOpen?'#f8faff':'white', flexWrap:'wrap', gap:8 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                          <div style={{ width:34, height:34, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:13, flexShrink:0 }}>
+                            {vendeur.vendeur[0]||'?'}
+                          </div>
                           <div>
-                            <span style={{ fontWeight:700, color:'#1465BB', fontSize:13 }}>Vente #{vente.id}</span>
-                            <span style={{ fontSize:12, color:'#8a96b0', marginLeft:8 }}>{vente.heure}</span>
-                          </div>
-                          <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-                            <span style={{ fontSize:11, fontWeight:600, color:sl.color }}>{sl.label}</span>
-                            <span style={{ fontWeight:700, color: isTerminee?'#166534':'#0d1b3e', fontSize:14 }}>
-                              {Number(vente.montant).toLocaleString('fr-FR')} FCFA
-                            </span>
+                            <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{vendeur.vendeur}</p>
+                            {vendeur.telephone && vendeur.telephone !== '—' && (
+                              <div onClick={e=>e.stopPropagation()}>
+                                <CopyPhone tel={vendeur.telephone} style={{ fontSize:11 }}/>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        {/* Produits */}
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                          {vente.produits.map((p: any, k: number) => (
-                            <div key={k} style={{ background:'#f4f7fd', borderRadius:8, padding:'4px 10px', fontSize:11 }}>
-                              <span style={{ fontWeight:600, color:'#0d1b3e' }}>{p.nom}</span>
-                              {p.couleur && <span style={{ background:'white', color:'#4a5578', borderRadius:4, padding:'0 4px', marginLeft:4, fontSize:9, fontWeight:700, border:'1px solid #dde5f4' }}>{p.couleur}</span>}
-                              <span style={{ color:'#8a96b0', marginLeft:4 }}>×{p.quantite} @ {Number(p.prix).toLocaleString('fr-FR')}</span>
-                              {p.remise > 0 && <span style={{ color:'#e53e3e', marginLeft:4 }}>−{Number(p.remise).toLocaleString('fr-FR')}</span>}
-                              <span style={{ color:'#0a9e6e', fontWeight:700, marginLeft:4 }}>= {Number(p.sous_total).toLocaleString('fr-FR')}</span>
-                            </div>
-                          ))}
+                        <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+                          <div style={{ textAlign:'right' }}>
+                            <p style={{ fontSize:16, fontWeight:700, color:'#0a9e6e', margin:0 }}>{vendeur.ca_reel.toLocaleString('fr-FR')} FCFA</p>
+                            <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''}</p>
+                          </div>
+                          {isVOpen ? <ChevronUp size={14} color="#4a5578"/> : <ChevronDown size={14} color="#4a5578"/>}
                         </div>
-                        {vente.total_remises > 0 && (
-                          <p style={{ fontSize:11, color:'#e53e3e', margin:'5px 0 0' }}>Remise totale : −{Number(vente.total_remises).toLocaleString('fr-FR')} FCFA</p>
-                        )}
                       </div>
-                    );
-                  })}
-                  {/* Récap vendeur */}
-                  <div style={{ padding:'12px 18px', background:'#f8faff', borderTop:'1px solid #f0f4fb', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
-                    <span style={{ fontSize:13, color:'#4a5578' }}>{vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''} · Remises : {Number(vendeur.total_remises).toLocaleString('fr-FR')} FCFA</span>
-                    <div style={{ display:'flex', gap:12 }}>
-                      <span style={{ fontSize:13, color:'#d0a83a', fontWeight:600 }}>En cours : {Number(vendeur.ca_soumis - vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</span>
-                      <span style={{ fontSize:13, color:'#0a9e6e', fontWeight:700 }}>CA réel : {Number(vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
 
-          {/* Total global */}
-          {data.par_vendeur.length > 0 && (
-            <div style={{ ...T.card, background:'white', border:'2px solid #0d1b3e' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-                <div>
-                  <p style={{ fontSize:14, color:'#8a96b0', margin:0 }}>Total journée — {new Date(date).toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'})}</p>
-                  <p style={{ fontFamily:'Playfair Display,serif', fontSize:28, fontWeight:700, color:'#0a9e6e', margin:'4px 0 0' }}>{Number(data.ca_reel).toLocaleString('fr-FR')} FCFA</p>
-                  <p style={{ fontSize:13, color:'#8a96b0', margin:'3px 0 0' }}>CA réel · {data.nb_ventes} ventes soumises</p>
+                      {/* Ventes du vendeur */}
+                      {isVOpen && vendeur.ventes.map((vente: any) => {
+                        const sl = STATUT_LIV[vente.statut_liv] || { label:vente.statut_liv, color:'#475569' };
+                        const isTerminee = vente.statut_liv === 'terminee';
+                        return (
+                          <div key={vente.id} style={{ padding:'10px 18px 10px 58px', borderTop:'1px solid #f8faff', background:isTerminee?'#f0fdf4':'white' }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <span style={{ fontSize:12, color:'#8a96b0' }}>{vente.heure}</span>
+                                <span style={{ fontSize:11, fontWeight:600, color:sl.color, background:sl.color+'15', padding:'1px 7px', borderRadius:20 }}>{sl.label}</span>
+                              </div>
+                              <span style={{ fontWeight:700, color:isTerminee?'#166534':'#0d1b3e', fontSize:14 }}>
+                                {vente.montant.toLocaleString('fr-FR')} FCFA
+                              </span>
+                            </div>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
+                              {vente.produits.map((p: any, k: number) => (
+                                <div key={k} style={{ background:'#f4f7fd', borderRadius:7, padding:'3px 9px', fontSize:11 }}>
+                                  <span style={{ fontWeight:600, color:'#0d1b3e' }}>{p.nom}</span>
+                                  {p.couleur && <span style={{ color:'#4a5578', marginLeft:3, border:'1px solid #dde5f4', borderRadius:4, padding:'0 3px', fontSize:9 }}>{p.couleur}</span>}
+                                  <span style={{ color:'#8a96b0', marginLeft:4 }}>×{p.quantite}</span>
+                                  {p.remise > 0 && <span style={{ color:'#e53e3e', marginLeft:4 }}>−{p.remise.toLocaleString('fr-FR')}</span>}
+                                  <span style={{ color:'#0a9e6e', fontWeight:700, marginLeft:4 }}>{p.sous_total.toLocaleString('fr-FR')}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Récap vendeur */}
+                      {isVOpen && (
+                        <div style={{ padding:'10px 18px', background:'#f8faff', borderTop:'1px solid #f0f4fb', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                          <span style={{ fontSize:12, color:'#4a5578' }}>{vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''} · Remises : {vendeur.total_remises.toLocaleString('fr-FR')} FCFA</span>
+                          <span style={{ fontSize:13, color:'#0a9e6e', fontWeight:700 }}>CA réel : {vendeur.ca_reel.toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Total du jour */}
+                <div style={{ padding:'12px 18px', background:'#f4f7fd', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                  <span style={{ fontSize:13, color:'#4a5578' }}>{jour.nb_ventes} vente{jour.nb_ventes>1?'s':''} · {jour.par_vendeur.length} vendeur{jour.par_vendeur.length>1?'s':''}</span>
+                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#0a9e6e' }}>
+                    Total : {jour.ca_reel.toLocaleString('fr-FR')} FCFA
+                  </span>
                 </div>
-                {data.ca_en_cours > 0 && (
-                  <div style={{ textAlign:'right' }}>
-                    <p style={{ fontSize:13, color:'#8a96b0', margin:0 }}>En attente de clôture</p>
-                    <p style={{ fontSize:20, fontWeight:700, color:'#d0a83a', margin:'4px 0 0' }}>{Number(data.ca_en_cours).toLocaleString('fr-FR')} FCFA</p>
-                  </div>
-                )}
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -181,5 +198,5 @@ export default function ComptabilitePage() {
 const T = {
   h1:  { fontFamily:'Playfair Display,serif', fontSize:24, fontWeight:700, color:'#0d1b3e', margin:0 } as CSSProperties,
   sub: { fontFamily:'Cormorant Garamond,serif', fontSize:16, color:'#4a5578', marginTop:4 } as CSSProperties,
-  card:{ background:'white', borderRadius:14, border:'1px solid #dde5f4', padding:'1.4rem', boxShadow:'0 2px 10px rgba(0,55,133,0.05)' } as CSSProperties,
+  card:{ background:'white', borderRadius:12, border:'1px solid #dde5f4', padding:'1.1rem 1.3rem' } as CSSProperties,
 };
