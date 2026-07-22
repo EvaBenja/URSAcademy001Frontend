@@ -78,26 +78,26 @@ export default function ComptabilitePage() {
           ) : data.par_vendeur.map((vendeur: any, i: number) => (
             <div key={i} style={{ ...T.card, padding:0, overflow:'hidden', marginBottom:14 }}>
               {/* Header vendeur */}
-              <div style={{ padding:'14px 18px', background:'linear-gradient(90deg,#003785,#1465BB)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8, cursor:'pointer' }}
+              <div style={{ padding:'14px 18px', background:'#f8faff', borderBottom:'2px solid #e8eef8', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8, cursor:'pointer' }}
                 onClick={()=>toggle(i)}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <div style={{ width:38, height:38, borderRadius:'50%', background:'rgba(255,255,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:15, flexShrink:0 }}>
+                  <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1465BB,#003785)', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontWeight:700, fontSize:15, flexShrink:0 }}>
                     {vendeur.vendeur[0]||'?'}
                   </div>
                   <div>
-                    <p style={{ fontSize:15, fontWeight:700, color:'white', margin:0 }}>{vendeur.vendeur}</p>
+                    <p style={{ fontSize:15, fontWeight:700, color:'#0d1b3e', margin:0 }}>{vendeur.vendeur}</p>
                     {vendeur.telephone && vendeur.telephone !== '—' && (
                       <div onClick={e=>e.stopPropagation()}>
-                        <CopyPhone tel={vendeur.telephone} style={{ background:'rgba(255,255,255,0.15)', color:'white', fontSize:11 }}/>
+                        <CopyPhone tel={vendeur.telephone} style={{ fontSize:11 }}/>
                       </div>
                     )}
                   </div>
                 </div>
                 <div style={{ display:'flex', alignItems:'center', gap:16 }}>
                   <div style={{ textAlign:'right' }}>
-                    <p style={{ fontSize:18, fontWeight:700, color:'#d0a83a', margin:0 }}>{Number(vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</p>
-                    <p style={{ fontSize:11, color:'rgba(255,255,255,0.7)', margin:0 }}>CA réel · {vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''}</p>
-                    {vendeur.total_remises > 0 && <p style={{ fontSize:11, color:'#fca5a5', margin:0 }}>−{Number(vendeur.total_remises).toLocaleString('fr-FR')} remises</p>}
+                    <p style={{ fontSize:18, fontWeight:700, color:'#0a9e6e', margin:0 }}>{Number(vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</p>
+                    <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>CA réel · {vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''}</p>
+                    {vendeur.total_remises > 0 && <p style={{ fontSize:11, color:'#e53e3e', margin:0 }}>−{Number(vendeur.total_remises).toLocaleString('fr-FR')} remises</p>}
                   </div>
                   {expanded[i] ? <ChevronUp size={18} color="white"/> : <ChevronDown size={18} color="white"/>}
                 </div>
@@ -126,12 +126,12 @@ export default function ComptabilitePage() {
                         {/* Produits */}
                         <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                           {vente.produits.map((p: any, k: number) => (
-                            <div key={k} style={{ background:'#dbeafe', borderRadius:8, padding:'4px 10px', fontSize:11 }}>
-                              <span style={{ fontWeight:600, color:'#1e40af' }}>{p.nom}</span>
-                              {p.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 4px', marginLeft:4, fontSize:9, fontWeight:700 }}>{p.couleur}</span>}
-                              <span style={{ color:'#4a5578', marginLeft:4 }}>×{p.quantite} @ {Number(p.prix).toLocaleString('fr-FR')}</span>
+                            <div key={k} style={{ background:'#f4f7fd', borderRadius:8, padding:'4px 10px', fontSize:11 }}>
+                              <span style={{ fontWeight:600, color:'#0d1b3e' }}>{p.nom}</span>
+                              {p.couleur && <span style={{ background:'white', color:'#4a5578', borderRadius:4, padding:'0 4px', marginLeft:4, fontSize:9, fontWeight:700, border:'1px solid #dde5f4' }}>{p.couleur}</span>}
+                              <span style={{ color:'#8a96b0', marginLeft:4 }}>×{p.quantite} @ {Number(p.prix).toLocaleString('fr-FR')}</span>
                               {p.remise > 0 && <span style={{ color:'#e53e3e', marginLeft:4 }}>−{Number(p.remise).toLocaleString('fr-FR')}</span>}
-                              <span style={{ color:'#1465BB', fontWeight:700, marginLeft:4 }}>= {Number(p.sous_total).toLocaleString('fr-FR')}</span>
+                              <span style={{ color:'#0a9e6e', fontWeight:700, marginLeft:4 }}>= {Number(p.sous_total).toLocaleString('fr-FR')}</span>
                             </div>
                           ))}
                         </div>
@@ -142,7 +142,7 @@ export default function ComptabilitePage() {
                     );
                   })}
                   {/* Récap vendeur */}
-                  <div style={{ padding:'12px 18px', background:'#f0f4ff', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
+                  <div style={{ padding:'12px 18px', background:'#f8faff', borderTop:'1px solid #f0f4fb', display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
                     <span style={{ fontSize:13, color:'#4a5578' }}>{vendeur.nb_ventes} vente{vendeur.nb_ventes>1?'s':''} · Remises : {Number(vendeur.total_remises).toLocaleString('fr-FR')} FCFA</span>
                     <div style={{ display:'flex', gap:12 }}>
                       <span style={{ fontSize:13, color:'#d0a83a', fontWeight:600 }}>En cours : {Number(vendeur.ca_soumis - vendeur.ca_reel).toLocaleString('fr-FR')} FCFA</span>
@@ -156,17 +156,17 @@ export default function ComptabilitePage() {
 
           {/* Total global */}
           {data.par_vendeur.length > 0 && (
-            <div style={{ ...T.card, background:'linear-gradient(90deg,#0d1b3e,#1465BB)' }}>
+            <div style={{ ...T.card, background:'white', border:'2px solid #0d1b3e' }}>
               <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
                 <div>
-                  <p style={{ fontSize:14, color:'rgba(255,255,255,0.7)', margin:0 }}>Total journée — {new Date(date).toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'})}</p>
-                  <p style={{ fontFamily:'Playfair Display,serif', fontSize:28, fontWeight:700, color:'#d0a83a', margin:'4px 0 0' }}>{Number(data.ca_reel).toLocaleString('fr-FR')} FCFA</p>
-                  <p style={{ fontSize:13, color:'rgba(255,255,255,0.6)', margin:'3px 0 0' }}>CA réel · {data.nb_ventes} ventes soumises</p>
+                  <p style={{ fontSize:14, color:'#8a96b0', margin:0 }}>Total journée — {new Date(date).toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'})}</p>
+                  <p style={{ fontFamily:'Playfair Display,serif', fontSize:28, fontWeight:700, color:'#0a9e6e', margin:'4px 0 0' }}>{Number(data.ca_reel).toLocaleString('fr-FR')} FCFA</p>
+                  <p style={{ fontSize:13, color:'#8a96b0', margin:'3px 0 0' }}>CA réel · {data.nb_ventes} ventes soumises</p>
                 </div>
                 {data.ca_en_cours > 0 && (
                   <div style={{ textAlign:'right' }}>
-                    <p style={{ fontSize:13, color:'rgba(255,255,255,0.6)', margin:0 }}>En attente de clôture</p>
-                    <p style={{ fontSize:20, fontWeight:700, color:'#fbbf24', margin:'4px 0 0' }}>{Number(data.ca_en_cours).toLocaleString('fr-FR')} FCFA</p>
+                    <p style={{ fontSize:13, color:'#8a96b0', margin:0 }}>En attente de clôture</p>
+                    <p style={{ fontSize:20, fontWeight:700, color:'#d0a83a', margin:'4px 0 0' }}>{Number(data.ca_en_cours).toLocaleString('fr-FR')} FCFA</p>
                   </div>
                 )}
               </div>
