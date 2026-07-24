@@ -4,7 +4,7 @@ import { produitsService } from '../../services/api';
 import toast from 'react-hot-toast';
 import SearchBar from '../../components/ui/SearchBar';
 
-const EMPTY = { reference:'', nom:'', prix_unitaire:0, prix_gros:0, quantite_stock:0, unite:'unité' };
+const EMPTY = { reference:'', nom:'', prix_unitaire:0, prix_gros:0, quantite_stock:0, unite:'unité', commission_fixe:0, commission_pourcentage:0 };
 
 export default function SAProduitsPage() {
   const [produits, setProduits] = useState<any[]>([]);
@@ -173,6 +173,17 @@ export default function SAProduitsPage() {
               <div>
                 <label style={{ ...T.lbl, color:'#7c3aed' }}>Prix en gros (FCFA) — optionnel</label>
                 <input type="number" min={0} style={{ ...T.inp, borderColor:'#ddd6fe' }} value={form.prix_gros||0} onChange={e=>setForm((f:any)=>({...f,prix_gros:+e.target.value}))} placeholder="0 = non défini"/>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                <div>
+                  <label style={T.lbl}>Commission fixe (FCFA)</label>
+                  <input type="number" min={0} style={T.inp} value={form.commission_fixe||0} onChange={e=>setForm((f:any)=>({...f,commission_fixe:+e.target.value}))} placeholder="0"/>
+                </div>
+                <div>
+                  <label style={T.lbl}>Commission % (sur vente)</label>
+                  <input type="number" min={0} max={100} step={0.5} style={T.inp} value={form.commission_pourcentage||0} onChange={e=>setForm((f:any)=>({...f,commission_pourcentage:+e.target.value}))} placeholder="0"/>
+                </div>
+              </div>
                 <p style={{ fontSize:11, color:'#8a96b0', margin:'5px 0 0' }}>
                   Sert de référence pour calculer la remise totale accordée par les vendeurs sur ce produit (prix unitaire − prix en gros).
                 </p>
