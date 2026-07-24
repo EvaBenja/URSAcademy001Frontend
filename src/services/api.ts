@@ -167,6 +167,8 @@ export const configurationService = {
   get:     (cle: string)                  => api.get(`/configuration/${cle}`),
   update:  (cle: string, valeur: string)  => api.put(`/configuration/${cle}`, { valeur }),
 };
+
+export const retraitsService = {
   getAll:    ()                              => api.get('/retraits'),
   stats:     ()                              => api.get('/retraits/stats'),
   create:    (data: object)                  => api.post('/retraits', data),
