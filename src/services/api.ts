@@ -155,7 +155,18 @@ export const depensesService = {
 };
 
 // ── Retraits ───────────────────────────────────────────────
-export const retraitsService = {
+export const commissionsService = {
+  getAll:  () => api.get('/commissions'),
+  stats:   () => api.get('/commissions/stats'),
+  valider: (id: number) => api.post(`/commissions/${id}/valider`),
+  payer:   (id: number) => api.post(`/commissions/${id}/payer`),
+};
+
+export const configurationService = {
+  getAll:  ()                              => api.get('/configuration'),
+  get:     (cle: string)                  => api.get(`/configuration/${cle}`),
+  update:  (cle: string, valeur: string)  => api.put(`/configuration/${cle}`, { valeur }),
+};
   getAll:    ()                              => api.get('/retraits'),
   stats:     ()                              => api.get('/retraits/stats'),
   create:    (data: object)                  => api.post('/retraits', data),

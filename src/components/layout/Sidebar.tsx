@@ -14,6 +14,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Produits',             to:'/dashboard/produits',            Icon:Package         },
     { label:'Ventes',               to:'/dashboard/ventes',              Icon:TrendingUp      },
     { label:'Retraits',             to:'/dashboard/retraits',            Icon:Banknote        },
+    { label:'Commissions',          to:'/dashboard/commissions',         Icon:TrendingUp      },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
     { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
     { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
@@ -28,6 +29,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Suivi ventes',         to:'/gestionnaire/ventes',           Icon:CheckSquare     },
     { label:'Validation livraisons',to:'/gestionnaire/livraisons',       Icon:Truck           },
     { label:'Retraits',             to:'/gestionnaire/retraits',         Icon:Banknote        },
+    { label:'Commissions',          to:'/gestionnaire/commissions',      Icon:TrendingUp      },
     { label:'Demandes livreurs',    to:'/gestionnaire/demandes',         Icon:ClipboardList   },
     { label:'Classement vendeurs',  to:'/gestionnaire/classement',       Icon:Trophy          },
     { label:'Dossiers journaliers', to:'/gestionnaire/dossiers',         Icon:FolderOpen      },
@@ -56,6 +58,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Comptabilité',         to:'/compta/comptabilite',           Icon:BarChart2       },
     { label:'CA & Historique',      to:'/compta/historique-ca',          Icon:TrendingUp      },
     { label:'Retraits',             to:'/compta/retraits',               Icon:Banknote        },
+    { label:'Commissions',          to:'/compta/commissions',            Icon:TrendingUp      },
   ],
 };
 

@@ -54,6 +54,7 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 // Retraits
 import VendeurRetraits     from './pages/vendeur/RetraitPage';
 import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
+import CommissionsPage     from './pages/super-admin/CommissionsPage';
 
 const Soon = ({ title }: { title: string }) => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
@@ -93,6 +94,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="historique-ca"        element={<SAHistoriqueCA />} />
             <Route path="comptabilite"         element={<SAComptabilite />} />
             <Route path="retraits"             element={<GestionRetraits />} />
+            <Route path="commissions"          element={<CommissionsPage />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
@@ -108,6 +110,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="classement" element={<GestClassement />} />
             <Route path="livraisons" element={<GestLivraisons />} />
             <Route path="retraits"   element={<GestionRetraits />} />
+            <Route path="commissions" element={<CommissionsPage />} />
             <Route path="demandes"   element={<GestDemandes />} />
             <Route path="dossiers"   element={<SADossiers />} />
             <Route path="rapports"   element={<GestRapports />} />
@@ -143,6 +146,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="comptabilite" element={<SAComptabilite />} />
             <Route path="historique-ca" element={<SAHistoriqueCA />} />
             <Route path="retraits"     element={<GestionRetraits />} />
+            <Route path="commissions"  element={<CommissionsPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
