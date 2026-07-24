@@ -1,12 +1,12 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { XCircle, Eye, X, Trash2 } from 'lucide-react';
+import { XCircle, Eye, X, Trash2, Download, AlertTriangle } from 'lucide-react';
 import { ventesService } from '../../services/api';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
 import DateSeparator, { formatDateLabel } from '../../components/ui/DateSeparator';
-
-
 import SearchBar from '../../components/ui/SearchBar';
+
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api');
 
 const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   en_attente: {label:'En attente', bg:'#fef9c3', color:'#854d0e'},
@@ -21,7 +21,13 @@ export default function SAVentesPage() {
   const [filter,  setFilter]  = useState('tous');
   const [pageNum, setPageNum] = useState(1);
   const PAGE_SIZE = 15;
-  const [saving,  setSaving]  = useState(false);
+  const [saving,      setSaving]      = useState(false);
+  const [exportModal, setExportModal] = useState(false);
+  const [purgeModal,  setPurgeModal]  = useState(false);
+  const [exportDebut, setExportDebut] = useState('');
+  const [exportFin,   setExportFin]   = useState('');
+  const [purgeDate,   setPurgeDate]   = useState('');
+  const [purging,     setPurging]     = useState(false);
 
   useEffect(() => { load(); }, []);
   const load = async () => {
@@ -85,11 +91,68 @@ export default function SAVentesPage() {
   })();
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
+  const doExport = () => {
+    const token = document.cookie.match(/urs_token=([^;]+)/)?.[1] || localStorage.getItem('urs_token') || '';
+    const params = new URLSearchParams();
+    if (exportDebut) params.append('date_debut', exportDebut);
+    if (exportFin)   params.append('date_fin', exportFin);
+    const url = `${API_BASE}/ventes/export?${params.toString()}`;
+    // Téléchargement via lien avec token
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ventes_${new Date().toISOString().slice(0,10)}.csv`;
+    // Utiliser fetch pour envoyer le token et déclencher le dl
+    fetch(url, { headers: { Authorization: `Bearer ${token}`, Accept: 'text/csv' } })
+      .then(r => r.blob())
+      .then(blob => {
+        const burl = URL.createObjectURL(blob);
+        a.href = burl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(burl);
+        setExportModal(false);
+        toast.success('Export téléchargé ✓');
+      })
+      .catch(() => toast.error('Erreur export'));
+  };
+
+  const doPurge = async () => {
+    if (!purgeDate) { toast.error('Date requise'); return; }
+    const mot = window.prompt(`ATTENTION — Supprimer définitivement toutes les ventes terminées avant le ${purgeDate} ?\n\nCette action est IRRÉVERSIBLE. Tapez "PURGER" pour confirmer.`);
+    if (mot?.trim() !== 'PURGER') { toast.error('Annulé'); return; }
+    setPurging(true);
+    try {
+      const token = document.cookie.match(/urs_token=([^;]+)/)?.[1] || localStorage.getItem('urs_token') || '';
+      const res = await fetch(`${API_BASE}/ventes/purger?date_avant=${purgeDate}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+      });
+      const data = await res.json();
+      toast.success(data.message || 'Purge effectuée');
+      setPurgeModal(false);
+      load();
+    } catch { toast.error('Erreur purge'); }
+    finally { setPurging(false); }
+  };
+
   return (
     <div>
-      <div style={{ marginBottom:24 }}>
-        <h1 style={T.h1}>Toutes les Ventes</h1>
-        <p style={T.sub}>Supervision complète des transactions</p>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24, flexWrap:'wrap', gap:12 }}>
+        <div>
+          <h1 style={T.h1}>Toutes les Ventes</h1>
+          <p style={T.sub}>Supervision complète des transactions</p>
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={()=>setExportModal(true)}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:8, background:'#f0fdf4', color:'#166534', border:'1.5px solid #86efac', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+            <Download size={14}/> Exporter Excel
+          </button>
+          <button onClick={()=>setPurgeModal(true)}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 16px', borderRadius:8, background:'#fff5f5', color:'#991b1b', border:'1.5px solid #fecaca', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+            <Trash2 size={14}/> Purger
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -213,6 +276,74 @@ export default function SAVentesPage() {
         })}
       </div>
 
+      {/* Modal Export */}
+      {exportModal && (
+        <div onClick={()=>setExportModal(false)} style={T.overlay}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'white', borderRadius:14, width:'100%', maxWidth:420, overflow:'hidden' }}>
+            <div style={{ padding:'16px 20px', background:'linear-gradient(90deg,#0a9e6e,#065f46)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:17, color:'white', margin:0 }}>
+                <Download size={15} style={{ verticalAlign:'middle', marginRight:6 }}/>Export Excel
+              </h3>
+              <button onClick={()=>setExportModal(false)} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:'white', display:'flex', alignItems:'center', justifyContent:'center' }}><X size={14}/></button>
+            </div>
+            <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
+              <p style={{ fontSize:13, color:'#4a5578', margin:0 }}>Laissez les dates vides pour exporter toutes les ventes.</p>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                <div>
+                  <label style={T2.lbl}>Date début</label>
+                  <input type="date" value={exportDebut} onChange={e=>setExportDebut(e.target.value)} style={T2.inp}/>
+                </div>
+                <div>
+                  <label style={T2.lbl}>Date fin</label>
+                  <input type="date" value={exportFin} onChange={e=>setExportFin(e.target.value)} style={T2.inp}/>
+                </div>
+              </div>
+              <div style={{ background:'#f0fdf4', borderRadius:8, padding:'10px 14px', fontSize:12, color:'#166534' }}>
+                📊 Le fichier .csv s'ouvre directement dans Excel. Les colonnes incluent : vendeur, client, produits, montant, statut livraison, livreur.
+              </div>
+              <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+                <button onClick={()=>setExportModal(false)} style={{ padding:'9px 16px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578' }}>Annuler</button>
+                <button onClick={doExport}
+                  style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:8, background:'linear-gradient(90deg,#0a9e6e,#065f46)', color:'white', border:'none', cursor:'pointer', fontWeight:600 }}>
+                  <Download size={14}/> Télécharger
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Purge */}
+      {purgeModal && (
+        <div onClick={()=>setPurgeModal(false)} style={T.overlay}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'white', borderRadius:14, width:'100%', maxWidth:420, overflow:'hidden' }}>
+            <div style={{ padding:'16px 20px', background:'linear-gradient(90deg,#991b1b,#7f1d1d)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:17, color:'white', margin:0 }}>
+                <AlertTriangle size={15} style={{ verticalAlign:'middle', marginRight:6 }}/>Purger les ventes
+              </h3>
+              <button onClick={()=>setPurgeModal(false)} style={{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:'white', display:'flex', alignItems:'center', justifyContent:'center' }}><X size={14}/></button>
+            </div>
+            <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
+              <div style={{ background:'#fff5f5', borderRadius:8, padding:'12px 14px', border:'1px solid #fecaca' }}>
+                <p style={{ fontSize:13, color:'#991b1b', fontWeight:600, margin:'0 0 4px' }}>⚠️ Action irréversible</p>
+                <p style={{ fontSize:12, color:'#7f1d1d', margin:0 }}>Supprime définitivement toutes les ventes dont la livraison est <strong>terminée</strong> avant la date choisie. Faites un export Excel avant de purger.</p>
+              </div>
+              <div>
+                <label style={T2.lbl}>Supprimer les ventes terminées avant le</label>
+                <input type="date" value={purgeDate} onChange={e=>setPurgeDate(e.target.value)} style={T2.inp}/>
+              </div>
+              <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+                <button onClick={()=>setPurgeModal(false)} style={{ padding:'9px 16px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578' }}>Annuler</button>
+                <button onClick={doPurge} disabled={purging}
+                  style={{ display:'flex', alignItems:'center', gap:6, padding:'9px 18px', borderRadius:8, background:'#e53e3e', color:'white', border:'none', cursor:'pointer', fontWeight:600, opacity:purging?0.6:1 }}>
+                  <Trash2 size={14}/> {purging?'Purge en cours…':'Confirmer la purge'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal détail */}
       <Pagination page={pageNum} totalPages={totalPages} total={filtered.length} pageSize={PAGE_SIZE} onChange={p=>{setPageNum(p);window.scrollTo(0,0)}}/>
 
@@ -279,4 +410,9 @@ const T = {
   modalHeader:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 22px', background:'linear-gradient(90deg,#003785,#1465BB)' } as CSSProperties,
   modalTitle:{ fontFamily:'Playfair Display,serif', fontSize:17, fontWeight:600, color:'white', margin:0 } as CSSProperties,
   modalClose:{ background:'rgba(255,255,255,0.15)', border:'none', borderRadius:7, width:30, height:30, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'white' } as CSSProperties,
+};
+
+const T2 = {
+  lbl: { fontSize:12, fontWeight:600, color:'#4a5578', display:'block', marginBottom:4 } as CSSProperties,
+  inp: { width:'100%', padding:'8px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:13, outline:'none', boxSizing:'border-box' as const } as CSSProperties,
 };
