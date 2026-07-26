@@ -23,11 +23,36 @@ export default function BoutiquesPage() {
   useEffect(() => { load(); }, []);
 
   const copyLink = (code: string, id: number) => {
-    navigator.clipboard.writeText(CATALOGUE_BASE + code).then(() => {
+    const link = CATALOGUE_BASE + code;
+    // Méthode robuste compatible mobile
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(link).then(() => {
+        setCopied(id);
+        toast.success('Lien copié !');
+        setTimeout(() => setCopied(null), 2000);
+      }).catch(() => fallbackCopy(link, id));
+    } else {
+      fallbackCopy(link, id);
+    }
+  };
+
+  const fallbackCopy = (text: string, id: number) => {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.focus();
+    el.select();
+    try {
+      document.execCommand('copy');
       setCopied(id);
       toast.success('Lien copié !');
       setTimeout(() => setCopied(null), 2000);
-    });
+    } catch {
+      toast.error('Impossible de copier — sélectionnez le lien manuellement');
+    }
+    document.body.removeChild(el);
   };
 
   const regenerer = async (id: number) => {
