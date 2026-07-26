@@ -56,6 +56,10 @@ import VendeurRetraits     from './pages/vendeur/RetraitPage';
 import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
 import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
 import CommissionsPage     from './pages/super-admin/CommissionsPage';
+import BoutiquesPage       from './pages/super-admin/BoutiquesPage';
+
+// Public (sans auth)
+import CataloguePage       from './pages/public/CataloguePage';
 
 const Soon = ({ title }: { title: string }) => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
@@ -82,6 +86,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           {/* Public */}
           <Route path="/"         element={<LandingPage />} />
           <Route path="/login"    element={<LoginPage />} />
+
+          {/* Catalogue public — accessible sans connexion */}
+          <Route path="/catalogue/:code" element={<CataloguePage />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Super Admin */}
@@ -96,6 +103,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="comptabilite"         element={<SAComptabilite />} />
             <Route path="retraits"             element={<GestionRetraits />} />
             <Route path="commissions"          element={<CommissionsPage />} />
+            <Route path="boutiques"            element={<BoutiquesPage />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />

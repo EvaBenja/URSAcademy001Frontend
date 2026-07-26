@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ROLE_LABELS, ROLE_COLORS } from '../../types';
 import {
   LayoutDashboard, Package, TrendingUp, TrendingDown, Truck,
-  Users, FolderOpen, BarChart2, MapPin, Banknote,
+  Users, FolderOpen, BarChart2, MapPin, Banknote, Store,
   LogOut, ChevronRight, Settings, Trophy,
   CheckSquare, Bell, ClipboardList, X,
 } from 'lucide-react';
@@ -15,6 +15,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Ventes',               to:'/dashboard/ventes',              Icon:TrendingUp      },
     { label:'Retraits',             to:'/dashboard/retraits',            Icon:Banknote        },
     { label:'Commissions',          to:'/dashboard/commissions',         Icon:TrendingUp      },
+    { label:'Boutiques en ligne',   to:'/dashboard/boutiques',           Icon:Store           },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
     { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
     { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
