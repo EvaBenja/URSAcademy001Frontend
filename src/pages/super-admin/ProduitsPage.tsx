@@ -176,18 +176,15 @@ export default function SAProduitsPage() {
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                 <div>
-                  <label style={T.lbl}>Commission fixe (FCFA)</label>
-                  <input type="number" min={0} style={T.inp} value={form.commission_fixe||0} onChange={e=>setForm((f:any)=>({...f,commission_fixe:+e.target.value}))} placeholder="0"/>
-                  <p style={{ fontSize:11, color:'#8a96b0', margin:'3px 0 0' }}>Montant crédité au vendeur par vente</p>
+                  <label style={{ ...T.lbl, color:'#0a9e6e' }}>Commission fixe (FCFA)</label>
+                  <input type="number" min={0} style={{ ...T.inp, borderColor:'#86efac' }} value={form.commission_fixe||0} onChange={e=>setForm((f:any)=>({...f,commission_fixe:+e.target.value}))} placeholder="0"/>
+                  <p style={{ fontSize:11, color:'#0a9e6e', margin:'3px 0 0' }}>Crédité au vendeur par vente</p>
                 </div>
                 <div>
-                  <label style={T.lbl}>Commission %</label>
-                  <input type="number" min={0} max={100} step={0.5} style={T.inp} value={form.commission_pourcentage||0} onChange={e=>setForm((f:any)=>({...f,commission_pourcentage:+e.target.value}))} placeholder="0"/>
+                  <label style={{ ...T.lbl, color:'#0a9e6e' }}>Commission %</label>
+                  <input type="number" min={0} max={100} step={0.5} style={{ ...T.inp, borderColor:'#86efac' }} value={form.commission_pourcentage||0} onChange={e=>setForm((f:any)=>({...f,commission_pourcentage:+e.target.value}))} placeholder="0"/>
+                  <p style={{ fontSize:11, color:'#0a9e6e', margin:'3px 0 0' }}>% du sous-total de la vente</p>
                 </div>
-              </div>
-                <p style={{ fontSize:11, color:'#8a96b0', margin:'5px 0 0' }}>
-                  Sert de référence pour calculer la remise totale accordée par les vendeurs sur ce produit (prix unitaire − prix en gros).
-                </p>
               </div>
               <div><label style={T.lbl}>Unité</label><input style={T.inp} value={form.unite||''} onChange={e=>setForm((f:any)=>({...f,unite:e.target.value}))} placeholder="kg, L, unité, carton…"/></div>
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end', marginTop:4 }}>
