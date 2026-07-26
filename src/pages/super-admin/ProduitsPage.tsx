@@ -9,6 +9,7 @@ const EMPTY = { reference:'', nom:'', prix_unitaire:0, prix_gros:0, quantite_sto
 export default function SAProduitsPage() {
   const [produits, setProduits] = useState<any[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [query,    setQuery]    = useState('');
   const [modal,    setModal]    = useState<'nouveau'|'edition'|null>(null);
   const [form,     setForm]     = useState<any>(EMPTY);
   const [saving,   setSaving]   = useState(false);
