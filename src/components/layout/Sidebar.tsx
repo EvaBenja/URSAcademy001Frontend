@@ -45,6 +45,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   vendeur: [
     { label:'Produits',             to:'/vendeur/produits',              Icon:Package         },
     { label:'Mes ventes',           to:'/vendeur/ventes',                Icon:TrendingUp      },
+    { label:'Mes commissions',      to:'/vendeur/commissions',           Icon:TrendingUp      },
     { label:'Mes retraits',         to:'/vendeur/retraits',              Icon:Banknote        },
   ],
   livreur: [

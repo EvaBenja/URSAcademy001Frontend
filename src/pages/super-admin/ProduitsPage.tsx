@@ -178,9 +178,10 @@ export default function SAProduitsPage() {
                 <div>
                   <label style={T.lbl}>Commission fixe (FCFA)</label>
                   <input type="number" min={0} style={T.inp} value={form.commission_fixe||0} onChange={e=>setForm((f:any)=>({...f,commission_fixe:+e.target.value}))} placeholder="0"/>
+                  <p style={{ fontSize:11, color:'#8a96b0', margin:'3px 0 0' }}>Montant crédité au vendeur par vente</p>
                 </div>
                 <div>
-                  <label style={T.lbl}>Commission % (sur vente)</label>
+                  <label style={T.lbl}>Commission %</label>
                   <input type="number" min={0} max={100} step={0.5} style={T.inp} value={form.commission_pourcentage||0} onChange={e=>setForm((f:any)=>({...f,commission_pourcentage:+e.target.value}))} placeholder="0"/>
                 </div>
               </div>

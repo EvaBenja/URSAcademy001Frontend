@@ -53,6 +53,7 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 
 // Retraits
 import VendeurRetraits     from './pages/vendeur/RetraitPage';
+import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
 import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
 import CommissionsPage     from './pages/super-admin/CommissionsPage';
 
@@ -127,9 +128,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
           {/* Vendeur */}
           <Route path="/vendeur" element={<ProtectedRoute roles={['vendeur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
-            <Route path="produits" element={<VendeurProduits />} />
-            <Route path="ventes"   element={<VendeurVentes />} />
-            <Route path="retraits" element={<VendeurRetraits />} />
+            <Route path="produits"    element={<VendeurProduits />} />
+            <Route path="ventes"      element={<VendeurVentes />} />
+            <Route path="commissions" element={<VendeurCommissions />} />
+            <Route path="retraits"    element={<VendeurRetraits />} />
           </Route>
 
           {/* Livreur */}
