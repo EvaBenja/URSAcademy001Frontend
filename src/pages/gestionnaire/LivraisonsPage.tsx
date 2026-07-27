@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import { Eye, X, MapPin, Package, RefreshCw, CheckCircle, XCircle, User, Phone, Lock } from 'lucide-react';
 import { livraisonsService, storageUrl } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
 import Pagination from '../../components/ui/Pagination';
@@ -21,6 +22,8 @@ const STATUT_CONFIG: Record<string,{label:string;bg:string;color:string}> = {
 };
 
 export default function GestLivraisonsPage() {
+  const { user } = useAuth();
+  const canValidate = user?.role === 'compta' || user?.role === 'super_admin';
   const [livraisons,  setLivraisons]  = useState<any[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [detail,      setDetail]      = useState<any>(null);
@@ -219,7 +222,7 @@ export default function GestLivraisonsPage() {
                 <button onClick={()=>setDetail(l)} style={{ flex:1, minWidth:70, padding:'8px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', fontSize:12, color:'#4a5578', display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
                   <Eye size={12}/> Détail
                 </button>
-                {l.statut === 'livree_attente_validation' && (
+                {l.statut === 'livree_attente_validation' && canValidate && (
                   <>
                     <button onClick={()=>{setRefusModal(l);setMotif('');}}
                       style={{ flex:1, padding:'8px', borderRadius:8, border:'none', background:'#fee2e2', color:'#991b1b', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
@@ -230,6 +233,11 @@ export default function GestLivraisonsPage() {
                       <CheckCircle size={12}/> Valider clôture
                     </button>
                   </>
+                )}
+                {l.statut === 'livree_attente_validation' && !canValidate && (
+                  <p style={{ fontSize:11, color:'#7c3aed', textAlign:'center', margin:0, padding:'6px', background:'#f5f3ff', borderRadius:8 }}>
+                    ⏳ En attente de validation par le comptable
+                  </p>
                 )}
               </div>
             </div>
@@ -288,7 +296,7 @@ export default function GestLivraisonsPage() {
                   </a>
                 </div>
               )}
-              {detail.statut === 'livree_attente_validation' && (
+              {detail.statut === 'livree_attente_validation' && canValidate && (
                 <div style={{ display:'flex', gap:10, marginTop:10 }}>
                   <button onClick={()=>{setRefusModal(detail);setDetail(null);setMotif('');}} disabled={saving}
                     style={{ flex:1, padding:'11px', borderRadius:8, background:'#fee2e2', color:'#991b1b', border:'none', fontWeight:600, cursor:'pointer' }}>
@@ -299,6 +307,11 @@ export default function GestLivraisonsPage() {
                     {saving ? '…' : 'Valider clôture ✓'}
                   </button>
                 </div>
+              )}
+              {detail.statut === 'livree_attente_validation' && !canValidate && (
+                <p style={{ fontSize:12, color:'#7c3aed', textAlign:'center', padding:'10px', background:'#f5f3ff', borderRadius:8, margin:'10px 0 0' }}>
+                  ⏳ En attente de validation par le comptable
+                </p>
               )}
             </div>
           </div>

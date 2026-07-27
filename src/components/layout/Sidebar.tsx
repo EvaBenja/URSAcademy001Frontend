@@ -28,7 +28,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Tableau de bord',      to:'/gestionnaire/dashboard',        Icon:LayoutDashboard },
     { label:'Stocks & Produits',    to:'/gestionnaire/produits',         Icon:Package         },
     { label:'Suivi ventes',         to:'/gestionnaire/ventes',           Icon:CheckSquare     },
-    { label:'Validation livraisons',to:'/gestionnaire/livraisons',       Icon:Truck           },
+    { label:'Livraisons',           to:'/gestionnaire/livraisons',       Icon:Truck           },
     { label:'Retraits',             to:'/gestionnaire/retraits',         Icon:Banknote        },
     { label:'Commissions',          to:'/gestionnaire/commissions',      Icon:TrendingUp      },
     { label:'Demandes livreurs',    to:'/gestionnaire/demandes',         Icon:ClipboardList   },
@@ -57,6 +57,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   ],
   compta: [
     { label:'Tableau de bord',      to:'/compta/dashboard',              Icon:LayoutDashboard },
+    { label:'Validation livraisons',to:'/compta/livraisons',             Icon:Truck           },
     { label:'Comptabilité',         to:'/compta/comptabilite',           Icon:BarChart2       },
     { label:'CA & Historique',      to:'/compta/historique-ca',          Icon:TrendingUp      },
     { label:'Retraits',             to:'/compta/retraits',               Icon:Banknote        },

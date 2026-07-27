@@ -153,6 +153,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           {/* Comptable */}
           <Route path="/compta" element={<ProtectedRoute roles={['compta','super_admin']}><DashboardLayout /></ProtectedRoute>}>
             <Route path="dashboard"    element={<SAComptabilite />} />
+            <Route path="livraisons"   element={<GestLivraisons />} />
             <Route path="comptabilite" element={<SAComptabilite />} />
             <Route path="historique-ca" element={<SAHistoriqueCA />} />
             <Route path="retraits"     element={<GestionRetraits />} />
