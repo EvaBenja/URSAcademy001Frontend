@@ -21,6 +21,21 @@ const STATUT_CONFIG: Record<string,{label:string;bg:string;color:string}> = {
   terminee:                   {label:'Clôturée',                   bg:'#f1f5f9', color:'#475569'},
 };
 
+function buildFlatList(items: any[]): any[] {
+  const groups = new Map<string, any[]>();
+  for (const it of items) {
+    const k = (it.date_livraison||'').slice(0,10);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k)!.push(it);
+  }
+  const out: any[] = [];
+  Array.from(groups.entries()).forEach(([date, its]) => {
+    out.push({ _sep:true, date, label:formatDateLabel(date), count:its.length });
+    its.forEach(i => out.push(i));
+  });
+  return out;
+}
+
 export default function GestLivraisonsPage() {
   const { user } = useAuth();
   const canValidate = user?.role === 'compta' || user?.role === 'super_admin';
@@ -99,20 +114,8 @@ export default function GestLivraisonsPage() {
   const paginated    = filtered.slice((pageNum-1)*PAGE_SIZE, pageNum*PAGE_SIZE);
 
 
-  const flatLiv = (() => {
-    const groups = new Map<string, any[]>();
-    for (const it of paginated) {
-      const k = (it.date_livraison||'').slice(0,10);
-      if (!groups.has(k)) groups.set(k, []);
-      groups.get(k)!.push(it);
-    }
-    const out: any[] = [];
-    Array.from(groups.entries()).forEach(([date, items]) => {
-      out.push({_sep:true, date, label:formatDateLabel(date), count:items.length});
-      items.forEach(i => out.push(i));
-    });
-    return out;
-  })();
+  const flatLiv = buildFlatList(paginated);
+
   if (loading) return <p style={{ textAlign:'center', padding:'60px', color:'#8a96b0', fontFamily:'Cormorant Garamond,serif', fontSize:18 }}>Chargement…</p>;
 
   return (
