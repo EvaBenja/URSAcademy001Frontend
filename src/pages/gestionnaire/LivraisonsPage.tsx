@@ -39,6 +39,8 @@ function buildFlatList(items: any[]): any[] {
 export default function GestLivraisonsPage() {
   const { user } = useAuth();
   const canValidate = user?.role === 'compta' || user?.role === 'super_admin';
+  const PAGE_SIZE = 15;
+  const [pageNum,    setPageNum]    = useState(1);
   const [livraisons,  setLivraisons]  = useState<any[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [detail,      setDetail]      = useState<any>(null);
