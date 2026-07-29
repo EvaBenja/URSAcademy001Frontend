@@ -18,6 +18,15 @@ const STATUT: Record<string,{label:string;bg:string;color:string}> = {
   validee:    {label:'Validée',    bg:'#dbeafe', color:'#1e40af'},
   annulee:    {label:'Refusée',    bg:'#f1f5f9', color:'#475569'},
 };
+
+const STATUT_LIV_GLOBAL: Record<string,{label:string;bg:string;color:string}> = {
+  en_attente:                { label:'En attente livreur', bg:'#fef9c3', color:'#854d0e' },
+  validee:                   { label:'Livreur assigné',    bg:'#dbeafe', color:'#1e40af' },
+  en_cours:                  { label:'En livraison',       bg:'#dcfce7', color:'#166534' },
+  livree_attente_validation: { label:'Livré — à valider',  bg:'#ede9fe', color:'#5b21b6' },
+  terminee:                  { label:'✓ Terminée',         bg:'#dcfce7', color:'#166534' },
+  rejetee:                   { label:'Rejetée',            bg:'#fee2e2', color:'#991b1b' },
+};
 const ZONES = QUARTIERS_OUAGA;
 
 interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; prix_total_vendeur?: number; }
@@ -192,11 +201,17 @@ export default function VendeurVentesPage() {
   const [queryVentes, setQueryVentes] = useState('');
   const [pageNum, setPageNum] = useState(1);
   const PAGE_SIZE = 15;
+  const [ventesFilter, setVentesFilter] = useState('actives');
+
   const mesVentes  = ventes.filter(v => Number(v.caissiere_id) === Number(user?.id));
   const monRang    = classement.findIndex(c => Number(c.caissiere_id) === Number(user?.id));
 
   // Statuts livraison de mes ventes (temps réel)
   const ventesFiltered = mesVentes.filter((v:any) => {
+    // Filtre par statut livraison
+    const livStatut = v.livraison?.statut || 'en_attente';
+    if (ventesFilter === 'actives' && livStatut === 'terminee') return false;
+    if (ventesFilter === 'terminees' && livStatut !== 'terminee') return false;
     if (!queryVentes.trim()) return true;
     const q = queryVentes.toLowerCase();
     return (v.client_nom||'').toLowerCase().includes(q) ||
@@ -381,6 +396,15 @@ export default function VendeurVentesPage() {
       )}
 
       {/* Historique */}
+      <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+        {[{s:'actives',label:'En cours'},{s:'tous',label:'Toutes'},{s:'terminees',label:'Terminées'}].map(({s,label})=>(
+          <button key={s} onClick={()=>{setVentesFilter(s);setPageNum(1);}}
+            style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${ventesFilter===s?'#1465BB':'#dde5f4'}`, background:ventesFilter===s?'#1465BB':'white', color:ventesFilter===s?'white':'#4a5578', fontSize:12, cursor:'pointer' }}>
+            {label}
+            {s==='actives' && <span style={{ marginLeft:5, background:ventesFilter===s?'rgba(255,255,255,0.3)':'#1465BB', color:'white', borderRadius:10, padding:'0 6px', fontSize:10 }}>{mesVentes.filter(v=>v.livraison?.statut!=='terminee').length}</span>}
+          </button>
+        ))}
+      </div>
       <SearchBar value={queryVentes} onChange={setQueryVentes} placeholder="Rechercher par client, zone, produit, #id…" count={mesVentes.length} filtered={ventesFiltered.length} style={{ marginBottom:14 }}/>
 
       <div style={{ ...T.card, padding:0, overflow:'hidden' }}>
@@ -400,7 +424,8 @@ export default function VendeurVentesPage() {
                   Cliquez sur "Nouvelle vente" pour commencer
                 </td></tr>
               ) : flatVen.map((v:any) => { if (v._sep) return <DateSeparator key={v.date} label={v.label} count={v.count} total={v.total}/>;
-                const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
+                const livStatut = v.livraison?.statut || v.statut;
+                const sc = STATUT_LIV_GLOBAL[livStatut] || STATUT[livStatut] || {label:livStatut,bg:'#f1f5f9',color:'#475569'};
                 return (
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{v.id}</td>
@@ -475,7 +500,8 @@ export default function VendeurVentesPage() {
               Cliquez sur "Nouvelle vente" pour commencer
             </p>
           ) : ventesPage.map((v:any) => {
-            const sc = STATUT[v.statut]||{label:v.statut,bg:'#f1f5f9',color:'#475569'};
+            const livStatut = v.livraison?.statut || v.statut;
+            const sc = STATUT_LIV_GLOBAL[livStatut] || STATUT[livStatut] || {label:livStatut,bg:'#f1f5f9',color:'#475569'};
             return (
               <div key={v.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
