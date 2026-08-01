@@ -93,9 +93,13 @@ export default function GestLivraisonsPage() {
     setSaving(true);
     try {
       await livraisonsService.validerCloture(id);
-      toast.success('✅ Clôture validée — livraison terminée, vente soldée');
-      setDetail(null); load(true);
-    } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
+      toast.success('✅ Clôture validée — livraison terminée');
+      setDetail(null);
+      setRefusModal(null);
+      // Forcer rechargement complet de la liste
+      setLivraisons([]);
+      await load(false);
+    } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur serveur'); }
     finally { setSaving(false); }
   };
 
