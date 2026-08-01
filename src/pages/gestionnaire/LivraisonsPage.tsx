@@ -49,7 +49,7 @@ export default function GestLivraisonsPage() {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
   const toggleC = (id: number) => setCollapsed(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const [saving,      setSaving]      = useState(false);
-  const [filter,      setFilter]      = useState('livree_attente_validation');
+  const [filter,      setFilter]      = useState('tous');
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
   const knownCloIds = useRef<Set<number>>(new Set());
@@ -93,7 +93,7 @@ export default function GestLivraisonsPage() {
     setSaving(true);
     try {
       await livraisonsService.validerCloture(id);
-      toast.success('Clôture validée définitivement ✓');
+      toast.success('✅ Clôture validée — livraison terminée, vente soldée');
       setDetail(null); load(true);
     } catch (e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
