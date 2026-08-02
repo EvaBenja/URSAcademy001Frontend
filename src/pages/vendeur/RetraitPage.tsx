@@ -1,6 +1,6 @@
 import { useState, useEffect, type CSSProperties } from 'react';
 import { Plus, X, Clock, CheckCircle, XCircle, Banknote, RefreshCw } from 'lucide-react';
-import { retraitsService } from '../../services/api';
+import { retraitsService, commissionsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -21,7 +21,15 @@ export default function RetraitPage() {
   const [numero,    setNumero]    = useState('');
   const [notes,     setNotes]     = useState('');
 
-  useEffect(() => { load(); }, []);
+  const [commissions, setCommissions] = useState<any>(null);
+
+  useEffect(() => {
+    load();
+    // Charger aussi le solde commissions
+    commissionsService.stats().then(r => setCommissions(r.data)).catch(()=>{});
+  }, []);
+
+  const soldeDisponible = commissions?.solde_disponible ?? 0;
 
   const load = async () => {
     setLoading(true);
@@ -68,9 +76,9 @@ export default function RetraitPage() {
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:22 }}>
         {[
-          { label:'Total reçu',       val:`${totalPaye.toLocaleString('fr-FR')} FCFA`,    color:'#0a9e6e' },
-          { label:'En attente',        val:`${totalAttente.toLocaleString('fr-FR')} FCFA`, color:'#d0a83a' },
-          { label:'Nb demandes',       val:retraits.length,                                 color:'#1465BB' },
+          { label:'Solde commissions',  val:`${Number(soldeDisponible).toLocaleString('fr-FR')} FCFA`,  color:'#0a9e6e' },
+          { label:'Total reçu',         val:`${totalPaye.toLocaleString('fr-FR')} FCFA`,                color:'#1465BB' },
+          { label:'En attente',         val:`${totalAttente.toLocaleString('fr-FR')} FCFA`,             color:'#d0a83a' },
         ].map(({label,val,color})=>(
           <div key={label} style={T.card}>
             <p style={{ fontFamily:'Playfair Display,serif', fontSize:20, fontWeight:700, color, margin:0 }}>{val}</p>
@@ -134,8 +142,10 @@ export default function RetraitPage() {
             <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
               <div>
                 <label style={T.lbl}>Montant (FCFA) *</label>
-                <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="Ex: 10000" min={500} style={T.inp}/>
-                <p style={{ fontSize:11, color:'#8a96b0', margin:'3px 0 0' }}>Minimum : 500 FCFA</p>
+                <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} placeholder="Ex: 10000" min={500} max={soldeDisponible} style={T.inp}/>
+                <p style={{ fontSize:11, color:'#0a9e6e', margin:'3px 0 0' }}>
+                  Solde disponible : <strong>{Number(soldeDisponible).toLocaleString('fr-FR')} FCFA</strong>
+                </p>
               </div>
               <div>
                 <label style={T.lbl}>Numéro Orange Money *</label>

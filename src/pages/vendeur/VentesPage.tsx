@@ -651,12 +651,7 @@ export default function VendeurVentesPage() {
                         <div style={{ minWidth:0, flex:1 }}>
                           <span style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', wordBreak:'break-word' }}>{item.nom}</span>
                           <div style={{ display:'flex', gap:10, marginTop:2, flexWrap:'wrap' }}>
-                            <span style={{ fontSize:11, color:'#8a96b0' }}>Plancher: {item.prix_unitaire.toLocaleString('fr-FR')} FCFA</span>
-                            {item.prix_gros && (
-                              <span style={{ fontSize:11, color:'#7c3aed', fontWeight:600 }}>
-                                Prix gros: {Number(item.prix_gros).toLocaleString('fr-FR')} FCFA
-                              </span>
-                            )}
+                            <span style={{ fontSize:11, color:'#8a96b0' }}>Prix: {item.prix_unitaire.toLocaleString('fr-FR')} FCFA</span>
                           </div>
                         </div>
                         <button onClick={()=>removeItem(item.produit_id)}
