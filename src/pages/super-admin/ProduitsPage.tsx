@@ -76,7 +76,7 @@ export default function SAProduitsPage() {
       <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
         <table className="urs-table" style={{ width:'100%', borderCollapse:'separate', borderSpacing:0 }}>
           <thead>
-            <tr>{['Référence','Produit','Prix (FCFA)','Prix gros','Marge','Stock','Unité','Actions'].map(h=>(
+            <tr>{['Référence','Produit','Prix (FCFA)','Prix gros','Commission','Stock','Unité','Actions'].map(h=>(
               <th key={h} style={T.th}>{h}</th>
             ))}</tr>
           </thead>
@@ -91,7 +91,7 @@ export default function SAProduitsPage() {
                 <td style={{ ...T.td, fontWeight:500 }}>{p.nom}</td>
                 <td style={{ ...T.td, fontWeight:700 }}>{Number(p.prix_unitaire).toLocaleString('fr-FR')}</td>
                 <td style={T.td}>{p.prix_gros > 0 ? <span style={{fontWeight:600,color:'#7c3aed'}}>{Number(p.prix_gros).toLocaleString('fr-FR')}</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
-                <td style={T.td}>{p.prix_gros > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>+{Number(p.prix_unitaire-p.prix_gros).toLocaleString('fr-FR')} F</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
+                <td style={T.td}>{p.commission_fixe > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>{Number(p.commission_fixe).toLocaleString('fr-FR')} FCFA</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
                 <td style={T.td}>
                   <span style={{ fontWeight:700, color:p.quantite_stock<10?'#e53e3e':'#0a9e6e', fontSize:15 }}>{p.quantite_stock}</span>
                   {p.quantite_stock < 10 && <span style={{ marginLeft:7, background:'#fee2e2', color:'#e53e3e', fontSize:10, padding:'2px 7px', borderRadius:6, fontWeight:700 }}>BAS</span>}
@@ -138,7 +138,7 @@ export default function SAProduitsPage() {
               </div>
               <div style={{ display:'flex', justifyContent:'space-between' }}>
                 <span style={{ color:'#8a96b0' }}>Marge</span>
-                {p.prix_gros > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>+{Number(p.prix_unitaire-p.prix_gros).toLocaleString('fr-FR')} FCFA</span> : <span style={{color:'#dde5f4'}}>—</span>}
+                {p.commission_fixe > 0 && <span style={{fontWeight:700,color:'#0a9e6e', fontSize:12}}>Commission: {Number(p.commission_fixe).toLocaleString('fr-FR')} FCFA</span>}
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <span style={{ color:'#8a96b0' }}>Stock</span>
