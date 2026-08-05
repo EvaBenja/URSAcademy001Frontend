@@ -156,10 +156,11 @@ export const depensesService = {
 
 // ── Retraits ───────────────────────────────────────────────
 export const commissionsService = {
-  getAll:  () => api.get('/commissions'),
-  stats:   () => api.get('/commissions/stats'),
-  valider: (id: number) => api.post(`/commissions/${id}/valider`),
-  payer:   (id: number) => api.post(`/commissions/${id}/payer`),
+  getAll:    () => api.get('/commissions'),
+  stats:     () => api.get('/commissions/stats'),
+  modifier:  (id: number, montant: number, motif: string) => api.put(`/commissions/${id}/modifier`, { montant_commission: montant, motif_modification: motif }),
+  valider:   (id: number) => api.post(`/commissions/${id}/valider`),
+  payer:     (id: number) => api.post(`/commissions/${id}/payer`),
 };
 
 export const configurationService = {

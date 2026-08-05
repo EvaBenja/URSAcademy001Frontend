@@ -93,6 +93,16 @@ export default function MesCommissionsPage() {
                   }}>
                     {isPaye ? 'Payée ✓' : c.statut === 'validee' ? 'Créditée' : 'En attente'}
                   </span>
+                  {/* Afficher si la commission a été modifiée */}
+                  {c.montant_initial && Number(c.montant_initial) !== Number(c.montant_commission) && (
+                    <div style={{ marginTop:6, background:'#fff7ed', borderRadius:7, padding:'6px 10px', border:'1px solid #fed7aa', fontSize:11 }}>
+                      <p style={{ color:'#c2410c', fontWeight:600, margin:'0 0 2px' }}>⚠️ Modifiée par l'administration</p>
+                      <p style={{ color:'#92400e', margin:0 }}>
+                        Montant initial : <s>{Number(c.montant_initial).toLocaleString('fr-FR')} FCFA</s>
+                      </p>
+                      {c.motif_modification && <p style={{ color:'#b45309', margin:'2px 0 0' }}>Motif : {c.motif_modification}</p>}
+                    </div>
+                  )}
                 </div>
               </div>
             );
