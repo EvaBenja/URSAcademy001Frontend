@@ -205,25 +205,61 @@ export default function GestLivraisonsPage() {
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
               </div>
 
-              <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:14 }}>
-                {l.livreur && <p style={{ fontSize:13, color:'#0d1b3e', margin:0, fontWeight:500 }}>🚚 {l.livreur.prenom||l.livreur.name} {l.livreur.nom||''}</p>}
-                {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
-                {client_nom && (
-                  <div style={{ background:'#f0f4ff', borderRadius:8, padding:'8px 10px' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e' }}><User size={12} color="#1465BB"/> {client_nom}</div>
-                    {client_tel && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#1465BB', marginTop:2 }}><Phone size={11}/> {client_tel}</div>}
-                    {client_quartier && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0', marginTop:2 }}><MapPin size={11}/> {client_quartier}</div>}
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
+
+                {/* Vendeur + Livreur bien visibles */}
+                {l.statut === 'livree_attente_validation' ? (
+                  <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {/* Vendeur */}
+                    {l.vente?.caissiere && (
+                      <div style={{ background:'#f5f3ff', borderRadius:10, padding:'10px 14px', border:'1px solid #ddd6fe' }}>
+                        <p style={{ fontSize:11, fontWeight:700, color:'#5b21b6', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>👤 Vendeur</p>
+                        <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                          {`${l.vente.caissiere.prenom||l.vente.caissiere.name||''} ${l.vente.caissiere.nom||''}`.trim()}
+                        </p>
+                        {l.vente.caissiere.telephone && (
+                          <a href={`tel:${l.vente.caissiere.telephone}`} style={{ fontSize:13, color:'#7c3aed', textDecoration:'none', display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                            <Phone size={12}/> {l.vente.caissiere.telephone}
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {/* Montant */}
+                    {l.vente?.montant_total && (
+                      <div style={{ background:'#f0fdf4', borderRadius:10, padding:'10px 14px', border:'1px solid #86efac', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                        <span style={{ fontSize:13, color:'#166534', fontWeight:600 }}>💰 Montant vente</span>
+                        <span style={{ fontFamily:'Playfair Display,serif', fontSize:18, fontWeight:700, color:'#0a9e6e' }}>
+                          {Number(l.vente.montant_total).toLocaleString('fr-FR')} FCFA
+                        </span>
+                      </div>
+                    )}
+                    {/* Livreur */}
+                    {l.livreur && (
+                      <div style={{ background:'#eff6ff', borderRadius:10, padding:'10px 14px', border:'1px solid #bfdbfe' }}>
+                        <p style={{ fontSize:11, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>🚚 Livreur</p>
+                        <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                          {`${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim()}
+                        </p>
+                        {l.livreur.telephone && (
+                          <a href={`tel:${l.livreur.telephone}`} style={{ fontSize:13, color:'#1465BB', textDecoration:'none', display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                            <Phone size={12}/> {l.livreur.telephone}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-                {l.produits?.length > 0 && (
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginTop:2 }}>
-                    <Package size={11} color="#1465BB" style={{marginTop:2}}/>
-                    {l.produits.map((lp:any) => (
-                      <span key={lp.id} style={{ background:lp.statut==='livre'?'#dcfce7':lp.statut==='non_livre'?'#fee2e2':'#e0f0ff', color:lp.statut==='livre'?'#166534':lp.statut==='non_livre'?'#991b1b':'#1465BB', fontSize:10, fontWeight:600, padding:'2px 7px', borderRadius:10 }}>
-                        {lp.produit?.nom} ×{lp.quantite} {lp.statut==='livre'?'✓':lp.statut==='non_livre'?'✗':''}
-                      </span>
-                    ))}
-                  </div>
+                ) : (
+                  <>
+                    {l.livreur && <p style={{ fontSize:13, color:'#0d1b3e', margin:0, fontWeight:500 }}>🚚 {l.livreur.prenom||l.livreur.name} {l.livreur.nom||''}</p>}
+                    {l.zone_livraison && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:'#4a5578' }}><MapPin size={12} color="#1465BB"/> {l.zone_livraison}</div>}
+                    {client_nom && (
+                      <div style={{ background:'#f0f4ff', borderRadius:8, padding:'8px 10px' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, fontWeight:600, color:'#0d1b3e' }}><User size={12} color="#1465BB"/> {client_nom}</div>
+                        {client_tel && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#1465BB', marginTop:2 }}><Phone size={11}/> {client_tel}</div>}
+                        {client_quartier && <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, color:'#8a96b0', marginTop:2 }}><MapPin size={11}/> {client_quartier}</div>}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
