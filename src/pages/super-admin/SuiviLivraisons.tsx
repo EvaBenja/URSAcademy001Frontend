@@ -118,7 +118,7 @@ export default function SuiviLivraisonsPage() {
                   const sc = STATUT[l.statut]||{label:l.statut,bg:'#f1f5f9',color:'#475569'};
                   return (
                     <tr key={l.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
-                      <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{l.id}</td>
+                      <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{l.vente_id||l.id}</td>
                       <td style={T.td}><span style={{ display:'flex', alignItems:'center', gap:5 }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span></td>
                       <td style={T.td}>{l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : <span style={{ color:'#8a96b0', fontStyle:'italic' }}>Non assigné</span>}</td>
                       <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span></td>
@@ -143,12 +143,12 @@ export default function SuiviLivraisonsPage() {
                 <AccordionCard
                   key={l.id} id={l.id}
                   collapsed={isCollapsed2} onToggle={()=>toggleC(l.id)}
-                  summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span>{nomLiv2&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv2}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
+                  summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>{l.vente_id||l.id}</span>{nomLiv2&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv2}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
                   summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
                 >
                 <div style={{ padding:'14px 16px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                    <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
+                    <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>{l.vente_id||l.id}</span>
                     <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span>
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6, fontSize:13 }}>

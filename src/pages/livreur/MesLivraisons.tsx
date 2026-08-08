@@ -357,7 +357,7 @@ export default function MesCoursesPage() {
             <AccordionCard
               key={l.id} id={l.id}
               collapsed={isCollapsed3} onToggle={()=>toggleC(l.id)}
-              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span><span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span>{nomVendeur&&<span style={{fontSize:12,color:'#7c3aed'}}>{nomVendeur}</span>}</>}
+              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>{l.vente_id||l.id}</span><span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span>{nomVendeur&&<span style={{fontSize:12,color:'#7c3aed'}}>{nomVendeur}</span>}</>}
               summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
             >
             <div key={l.id} className={isDisponible || isAssigneeParCoord ? 'card-highlight' : ''} style={{ background:'white', borderRadius:14,
@@ -377,7 +377,7 @@ export default function MesCoursesPage() {
               )}
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
-                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
+                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Vente #{l.vente_id||l.id}</span>
                   {l.vente_id && <span style={{ fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Vente #{l.vente_id}</span>}
                   {isAssigneeParCoord && <span style={{ fontSize:10, background:'#ede9fe', color:'#5b21b6', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Assignée par coordinateur</span>}
                   {estExpedition && <span style={{ fontSize:10, background:'#fef9c3', color:'#854d0e', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap', fontWeight:700 }}>📦 Expédition</span>}

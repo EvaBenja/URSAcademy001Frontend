@@ -93,7 +93,7 @@ export default function CoordLivraisonsPage() {
     setSaving(true);
     try {
       await livraisonsService.assigner(livraison.id, livreurId);
-      toast.success(`✓ Course #${livraison.id} assignée à ${nomLivreur}`);
+      toast.success(`✓ Vente #${livraison.vente_id||livraison.id} assignée à ${nomLivreur}`);
       setReassignModal(null); setDetail(null); load();
     } catch (e:any) {
       toast.error(e.response?.data?.message || 'Erreur');
@@ -176,7 +176,7 @@ export default function CoordLivraisonsPage() {
             <p style={{ fontSize:12, color:'rgba(255,255,255,0.75)', margin:0 }}>
               {rejetees.map((l:any) => {
                 const nomRej = l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : '?';
-                return `Course #${l.id} rejetée par ${nomRej}`;
+                return `Vente #${l.vente_id||l.id} rejetée par ${nomRej}`;
               }).join(' · ')}
             </p>
           </div>
@@ -235,7 +235,7 @@ export default function CoordLivraisonsPage() {
               return (
                 <tr key={l.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}
                   style={{ background: l.statut==='rejetee' ? '#fff5f5' : 'white' }}>
-                  <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{l.id}</td>
+                  <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{l.vente_id||l.id}</td>
                   <td style={T.td}><span style={{ display:'flex', alignItems:'center', gap:5 }}><MapPin size={12} color="#1465BB"/>{l.zone_livraison||'—'}</span></td>
                   <td style={T.td}>
                     {nomL ? (
@@ -281,7 +281,7 @@ export default function CoordLivraisonsPage() {
                       )}
                       {l.statut === 'validee' && nomL && (
                         <button onClick={async()=>{
-                          if(!window.confirm(`Retirer ${nomL} de la course #${l.id} ?`)) return;
+                          if(!window.confirm(`Retirer ${nomL} de la vente #${l.vente_id||l.id} ?`)) return;
                           try { await livraisonsService.retirerLivreur(l.id); toast.success('Livreur retiré'); load(); }
                           catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
                         }} style={{ ...T.iconBtn, color:'#d97706', borderColor:'#fde68a', background:'#fffbeb', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
@@ -312,7 +312,7 @@ export default function CoordLivraisonsPage() {
               collapsed={isCollapsed}
               onToggle={()=>toggleC(l.id)}
               summaryLeft={<>
-                <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>#{l.id}</span>
+                <span style={{ fontWeight:600, color:'#8a96b0', fontSize:13 }}>{l.vente_id||l.id}</span>
                 <span style={{ fontSize:12, color:'#4a5578' }}>{l.zone_livraison||'—'}</span>
                 {nomL && <span style={{ fontSize:12, color:'#0a9e6e' }}>🚚 {nomL}</span>}
               </>}
@@ -321,7 +321,7 @@ export default function CoordLivraisonsPage() {
             >
               <div style={{ padding:'14px 16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
-                <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>#{l.id}</span>
+                <span style={{ fontWeight:700, color:'#1465BB', fontSize:14 }}>{l.vente_id||l.id}</span>
                 <div style={{ display:'flex', gap:5 }}>
                   <button onClick={()=>setDetail(l)} style={{ ...T.iconBtn, color:'#1465BB' }}><Eye size={13}/></button>
                   {(l.statut === 'rejetee' || (l.statut === 'en_attente' && !nomL)) && (

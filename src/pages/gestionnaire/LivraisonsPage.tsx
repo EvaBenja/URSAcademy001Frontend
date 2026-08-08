@@ -193,13 +193,13 @@ export default function GestLivraisonsPage() {
             <AccordionCard
               key={l.id} id={l.id}
               collapsed={isCollapsed} onToggle={()=>toggleC(l.id)}
-              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>#{l.id}</span>{nomLiv&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
+              summaryLeft={<><span style={{fontWeight:600,color:'#8a96b0',fontSize:13}}>{l.vente_id||l.id}</span>{nomLiv&&<span style={{fontSize:12,color:'#0a9e6e'}}>🚚 {nomLiv}</span>}<span style={{fontSize:12,color:'#4a5578'}}>{l.zone_livraison||'—'}</span></>}
               summaryRight={<span style={{background:sc.bg,color:sc.color,fontSize:10,fontWeight:600,padding:'2px 7px',borderRadius:20}}>{sc.label}</span>}
             >
             <div style={{ background:'white', borderRadius:14, border:`1.5px solid ${l.statut==='livree_attente_validation'?'#7c3aed':'#dde5f4'}`, padding:18, boxShadow:l.statut==='livree_attente_validation'?'0 4px 14px rgba(124,58,237,0.15)':'0 2px 8px rgba(0,55,133,0.04)' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:12, alignItems:'flex-start', flexWrap:'wrap', gap:8 }}>
                 <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:6, minWidth:0 }}>
-                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Course #{l.id}</span>
+                  <span style={{ fontFamily:'Playfair Display,serif', fontSize:16, fontWeight:700, color:'#1465BB' }}>Vente #{l.vente_id||l.id}</span>
                   {l.vente_id && <span style={{ fontSize:10, background:'#dcfce7', color:'#166534', padding:'2px 7px', borderRadius:10, whiteSpace:'nowrap' }}>Vente #{l.vente_id}</span>}
                 </div>
                 <span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20, whiteSpace:'nowrap', flexShrink:0 }}>{sc.label}</span>
