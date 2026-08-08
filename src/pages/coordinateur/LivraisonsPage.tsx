@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type CSSProperties } from 'react';
-import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw } from 'lucide-react';
+import { MapPin, Eye, X, Navigation, AlertTriangle, Users, Zap, RefreshCw, Trash2 } from 'lucide-react';
 import { livraisonsService, utilisateursService, geoService, storageUrl } from '../../services/api';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import toast from 'react-hot-toast';
@@ -259,10 +259,19 @@ export default function CoordLivraisonsPage() {
                     <div style={{ display:'flex', gap:5 }}>
                       <button onClick={()=>setDetail(l)} style={{ ...T.iconBtn, color:'#1465BB' }}><Eye size={13}/></button>
                       {l.statut === 'rejetee' && (
-                        <button onClick={()=>setReassignModal(l)}
-                          style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
-                          <Navigation size={11}/> Réassigner
-                        </button>
+                        <>
+                          <button onClick={()=>setReassignModal(l)}
+                            style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
+                            <Navigation size={11}/> Réassigner
+                          </button>
+                          <button onClick={async()=>{
+                            if(!window.confirm(`Supprimer la livraison rejetée #${l.id} ?`)) return;
+                            try { await livraisonsService.supprimer(l.id); toast.success('Supprimée'); load(); }
+                            catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                          }} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5', width:'auto', padding:'0 8px', fontSize:11 }}>
+                            <Trash2 size={13}/>
+                          </button>
+                        </>
                       )}
                       {l.statut === 'en_attente' && !nomL && (
                         <button onClick={()=>setReassignModal(l)}
@@ -319,6 +328,15 @@ export default function CoordLivraisonsPage() {
                     <button onClick={()=>setReassignModal(l)}
                       style={{ ...T.iconBtn, color: l.statut==='rejetee'?'#e53e3e':'#7c3aed', borderColor: l.statut==='rejetee'?'#fecaca':'#ddd6fe', background: l.statut==='rejetee'?'#fff5f5':'#f5f3ff', width:'auto', padding:'0 10px', fontSize:11, fontWeight:600 }}>
                       <Navigation size={11}/> {l.statut==='rejetee'?'Réassigner':'Assigner'}
+                    </button>
+                  )}
+                  {l.statut === 'rejetee' && (
+                    <button onClick={async()=>{
+                      if(!window.confirm(`Supprimer #${l.id} ?`)) return;
+                      try { await livraisonsService.supprimer(l.id); toast.success('Supprimée'); load(); }
+                      catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                    }} style={{ ...T.iconBtn, color:'#e53e3e', borderColor:'#fecaca', background:'#fff5f5' }}>
+                      <Trash2 size={13}/>
                     </button>
                   )}
                   {l.statut === 'validee' && nomL && (
