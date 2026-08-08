@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
-import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw, User, Phone, Bell } from 'lucide-react';
+import { Truck, MapPin, Clock, Eye, X, Play, CheckCircle, XCircle, RefreshCw, User, Phone, Bell, Trash2 } from 'lucide-react';
 import { livraisonsService, geoService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
@@ -491,6 +491,16 @@ export default function MesCoursesPage() {
                       <CheckCircle size={12}/> Clôturer
                     </button>
                   </>
+                )}
+                {/* Bouton supprimer pour ses propres courses rejetées */}
+                {l.statut === 'rejetee' && l.livreur_id === user?.id && (
+                  <button onClick={async()=>{
+                    if(!window.confirm('Supprimer cette course rejetée ?')) return;
+                    try { await livraisonsService.supprimer(l.id); toast.success('Course supprimée'); load(true); }
+                    catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                  }} style={{ width:'100%', padding:'8px', borderRadius:8, border:'1.5px solid #fecaca', background:'white', color:'#e53e3e', cursor:'pointer', fontSize:12, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+                    <Trash2 size={12}/> Supprimer cette course
+                  </button>
                 )}
               </div>
             </div>

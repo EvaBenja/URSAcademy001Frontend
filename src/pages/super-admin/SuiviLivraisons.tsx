@@ -1,5 +1,5 @@
 import { useState, useEffect, type CSSProperties } from 'react';
-import { MapPin, Truck, Trophy, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
+import { MapPin, Truck, Trophy, RefreshCw, Clock, AlertTriangle, Trash2 } from 'lucide-react';
 import { livraisonsService, ventesService, geoService } from '../../services/api';
 import LivreurMap, { isHorsZone, type LivreurPoint } from '../../components/ui/LivreurMap';
 import toast from 'react-hot-toast';
@@ -123,6 +123,17 @@ export default function SuiviLivraisonsPage() {
                       <td style={T.td}>{l.livreur ? `${l.livreur.prenom||l.livreur.name||''} ${l.livreur.nom||''}`.trim() : <span style={{ color:'#8a96b0', fontStyle:'italic' }}>Non assigné</span>}</td>
                       <td style={T.td}><span style={{ background:sc.bg, color:sc.color, fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20 }}>{sc.label}</span></td>
                       <td style={{ ...T.td, color:'#8a96b0', fontSize:12, whiteSpace:'nowrap' }}>{l.date_livraison||new Date(l.created_at).toLocaleDateString('fr-FR')}</td>
+                      <td style={T.td}>
+                        {l.statut === 'rejetee' && (
+                          <button onClick={async()=>{
+                            if(!window.confirm(`Supprimer la livraison #${l.id} rejetée ?`)) return;
+                            try { await livraisonsService.supprimer(l.id); toast.success('Supprimée'); load(); }
+                            catch(e:any){ toast.error(e.response?.data?.message||'Erreur'); }
+                          }} style={{ background:'#fee2e2', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#e53e3e' }}>
+                            <Trash2 size={13}/>
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
