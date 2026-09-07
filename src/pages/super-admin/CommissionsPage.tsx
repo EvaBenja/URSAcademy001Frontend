@@ -86,9 +86,9 @@ export default function CommissionsPage() {
       {stats && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:22 }}>
           {[
-            { label:'Total commissions', val:`${Number(stats.total_global).toLocaleString('fr-FR')} FCFA`,      color:'#1465BB' },
-            { label:'En attente',        val:`${Number(stats.total_en_attente).toLocaleString('fr-FR')} FCFA`,  color:'#d0a83a' },
-            { label:'Total payé',        val:`${Number(stats.total_paye).toLocaleString('fr-FR')} FCFA`,        color:'#0a9e6e' },
+            { label:'Solde disponible',  val:`${Number(stats.solde_disponible ?? stats.total_valide ?? 0).toLocaleString('fr-FR')} FCFA`, color:'#0a9e6e' },
+            { label:'Total payé',        val:`${Number(stats.total_paye).toLocaleString('fr-FR')} FCFA`,                                  color:'#1465BB' },
+            { label:'Total général',     val:`${Number(stats.total_global).toLocaleString('fr-FR')} FCFA`,                                color:'#d0a83a' },
           ].map(({label,val,color}) => (
             <div key={label} style={T.card}>
               <p style={{ fontFamily:'Playfair Display,serif', fontSize:18, fontWeight:700, color, margin:0 }}>{val}</p>
@@ -105,12 +105,13 @@ export default function CommissionsPage() {
             <TrendingUp size={13} style={{ verticalAlign:'middle', marginRight:5 }}/>Classement vendeurs
           </p>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {stats.par_vendeur.sort((a:any,b:any)=>b.total_commissions-a.total_commissions).map((v:any) => (
+            {stats.par_vendeur.sort((a:any,b:any)=>b.commissions_validees-a.commissions_validees).map((v:any) => (
               <div key={v.vendeur} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 12px', background:'#f8faff', borderRadius:8 }}>
                 <span style={{ fontSize:13, fontWeight:600, color:'#0d1b3e' }}>{v.vendeur}</span>
                 <div style={{ textAlign:'right' }}>
-                  <span style={{ fontSize:14, fontWeight:700, color:'#0a9e6e' }}>{Number(v.total_commissions).toLocaleString('fr-FR')} FCFA</span>
-                  <span style={{ fontSize:11, color:'#8a96b0', marginLeft:8 }}>{v.nb_ventes} vente{v.nb_ventes>1?'s':''}</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:'#0a9e6e' }}>{Number(v.commissions_validees).toLocaleString('fr-FR')} FCFA</span>
+                  <span style={{ fontSize:11, color:'#8a96b0', marginLeft:6 }}>disponible</span>
+                  {v.commissions_payees > 0 && <span style={{ fontSize:11, color:'#1465BB', display:'block' }}>{Number(v.commissions_payees).toLocaleString('fr-FR')} FCFA payé</span>}
                 </div>
               </div>
             ))}
