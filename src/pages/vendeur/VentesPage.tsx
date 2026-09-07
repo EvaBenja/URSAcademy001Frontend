@@ -437,9 +437,20 @@ export default function VendeurVentesPage() {
                     <td style={T.td}>
                       {v.client_nom ? (
                         <div>
-                          <p style={{ fontSize:13, fontWeight:500, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
-                          {v.client_telephone && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_telephone}</p>}
-                          {v.client_quartier && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_quartier}</p>}
+                          <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
+                          {v.client_telephone && (
+                            <a href={`tel:${v.client_telephone}`} style={{ fontSize:11, color:'#1465BB', textDecoration:'none', display:'flex', alignItems:'center', gap:3, marginTop:2 }}>
+                              <Phone size={10}/> {v.client_telephone}
+                            </a>
+                          )}
+                          {v.client_quartier && <p style={{ fontSize:11, color:'#8a96b0', margin:'1px 0 0', display:'flex', alignItems:'center', gap:3 }}><MapPin size={10}/>{v.client_quartier}</p>}
+                          {(v.vendeur_latitude || v.lien_localisation) && (
+                            <a href={v.lien_localisation || `https://www.google.com/maps?q=${v.vendeur_latitude},${v.vendeur_longitude}`}
+                              target="_blank" rel="noreferrer"
+                              style={{ display:'inline-flex', alignItems:'center', gap:3, marginTop:4, background:'#1465BB', color:'white', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, textDecoration:'none' }}>
+                              <MapPin size={10}/> Localisation
+                            </a>
+                          )}
                         </div>
                       ) : <span style={{ color:'#8a96b0', fontSize:12 }}>—</span>}
                     </td>
@@ -535,12 +546,27 @@ export default function VendeurVentesPage() {
                     </div>
                   </div>
                   {v.client_nom && (
-                    <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
-                      <span style={{ color:'#8a96b0' }}>Client</span>
-                      <div style={{ textAlign:'right' }}>
-                        <p style={{ fontSize:13, fontWeight:500, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
-                        {v.client_telephone && <p style={{ fontSize:11, color:'#8a96b0', margin:0 }}>{v.client_telephone}</p>}
-                      </div>
+                    <div style={{ background:'#f0f4ff', borderRadius:10, padding:'10px 12px' }}>
+                      <p style={{ fontSize:11, fontWeight:700, color:'#1465BB', textTransform:'uppercase', letterSpacing:'.5px', margin:'0 0 6px' }}>👤 Client</p>
+                      <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
+                      {v.client_telephone && (
+                        <a href={`tel:${v.client_telephone}`} style={{ fontSize:13, color:'#1465BB', textDecoration:'none', display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                          <Phone size={12}/> {v.client_telephone}
+                        </a>
+                      )}
+                      {v.client_quartier && (
+                        <p style={{ fontSize:12, color:'#4a5578', margin:'3px 0 0', display:'flex', alignItems:'center', gap:5 }}>
+                          <MapPin size={11}/> {v.client_quartier}
+                        </p>
+                      )}
+                      {(v.vendeur_latitude || v.lien_localisation) && (
+                        <a
+                          href={v.lien_localisation || `https://www.google.com/maps?q=${v.vendeur_latitude},${v.vendeur_longitude}`}
+                          target="_blank" rel="noreferrer"
+                          style={{ display:'inline-flex', alignItems:'center', gap:5, marginTop:6, background:'#1465BB', color:'white', borderRadius:7, padding:'5px 12px', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                          <MapPin size={12}/> Voir la localisation
+                        </a>
+                      )}
                     </div>
                   )}
                   <div style={{ background:'#f0f9ff', borderRadius:8, padding:'8px 12px' }}>
@@ -570,13 +596,27 @@ export default function VendeurVentesPage() {
                     <span style={{ color:'#4a5578' }}>{v.date_vente}</span>
                   </div>
                   {v.livraison && (
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <span style={{ color:'#8a96b0' }}>Livraison</span>
-                      <span style={{ display:'flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
+                    <div style={{ background:'#f0fdf4', borderRadius:10, padding:'10px 12px' }}>
+                      <p style={{ fontSize:11, fontWeight:700, color:'#0a9e6e', textTransform:'uppercase', letterSpacing:'.5px', margin:'0 0 6px' }}>🚚 Livraison</p>
+                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, fontSize:11, fontWeight:600, padding:'2px 8px', borderRadius:10,
                         background:v.livraison.statut==='terminee'?'#dcfce7':v.livraison.statut==='livree_attente_validation'?'#ede9fe':v.livraison.statut==='en_cours'?'#dbeafe':'#fef9c3',
                         color:v.livraison.statut==='terminee'?'#166534':v.livraison.statut==='livree_attente_validation'?'#5b21b6':v.livraison.statut==='en_cours'?'#1e40af':'#854d0e' }}>
-                        🚚 {v.livraison.livreur ? `${v.livraison.livreur.prenom||v.livraison.livreur.name||''} ${v.livraison.livreur.nom||''}`.trim() : 'En attente d\'un livreur'}
+                        {STATUT_LIV_GLOBAL[v.livraison.statut]?.label || v.livraison.statut}
                       </span>
+                      {v.livraison.livreur ? (
+                        <div style={{ marginTop:6 }}>
+                          <p style={{ fontSize:13, fontWeight:700, color:'#0d1b3e', margin:0 }}>
+                            {`${v.livraison.livreur.prenom||v.livraison.livreur.name||''} ${v.livraison.livreur.nom||''}`.trim()}
+                          </p>
+                          {v.livraison.livreur.telephone && (
+                            <a href={`tel:${v.livraison.livreur.telephone}`} style={{ fontSize:12, color:'#0a9e6e', textDecoration:'none', display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                              <Phone size={11}/> {v.livraison.livreur.telephone}
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize:12, color:'#8a96b0', margin:'4px 0 0' }}>En attente d'un livreur</p>
+                      )}
                     </div>
                   )}
                   {v.statut === 'annulee' && v.motif_annulation && (
