@@ -51,8 +51,9 @@ import LivreurHistorique from './pages/livreur/HistoriquePage';
 import LivreurDemandes   from './pages/livreur/DemandesPage';
 import LivreurDossiers   from './pages/livreur/DossierPage';
 
-// Retraits
-import VendeurRetraits     from './pages/vendeur/RetraitPage';
+// Closing Shopify
+import VendeurClosing     from './pages/vendeur/ClosingPage';
+import ClosingAdmin       from './pages/super-admin/ClosingAdminPage';
 import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
 import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
 import CommissionsPage     from './pages/super-admin/CommissionsPage';
@@ -104,6 +105,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="retraits"             element={<GestionRetraits />} />
             <Route path="commissions"          element={<CommissionsPage />} />
             <Route path="boutiques"            element={<BoutiquesPage />} />
+            <Route path="closing"              element={<ClosingAdmin />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
@@ -132,12 +134,14 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="positions"  element={<CoordPositions />} />
             <Route path="demandes"   element={<CoordDemandes />} />
             <Route path="ventes"     element={<CoordVentes />} />
+            <Route path="closing"    element={<ClosingAdmin />} />
           </Route>
 
           {/* Vendeur */}
           <Route path="/vendeur" element={<ProtectedRoute roles={['vendeur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
             <Route path="produits"    element={<VendeurProduits />} />
             <Route path="ventes"      element={<VendeurVentes />} />
+            <Route path="closing"     element={<VendeurClosing />} />
             <Route path="commissions" element={<VendeurCommissions />} />
             <Route path="retraits"    element={<VendeurRetraits />} />
           </Route>

@@ -16,6 +16,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Retraits',             to:'/dashboard/retraits',            Icon:Banknote        },
     { label:'Commissions',          to:'/dashboard/commissions',         Icon:TrendingUp      },
     { label:'Boutiques en ligne',   to:'/dashboard/boutiques',           Icon:Store           },
+    { label:'Closing Shopify',      to:'/dashboard/closing',             Icon:CheckSquare     },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
     { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
     { label:'Positions livreurs',   to:'/dashboard/positions',           Icon:MapPin          },
@@ -39,6 +40,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   ],
   coordinateur: [
     { label:'Livraisons',           to:'/coordinateur/livraisons',       Icon:Truck           },
+    { label:'Closing Shopify',      to:'/coordinateur/closing',          Icon:CheckSquare     },
     { label:'Positions livreurs',   to:'/coordinateur/positions',        Icon:MapPin          },
     { label:'Demandes livraison',   to:'/coordinateur/demandes',         Icon:ClipboardList   },
     { label:'Suivi ventes',         to:'/coordinateur/ventes',           Icon:TrendingUp      },
@@ -46,6 +48,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   vendeur: [
     { label:'Produits',             to:'/vendeur/produits',              Icon:Package         },
     { label:'Mes ventes',           to:'/vendeur/ventes',                Icon:TrendingUp      },
+    { label:'Closing Shopify',      to:'/vendeur/closing',               Icon:CheckSquare     },
     { label:'Mes commissions',      to:'/vendeur/commissions',           Icon:TrendingUp      },
     { label:'Mes retraits',         to:'/vendeur/retraits',              Icon:Banknote        },
   ],
