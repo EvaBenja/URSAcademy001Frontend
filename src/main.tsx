@@ -54,6 +54,9 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 // Closing Shopify
 import VendeurClosing     from './pages/vendeur/ClosingPage';
 import ClosingAdmin       from './pages/super-admin/ClosingAdminPage';
+
+// Retraits
+import VendeurRetraits     from './pages/vendeur/RetraitPage';
 import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
 import GestionRetraits     from './pages/super-admin/GestionRetraitsPage';
 import CommissionsPage     from './pages/super-admin/CommissionsPage';
