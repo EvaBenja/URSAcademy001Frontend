@@ -155,13 +155,16 @@ export const depensesService = {
   stats:   ()                => api.get('/depenses/stats'),
 };
 
-// ── Retraits ───────────────────────────────────────────────
+// ── Closing Shopify ────────────────────────────────────────
 export const closingService = {
   getAll:  (statut?: string) => api.get('/closing', { params: statut ? { statut } : {} }),
   stats:   ()               => api.get('/closing/stats'),
   prendre: (id: number)     => api.post(`/closing/${id}/prendre`),
   traiter: (id: number, data: object) => api.post(`/closing/${id}/traiter`, data),
 };
+
+// ── Commissions ────────────────────────────────────────────
+export const commissionsService = {
   getAll:    () => api.get('/commissions'),
   stats:     () => api.get('/commissions/stats'),
   modifier:  (id: number, montant: number, motif: string) => api.put(`/commissions/${id}/modifier`, { montant_commission: montant, motif_modification: motif }),
