@@ -55,6 +55,9 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 import VendeurClosing     from './pages/vendeur/ClosingPage';
 import ClosingAdmin       from './pages/super-admin/ClosingAdminPage';
 
+// Nouveaux rôles
+import MediaBuyerDash     from './pages/media-buyer/DashboardPage';
+
 // Retraits
 import VendeurRetraits     from './pages/vendeur/RetraitPage';
 import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
@@ -165,6 +168,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="historique-ca" element={<SAHistoriqueCA />} />
             <Route path="retraits"     element={<GestionRetraits />} />
             <Route path="commissions"  element={<CommissionsPage />} />
+          </Route>
+
+          {/* Media Buyer */}
+          <Route path="/media-buyer" element={<ProtectedRoute roles={['media_buyer','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="dashboard" element={<MediaBuyerDash />} />
+          </Route>
+
+          {/* Coordinateur Général */}
+          <Route path="/coord-general" element={<ProtectedRoute roles={['coordinateur_general','super_admin']}><DashboardLayout /></ProtectedRoute>}>
+            <Route path="closing" element={<ClosingAdmin />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

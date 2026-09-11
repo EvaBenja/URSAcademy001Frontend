@@ -5,12 +5,14 @@ import { authService, setCurrentRole } from '../services/api';
 import type { Role, User } from '../types';
 
 const ROLE_HOME: Record<Role, string> = {
-  super_admin:  '/dashboard',
-  gestionnaire: '/gestionnaire/dashboard',
-  coordinateur: '/coordinateur/livraisons',
-  vendeur:      '/vendeur/produits',
-  livreur:      '/livreur/livraisons',
-  compta:       '/compta/dashboard',
+  super_admin:           '/dashboard',
+  gestionnaire:          '/gestionnaire/dashboard',
+  coordinateur:          '/coordinateur/livraisons',
+  vendeur:               '/vendeur/produits',
+  livreur:               '/livreur/livraisons',
+  compta:                '/compta/dashboard',
+  media_buyer:           '/media-buyer/dashboard',
+  coordinateur_general:  '/coord-general/closing',
 };
 
 // ── helpers persistance ────────────────────────────────────────────────

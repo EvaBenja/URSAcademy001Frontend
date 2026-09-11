@@ -66,6 +66,12 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Retraits',             to:'/compta/retraits',               Icon:Banknote        },
     { label:'Commissions',          to:'/compta/commissions',            Icon:TrendingUp      },
   ],
+  media_buyer: [
+    { label:'Media Buying',         to:'/media-buyer/dashboard',         Icon:TrendingDown    },
+  ],
+  coordinateur_general: [
+    { label:'Closing Shopify',      to:'/coord-general/closing',         Icon:CheckSquare     },
+  ],
 };
 
 interface Props { isOpen?: boolean; onClose?: () => void; }
