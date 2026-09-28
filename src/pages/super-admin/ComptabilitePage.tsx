@@ -24,10 +24,9 @@ export default function ComptabilitePage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/comptabilite/journalier');
-      const data = res.data.jours || [];
+      const res = await api.get('/comptabilite/journal');
+      const data = res.data?.jours || [];
       setJours(data);
-      // Ouvrir le premier jour (le plus récent) par défaut
       if (data.length > 0) {
         setOpenJours({ [data[0].date]: true });
       }
