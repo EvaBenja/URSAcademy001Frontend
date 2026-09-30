@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+  timeout: 15000, // 15s timeout
 });
 
 // Construit l'URL complète d'un fichier stocké (ex: photo_recu) à partir du chemin relatif
@@ -22,12 +23,19 @@ api.interceptors.request.use((cfg) => {
 
 api.interceptors.response.use(
   (r) => r,
-  (err) => {
+  async (err) => {
     if (err.response?.status === 401) {
       Cookies.remove('urs_token');
       localStorage.removeItem('urs_token');
       localStorage.removeItem('urs_user');
       window.location.href = '/login';
+      return Promise.reject(err);
+    }
+    // Retry automatique une fois sur erreur réseau (pas sur 4xx/5xx)
+    if (!err.response && err.config && !err.config._retry) {
+      err.config._retry = true;
+      await new Promise(r => setTimeout(r, 1000));
+      return api(err.config);
     }
     return Promise.reject(err);
   }
