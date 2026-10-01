@@ -39,6 +39,8 @@ export default function VendeurVentesPage() {
   const [loading,    setLoading]    = useState(true);
   const [modal,      setModal]      = useState(false);
   const [saving,     setSaving]     = useState(false);
+  const [annulModal, setAnnulModal] = useState<any>(null);
+  const [motifAnnul, setMotifAnnul] = useState('');
   const [panier,     setPanier]     = useState<CartItem[]>([]);
   const [zone,       setZone]       = useState(ZONES[0]);
   const [dateVente,  setDateVente]  = useState(new Date().toISOString().split('T')[0]);
@@ -622,12 +624,58 @@ export default function VendeurVentesPage() {
                   {v.statut === 'annulee' && v.motif_annulation && (
                     <p style={{ fontSize:11, color:'#e53e3e', margin:0, fontStyle:'italic' }}>Motif : {v.motif_annulation}</p>
                   )}
+                  {/* Bouton annuler — seulement si pas encore en livraison */}
+                  {!['annulee','terminee'].includes(v.statut) && !['en_cours','livree_attente_validation','terminee'].includes(v.livraison?.statut) && (
+                    <button onClick={()=>{setAnnulModal(v);setMotifAnnul('');}}
+                      style={{ marginTop:8, width:'100%', padding:'7px', borderRadius:8, border:'1.5px solid #fecaca', background:'#fff5f5', color:'#e53e3e', cursor:'pointer', fontSize:12, fontWeight:600 }}>
+                      🗑️ Annuler cette vente
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Modal annulation vente */}
+      {annulModal && (
+        <div onClick={()=>setAnnulModal(null)} style={T.overlay}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'white', borderRadius:14, width:'100%', maxWidth:420, overflow:'hidden' }}>
+            <div style={{ padding:'16px 20px', background:'linear-gradient(90deg,#991b1b,#7f1d1d)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <h3 style={{ fontFamily:'Playfair Display,serif', fontSize:17, color:'white', margin:0 }}>Annuler la vente #{annulModal.vente_id || annulModal.id}</h3>
+              <button onClick={()=>setAnnulModal(null)} style={{ background:'rgba(255,255,255,0.2)', border:'none', borderRadius:6, width:28, height:28, cursor:'pointer', color:'white', display:'flex', alignItems:'center', justifyContent:'center' }}>✕</button>
+            </div>
+            <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
+              <div style={{ background:'#fff5f5', borderRadius:8, padding:'10px 14px', border:'1px solid #fecaca', fontSize:12, color:'#991b1b' }}>
+                ⚠️ Le stock des produits sera remis à jour automatiquement.
+              </div>
+              <div>
+                <label style={{ fontSize:13, fontWeight:600, color:'#4a5578', display:'block', marginBottom:4 }}>Motif d'annulation *</label>
+                <textarea value={motifAnnul} onChange={e=>setMotifAnnul(e.target.value)} rows={3}
+                  placeholder="Ex: Client a annulé, erreur de saisie, produit indisponible…"
+                  style={{ width:'100%', padding:'9px 12px', border:'1.5px solid #dde5f4', borderRadius:8, fontSize:13, outline:'none', resize:'none', boxSizing:'border-box' as const }}/>
+              </div>
+              <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+                <button onClick={()=>setAnnulModal(null)} style={{ padding:'9px 16px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578' }}>Retour</button>
+                <button onClick={async()=>{
+                  if(!motifAnnul.trim()||motifAnnul.trim().length<3){ alert('Motif requis (min 3 caractères)'); return; }
+                  setSaving(true);
+                  try {
+                    await ventesService.annuler(annulModal.id, motifAnnul);
+                    setAnnulModal(null); setMotifAnnul('');
+                    load();
+                  } catch(e:any){ alert(e.response?.data?.message||'Erreur'); }
+                  finally { setSaving(false); }
+                }} disabled={saving}
+                  style={{ padding:'9px 20px', borderRadius:8, background:'#e53e3e', color:'white', border:'none', cursor:'pointer', fontWeight:600, opacity:saving?0.6:1 }}>
+                  {saving?'…':'Confirmer l\'annulation'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal panier + infos client */}
       {modal && (
