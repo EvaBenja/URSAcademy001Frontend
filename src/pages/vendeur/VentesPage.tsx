@@ -41,6 +41,8 @@ export default function VendeurVentesPage() {
   const [saving,     setSaving]     = useState(false);
   const [annulModal, setAnnulModal] = useState<any>(null);
   const [motifAnnul, setMotifAnnul] = useState('');
+  const [searchProduit,    setSearchProduit]    = useState('');
+  const [showProduitList,  setShowProduitList]  = useState(false);
   const [panier,     setPanier]     = useState<CartItem[]>([]);
   const [zone,       setZone]       = useState(ZONES[0]);
   const [dateVente,  setDateVente]  = useState(new Date().toISOString().split('T')[0]);
@@ -712,21 +714,45 @@ export default function VendeurVentesPage() {
               </div>
 
               {/* Sélection produit */}
-              <div>
+              <div style={{ position:'relative' }}>
                 <label style={T.lbl}>Ajouter un produit
                   <span style={{ fontWeight:400, color:'#8a96b0', marginLeft:6, fontSize:11 }}>
                     ({produits.filter((p:any)=>p.quantite_stock>0).length} en stock)
                   </span>
                 </label>
-                <select onChange={e=>{ if(e.target.value){ addToCart(e.target.value); e.target.value=''; }}} style={T.inp} value="">
-                  <option value="" disabled>— Sélectionner un produit —</option>
-                  {produits.map((p:any) => (
-                    <option key={p.id} value={String(p.id)} disabled={p.quantite_stock===0}>
-                      {p.nom} {p.unite?`(${p.unite})`:''} — {Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA
-                      {p.quantite_stock===0?' — RUPTURE':` — stock: ${p.quantite_stock}`}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="text"
+                  placeholder="🔍 Rechercher un produit…"
+                  value={searchProduit}
+                  onChange={e=>setSearchProduit(e.target.value)}
+                  onFocus={()=>setShowProduitList(true)}
+                  onBlur={()=>setTimeout(()=>setShowProduitList(false),200)}
+                  style={{ ...T.inp, marginBottom:0 }}
+                />
+                {showProduitList && (
+                  <div style={{ position:'absolute', top:'100%', left:0, right:0, zIndex:50, background:'white', border:'1.5px solid #dde5f4', borderRadius:'0 0 10px 10px', maxHeight:260, overflowY:'auto', boxShadow:'0 8px 24px rgba(0,55,133,0.12)' }}>
+                    {produits
+                      .filter((p:any) => p.quantite_stock > 0) // masquer ruptures
+                      .filter((p:any) => !searchProduit.trim() || p.nom.toLowerCase().includes(searchProduit.toLowerCase()) || (p.reference||'').toLowerCase().includes(searchProduit.toLowerCase()))
+                      .map((p:any) => (
+                        <div key={p.id}
+                          onMouseDown={()=>{ addToCart(String(p.id)); setSearchProduit(''); setShowProduitList(false); }}
+                          style={{ padding:'10px 14px', cursor:'pointer', borderBottom:'1px solid #f0f4fb', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                          onMouseEnter={e=>(e.currentTarget.style.background='#f0f4ff')}
+                          onMouseLeave={e=>(e.currentTarget.style.background='white')}>
+                          <div>
+                            <p style={{ fontSize:13, fontWeight:600, color:'#0d1b3e', margin:0 }}>{p.nom} {p.unite?`(${p.unite})`:''}</p>
+                            <p style={{ fontSize:11, color:'#8a96b0', margin:'2px 0 0' }}>Stock: {p.quantite_stock}</p>
+                          </div>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#0a9e6e', flexShrink:0 }}>{Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</span>
+                        </div>
+                      ))
+                    }
+                    {produits.filter((p:any)=>p.quantite_stock>0&&(!searchProduit.trim()||p.nom.toLowerCase().includes(searchProduit.toLowerCase()))).length===0 && (
+                      <p style={{ padding:'12px 14px', color:'#8a96b0', fontSize:13, margin:0 }}>Aucun produit trouvé</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Panier */}
