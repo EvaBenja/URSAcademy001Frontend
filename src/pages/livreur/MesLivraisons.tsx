@@ -59,8 +59,10 @@ export default function MesCoursesPage() {
       setLastRefresh(new Date());
 
       const dispoIds = new Set<number>(
-        data.filter((l:any) => (!l.livreur_id && ['en_attente','validee'].includes(l.statut)) || l.statut === 'rejetee')
-            .map((l:any) => l.id)
+        data.filter((l:any) => {
+          const sansLivreur = !l.livreur_id || l.livreur_id === null || l.livreur_id === 0;
+          return (sansLivreur && ['en_attente','validee'].includes(l.statut)) || l.statut === 'rejetee';
+        }).map((l:any) => l.id)
       );
       // Courses nouvellement assignées à CE livreur (non lues)
       const assignIds = new Set<number>(
@@ -223,7 +225,10 @@ export default function MesCoursesPage() {
     finally { setSaving(false); }
   };
 
-  const dispos     = livraisons.filter(l => (!l.livreur_id && ['en_attente','validee'].includes(l.statut)) || l.statut === 'rejetee');
+  const dispos = livraisons.filter(l => {
+    const sansLivreur = !l.livreur_id || l.livreur_id === null || l.livreur_id === 0;
+    return (sansLivreur && ['en_attente', 'validee'].includes(l.statut)) || l.statut === 'rejetee';
+  });
   const miennes    = livraisons.filter(l => Number(l.livreur_id) === Number(user?.id));
   const aConfirmer = miennes.filter(l => l.statut === 'validee').length;
   const enCours    = miennes.filter(l => l.statut === 'en_cours').length;
