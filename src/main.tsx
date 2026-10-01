@@ -60,6 +60,9 @@ import BudgetStockPage    from './pages/super-admin/BudgetStockPage';
 import BeneficesPage      from './pages/super-admin/BeneficesPage';
 import VendeurBoutique    from './pages/vendeur/MaBoutiquePage';
 
+// Nouveaux rôles
+import MediaBuyerDash     from './pages/media-buyer/DashboardPage';
+
 // Retraits
 import VendeurRetraits     from './pages/vendeur/RetraitPage';
 import VendeurCommissions  from './pages/vendeur/MesCommissionsPage';
