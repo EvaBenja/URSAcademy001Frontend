@@ -55,8 +55,10 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 import VendeurClosing     from './pages/vendeur/ClosingPage';
 import ClosingAdmin       from './pages/super-admin/ClosingAdminPage';
 
-// Nouveaux rôles
-import MediaBuyerDash     from './pages/media-buyer/DashboardPage';
+// Finance & Boutique
+import BudgetStockPage    from './pages/super-admin/BudgetStockPage';
+import BeneficesPage      from './pages/super-admin/BeneficesPage';
+import VendeurBoutique    from './pages/vendeur/MaBoutiquePage';
 
 // Retraits
 import VendeurRetraits     from './pages/vendeur/RetraitPage';
@@ -112,6 +114,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="commissions"          element={<CommissionsPage />} />
             <Route path="boutiques"            element={<BoutiquesPage />} />
             <Route path="closing"              element={<ClosingAdmin />} />
+            <Route path="budget-stock"         element={<BudgetStockPage />} />
+            <Route path="benefices"            element={<BeneficesPage />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
             <Route path="rapports"             element={<SARapports />} />
@@ -147,6 +151,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/vendeur" element={<ProtectedRoute roles={['vendeur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
             <Route path="produits"    element={<VendeurProduits />} />
             <Route path="ventes"      element={<VendeurVentes />} />
+            <Route path="boutique"    element={<VendeurBoutique />} />
             <Route path="closing"     element={<VendeurClosing />} />
             <Route path="commissions" element={<VendeurCommissions />} />
             <Route path="retraits"    element={<VendeurRetraits />} />

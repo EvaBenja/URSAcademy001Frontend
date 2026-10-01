@@ -172,6 +172,20 @@ export const closingService = {
 };
 
 // ── Commissions ────────────────────────────────────────────
+export const financeService = {
+  budgetStock:        ()                              => api.get('/finance/budget-stock'),
+  deduireBudgetStock: (montant: number, description: string) => api.post('/finance/budget-stock/deduire', { montant, description }),
+  benefices:          (periode?: string)              => api.get('/finance/benefices', { params: periode ? { periode } : {} }),
+  mediaBuying:        ()                              => api.get('/finance/media-buying'),
+  deduireMediaBuying: (montant: number, description: string) => api.post('/finance/media-buying/deduire', { montant, description }),
+};
+
+export const boutiqueVendeurService = {
+  monLien:     ()                                                    => api.get('/mon-lien'),
+  stats:       ()                                                    => api.get('/ma-boutique/stats'),
+  update:      (nom_boutique: string, description_boutique: string) => api.put('/ma-boutique', { nom_boutique, description_boutique }),
+};
+
 export const commissionsService = {
   getAll:    () => api.get('/commissions'),
   stats:     () => api.get('/commissions/stats'),
