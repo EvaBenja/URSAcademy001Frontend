@@ -442,6 +442,18 @@ export default function MesCoursesPage() {
                   </div>
                 )}
 
+                {/* Produits Shopify (si pas d'items en base) */}
+                {!produits && l.vente?.notes && l.vente.notes.includes('Shopify') && (
+                  <div style={{ background:'#dbeafe', borderRadius:8, padding:'8px 12px', border:'1px solid #bfdbfe' }}>
+                    <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>📦 Commande Shopify</p>
+                    <p style={{ fontSize:12, color:'#0d1b3e', margin:0 }}>{l.vente.notes}</p>
+                    <div style={{ background:'linear-gradient(90deg,#003785,#1465BB)', borderRadius:8, padding:'8px 12px', marginTop:6, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:12, color:'rgba(255,255,255,0.8)' }}>💰 Total à encaisser</span>
+                      <span style={{ fontSize:16, fontWeight:700, color:'#d0a83a' }}>{Number(l.vente.montant_total).toLocaleString('fr-FR')} FCFA</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Client */}
                 {(client_nom || client_tel || client_quartier) && (
                   <div style={{ background:'#eff6ff', borderRadius:8, padding:'8px 10px', border:'1px solid #bfdbfe' }}>
