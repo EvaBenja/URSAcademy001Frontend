@@ -31,6 +31,8 @@ const ZONES = QUARTIERS_OUAGA;
 
 interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; prix_total_vendeur?: number; }
 
+const cleanNom = (nom?: string) => (nom||'—').replace(/^\[Archivé\]\s*/i, '');
+
 export default function VendeurVentesPage() {
   const { user } = useAuth();
   const [ventes,     setVentes]     = useState<any[]>([]);
@@ -220,7 +222,7 @@ export default function VendeurVentesPage() {
     const q = queryVentes.toLowerCase();
     return (v.client_nom||'').toLowerCase().includes(q) ||
            (v.zone_livraison||'').toLowerCase().includes(q) ||
-           (v.items||[]).some((it:any) => (it.produit?.nom||'').toLowerCase().includes(q)) ||
+           (v.items||[]).some((it:any) => (cleanNom(it.produit?.nom)||'').toLowerCase().includes(q)) ||
            String(v.id).includes(q);
   });
   const totalPages = Math.ceil(ventesFiltered.length / PAGE_SIZE);
@@ -296,8 +298,8 @@ export default function VendeurVentesPage() {
             const sl = STATUT_LIV[liv.statut] || {label:liv.statut, bg:'#f1f5f9', color:'#475569', step:0};
             const nomLivreur = liv.livreur ? `${liv.livreur.prenom||liv.livreur.name||''} ${liv.livreur.nom||''}`.trim() : null;
             const produits = v.items?.length > 0
-              ? v.items.map((it:any) => `${it.produit?.nom} ×${it.quantite}`).join(', ')
-              : `${v.produit?.nom||'—'} ×${v.quantite}`;
+              ? v.items.map((it:any) => `${cleanNom(it.produit?.nom)} ×${it.quantite}`).join(', ')
+              : `${cleanNom(v.produit?.nom)} ×${v.quantite}`;
             return (
               <div key={v.id} style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:8, marginBottom:10 }}>
@@ -435,8 +437,8 @@ export default function VendeurVentesPage() {
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{v.id}</td>
                     <td style={T.td}>
                       {v.items?.length > 0
-                        ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>{v.items.map((it:any)=><span key={it.id} style={{fontSize:12}}>{it.produit?.nom} ×{it.quantite}</span>)}</div>
-                        : <span>{v.produit?.nom||'—'} ×{v.quantite}</span>}
+                        ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>{v.items.map((it:any)=><span key={it.id} style={{fontSize:12}}>{cleanNom(it.produit?.nom)} ×{it.quantite}</span>)}</div>
+                        : <span>{cleanNom(v.produit?.nom)} ×{v.quantite}</span>}
                     </td>
                     <td style={T.td}>
                       {v.client_nom ? (
@@ -463,7 +465,7 @@ export default function VendeurVentesPage() {
                         ? <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                             {v.items.map((it:any) => (
                               <div key={it.id} style={{ fontSize:11 }}>
-                                <span style={{ color:'#0d1b3e' }}>{it.produit?.nom}</span>
+                                <span style={{ color:'#0d1b3e' }}>{cleanNom(it.produit?.nom)}</span>
                                 {it.couleur && <span style={{ background:'#e0f0ff', color:'#1465BB', borderRadius:6, padding:'1px 6px', fontSize:10, marginLeft:5, fontWeight:600 }}>{it.couleur}</span>}
                                 <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
                                 {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
@@ -539,14 +541,14 @@ export default function VendeurVentesPage() {
                       {v.items?.length > 0
                         ? v.items.map((it:any) => (
                             <div key={it.id} style={{ fontSize:12 }}>
-                              <span style={{ color:'#0d1b3e', fontWeight:500 }}>{it.produit?.nom}</span>
+                              <span style={{ color:'#0d1b3e', fontWeight:500 }}>{cleanNom(it.produit?.nom)}</span>
                               {it.couleur && <span style={{ background:'#e0f0ff', color:'#1465BB', borderRadius:6, padding:'1px 6px', fontSize:10, marginLeft:5, fontWeight:600 }}>{it.couleur}</span>}
                               <span style={{ color:'#4a5578' }}> ×{it.quantite} @ {Number(it.prix_vendeur||it.prix_unitaire).toLocaleString('fr-FR')}</span>
                               {it.remise > 0 && <span style={{ color:'#e53e3e' }}> −{Number(it.remise).toLocaleString('fr-FR')}</span>}
                               <span style={{ color:'#1465BB', fontWeight:600 }}> = {Number(it.sous_total).toLocaleString('fr-FR')}</span>
                             </div>
                           ))
-                        : <span style={{ color:'#4a5578' }}>{v.produit?.nom||'—'} ×{v.quantite}</span>}
+                        : <span style={{ color:'#4a5578' }}>{cleanNom(v.produit?.nom)} ×{v.quantite}</span>}
                     </div>
                   </div>
                   {v.client_nom && (
