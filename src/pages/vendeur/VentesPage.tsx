@@ -31,7 +31,7 @@ const ZONES = QUARTIERS_OUAGA;
 
 interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; prix_total_vendeur?: number; }
 
-const cleanNom = (nom?: string) => (nom||'—').replace(/^\[Archivé\]\s*/i, '');
+const cleanNom = (nom?: string) => (nom||'—').replace(/(\[Archivé\]\s*)*/gi, '').trim() || '—';
 
 export default function VendeurVentesPage() {
   const { user } = useAuth();
