@@ -348,8 +348,8 @@ export default function MesCoursesPage() {
           const vendeur = l.vente?.caissiere;
           const nomVendeur = vendeur ? `${vendeur.prenom||vendeur.name||''} ${vendeur.nom||''}`.trim() : null;
           // Produits de la vente
-          const produits = (l.vente?.items?.length > 0) ? l.vente.items : null;
-          const isShopify = l.vente?.notes?.includes('Shopify');
+          const isShopify = !!(l.vente?.notes?.includes('Shopify'));
+          const produits = (!isShopify && l.vente?.items?.length > 0) ? l.vente.items : null;
           const noteUrgence = l.vente?.note_urgence;
           const estExpedition = l.vente?.est_expedition;
           // Nouvelle assignation non lue par le livreur
