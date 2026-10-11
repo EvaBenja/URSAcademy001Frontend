@@ -348,7 +348,8 @@ export default function MesCoursesPage() {
           const vendeur = l.vente?.caissiere;
           const nomVendeur = vendeur ? `${vendeur.prenom||vendeur.name||''} ${vendeur.nom||''}`.trim() : null;
           // Produits de la vente
-          const produits = l.vente?.items?.length > 0 ? l.vente.items : null;
+          const produits = (l.vente?.items?.length > 0) ? l.vente.items : null;
+          const isShopify = l.vente?.notes?.includes('Shopify');
           const noteUrgence = l.vente?.note_urgence;
           const estExpedition = l.vente?.est_expedition;
           // Nouvelle assignation non lue par le livreur
@@ -420,17 +421,22 @@ export default function MesCoursesPage() {
                   <div>
                     <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>📦 Produits</p>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                      {produits.map((it:any) => (
-                        <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'5px 10px', fontSize:11 }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
-                            {it.produit?.nom} ×{it.quantite}
-                            {it.couleur && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                      {produits.map((it:any) => {
+                        const nomProduit = isShopify
+                          ? (it.produit?.nom?.replace(/^\[Archivé\]\s*/i,'') || it.couleur || 'Produit Shopify')
+                          : (it.produit?.nom?.replace(/(\[Archivé\]\s*)*/gi,'').trim() || '—');
+                        return (
+                          <div key={it.id} style={{ background:'#dbeafe', borderRadius:8, padding:'5px 10px', fontSize:11 }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:4, color:'#1e40af', fontWeight:600 }}>
+                              {nomProduit} ×{it.quantite}
+                              {it.couleur && !isShopify && <span style={{ background:'white', color:'#1465BB', borderRadius:4, padding:'0 5px', fontSize:9, fontWeight:700 }}>{it.couleur}</span>}
+                            </div>
+                            <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:2, fontSize:12 }}>
+                              À solder : {Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)).toLocaleString('fr-FR')} FCFA
+                            </div>
                           </div>
-                          <div style={{ color:'#0d1b3e', fontWeight:700, marginTop:2, fontSize:12 }}>
-                            À solder : {Number(it.sous_total||(it.prix_vendeur||it.prix_unitaire)*it.quantite-(it.remise||0)).toLocaleString('fr-FR')} FCFA
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                     {/* Total à collecter — mis en évidence */}
                     {totalCourse > 0 && (
@@ -442,8 +448,8 @@ export default function MesCoursesPage() {
                   </div>
                 )}
 
-                {/* Produits Shopify (si pas d'items en base) */}
-                {!produits && l.vente?.notes && l.vente.notes.includes('Shopify') && (
+                {/* Produits Shopify */}
+                {isShopify && (
                   <div style={{ background:'#dbeafe', borderRadius:8, padding:'8px 12px', border:'1px solid #bfdbfe' }}>
                     <p style={{ fontSize:10, fontWeight:700, color:'#1e40af', textTransform:'uppercase', margin:'0 0 4px', letterSpacing:'.5px' }}>📦 Commande Shopify</p>
                     <p style={{ fontSize:12, color:'#0d1b3e', margin:0 }}>{l.vente.notes}</p>
