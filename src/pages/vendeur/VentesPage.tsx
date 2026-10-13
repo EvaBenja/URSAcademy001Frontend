@@ -436,11 +436,7 @@ export default function VendeurVentesPage() {
                   <tr key={v.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
                     <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>#{v.id}</td>
                     <td style={T.td}>
-                      {v.nom_affichage
-                        ? <span style={{fontSize:12}}>{v.nom_affichage}</span>
-                        : v.items?.length > 0
-                          ? <div style={{ display:'flex', flexDirection:'column', gap:2 }}>{v.items.map((it:any)=><span key={it.id} style={{fontSize:12}}>{cleanNom(it.produit?.nom)} ×{it.quantite}</span>)}</div>
-                          : <span>{cleanNom(v.produit?.nom)} ×{v.quantite}</span>}
+                      <span style={{fontSize:12}}>{v['nom_affichage'] || (v.items?.length > 0 ? v.items.map((it:any)=>cleanNom(it.produit?.nom)+' ×'+it.quantite).join(', ') : cleanNom(v.produit?.nom)+' ×'+v.quantite)}</span>
                     </td>
                     <td style={T.td}>
                       {v.client_nom ? (
@@ -540,8 +536,8 @@ export default function VendeurVentesPage() {
                   <div style={{ display:'flex', justifyContent:'space-between', gap:8 }}>
                     <span style={{ color:'#8a96b0', flexShrink:0 }}>Produit(s)</span>
                     <div style={{ textAlign:'right' }}>
-                      {v.nom_affichage
-                        ? <span style={{ color:'#0d1b3e', fontSize:12, fontWeight:500 }}>{v.nom_affichage}</span>
+                      {v['nom_affichage']
+                        ? <span style={{ color:'#0d1b3e', fontSize:12, fontWeight:500 }}>{v['nom_affichage']}</span>
                         : v.items?.length > 0
                           ? v.items.map((it:any) => (
                               <div key={it.id} style={{ fontSize:12 }}>
