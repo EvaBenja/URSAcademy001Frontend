@@ -88,7 +88,10 @@ export default function SAProduitsPage() {
             ) : filtered.map((p:any) => (
               <tr key={p.id} onMouseEnter={e=>e.currentTarget.style.background='#f6f9ff'} onMouseLeave={e=>e.currentTarget.style.background='white'}>
                 <td style={{ ...T.td, fontWeight:700, color:'#1465BB' }}>{p.reference}</td>
-                <td style={{ ...T.td, fontWeight:500 }}>{p.nom}</td>
+                <td style={{ ...T.td, fontWeight:500 }}>
+                  {p.nom?.includes('[Archivé]') && <span style={{fontSize:10,background:'#fee2e2',color:'#991b1b',borderRadius:4,padding:'1px 5px',marginRight:5,fontWeight:600}}>Archivé</span>}
+                  {(p.nom||'').replace(/(\[Archivé\]\s*)*/gi,'').trim()}
+                </td>
                 <td style={{ ...T.td, fontWeight:700 }}>{Number(p.prix_unitaire).toLocaleString('fr-FR')}</td>
                 <td style={T.td}>{p.prix_gros > 0 ? <span style={{fontWeight:600,color:'#7c3aed'}}>{Number(p.prix_gros).toLocaleString('fr-FR')}</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
                 <td style={T.td}>{p.commission_fixe > 0 ? <span style={{fontWeight:700,color:'#0a9e6e'}}>{Number(p.commission_fixe).toLocaleString('fr-FR')} FCFA</span> : <span style={{color:'#dde5f4'}}>—</span>}</td>
@@ -119,7 +122,10 @@ export default function SAProduitsPage() {
           <div key={p.id} style={{ padding:'14px 16px', borderBottom:'1px solid #f0f4fb' }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, marginBottom:10 }}>
               <div style={{ minWidth:0 }}>
-                <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.nom}</p>
+                <p style={{ fontSize:14, fontWeight:600, color:'#0d1b3e', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                {p.nom?.includes('[Archivé]') && <span style={{fontSize:10,background:'#fee2e2',color:'#991b1b',borderRadius:4,padding:'1px 5px',marginRight:5,fontWeight:600}}>Archivé</span>}
+                {(p.nom||'').replace(/(\[Archivé\]\s*)*/gi,'').trim()}
+              </p>
                 <p style={{ fontSize:11, color:'#1465BB', fontWeight:600 }}>{p.reference}</p>
               </div>
               <div style={{ display:'flex', gap:5, flexShrink:0 }}>

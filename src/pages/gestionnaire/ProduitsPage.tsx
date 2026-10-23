@@ -101,7 +101,10 @@ export default function ProduitsPage() {
           data={products}
           columns={[
             { key:'reference', label:'Réf.' },
-            { key:'nom', label:'Désignation', render:(row)=><span style={{fontWeight:600,color:'#1e293b'}}>{row.nom}</span> },
+            { key:'nom', label:'Désignation', render:(row)=><span style={{fontWeight:600,color:'#1e293b'}}>
+              {row.nom?.includes('[Archivé]') && <span style={{fontSize:10,background:'#fee2e2',color:'#991b1b',borderRadius:4,padding:'1px 5px',marginRight:5,fontWeight:600}}>Archivé</span>}
+              {(row.nom||'').replace(/(\[Archivé\]\s*)*/gi,'').trim()}
+            </span> },
             { key:'prix_unitaire', label:'Prix Réf.',
               render:(row)=>(
                 <div style={{ display:'flex', alignItems:'center', gap:6, color:'#1465BB', fontWeight:700 }}>
