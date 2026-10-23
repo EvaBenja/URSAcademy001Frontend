@@ -31,7 +31,10 @@ const ZONES = QUARTIERS_OUAGA;
 
 interface CartItem { produit_id:number; nom:string; prix_unitaire:number; prix_gros:number|null; prix_vendeur:number; quantite:number; remise:number; couleur:string; prix_total_vendeur?: number; }
 
-const cleanNom = (nom?: string) => (nom||'—').replace(/(\[Archivé\]\s*)*/gi, '').trim() || '—';
+const cleanNom = (nom?: string): string => {
+  if (!nom) return '—';
+  return nom.replace(/(\[Arch[ié]v[eé]\]\s*)*/gi, '').trim() || nom;
+};
 
 export default function VendeurVentesPage() {
   const { user } = useAuth();
@@ -299,7 +302,7 @@ export default function VendeurVentesPage() {
             const nomLivreur = liv.livreur ? `${liv.livreur.prenom||liv.livreur.name||''} ${liv.livreur.nom||''}`.trim() : null;
             const produits = v.items?.length > 0
               ? v.items.map((it:any) => `${cleanNom(it.produit?.nom)} ×${it.quantite}`).join(', ')
-              : `${cleanNom(v.produit?.nom)} ×${v.quantite}`;
+              : cleanNom(v.produit?.nom) + ' ×' + v.quantite;
             return (
               <div key={v.id} style={{ padding:'14px 18px', borderBottom:'1px solid #f0f4fb' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexWrap:'wrap', gap:8, marginBottom:10 }}>
