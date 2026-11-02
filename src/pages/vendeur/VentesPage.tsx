@@ -557,7 +557,7 @@ export default function VendeurVentesPage() {
                   </div>
                   {v.client_nom && (
                     <div style={{ background:'#f0f4ff', borderRadius:10, padding:'10px 12px' }}>
-                      <p style={{ fontSize:11, fontWeight:700, color:'#1465BB', textTransform:'uppercase', letterSpacing:'.5px', margin:'0 0 6px' }}>👤 Client</p>
+                      <p style={{ fontSize:11, fontWeight:700, color:'#1465BB', textTransform:'uppercase', letterSpacing:'.5px', margin:'0 0 6px' }}>👤 Client{v.notes?.startsWith('Commande boutique en ligne') && <span style={{ marginLeft:8, background:'#dcfce7', color:'#166534', borderRadius:10, padding:'1px 8px', fontSize:10, textTransform:'none', letterSpacing:0 }}>🛒 Boutique en ligne</span>}</p>
                       <p style={{ fontSize:14, fontWeight:700, color:'#0d1b3e', margin:0 }}>{v.client_nom}</p>
                       {v.client_telephone && (
                         <a href={`tel:${v.client_telephone}`} style={{ fontSize:13, color:'#1465BB', textDecoration:'none', display:'flex', alignItems:'center', gap:5, marginTop:3 }}>

@@ -76,6 +76,8 @@ import BoutiquesPage       from './pages/super-admin/BoutiquesPage';
 
 // Public (sans auth)
 import CataloguePage       from './pages/public/CataloguePage';
+import BoutiquePub from './pages/public/BoutiquePubPage';
+import VendeurVitrine from './pages/vendeur/MaVitrinePage';
 
 const Soon = ({ title }: { title: string }) => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'60vh' }}>
@@ -105,6 +107,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
           {/* Catalogue public — accessible sans connexion */}
           <Route path="/catalogue/:code" element={<CataloguePage />} />
+          <Route path="/boutique/:code" element={<BoutiquePub />} />
           <Route path="/register" element={<RegisterPage />} />
 
           {/* Super Admin */}
@@ -161,6 +164,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="produits"    element={<VendeurProduits />} />
             <Route path="ventes"      element={<VendeurVentes />} />
             <Route path="boutique"    element={<VendeurBoutique />} />
+            <Route path="vitrine"     element={<VendeurVitrine />} />
             <Route path="closing"     element={<VendeurClosing />} />
             <Route path="commissions" element={<VendeurCommissions />} />
             <Route path="retraits"    element={<VendeurRetraits />} />

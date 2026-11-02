@@ -181,6 +181,27 @@ export const bilansService = {
   ajouter:     (id: number, lignes: object[])      => api.post(`/bilans/${id}/lignes`, { lignes }),
 };
 
+const multipart = (onProgress?: (p: number) => void) => ({
+  timeout: 180000, // les vidéos peuvent être longues à envoyer sur réseau mobile
+  headers: { 'Content-Type': 'multipart/form-data' },
+  onUploadProgress: (e: { loaded: number; total?: number }) => {
+    if (e.total && onProgress) onProgress(Math.round((e.loaded * 100) / e.total));
+  },
+});
+
+export const boutiqueProduitsService = {
+  list:   ()                                              => api.get('/ma-boutique/produits'),
+  create: (fd: FormData, onProgress?: (p: number) => void) => api.post('/ma-boutique/produits', fd, multipart(onProgress)),
+  update: (id: number, fd: FormData, onProgress?: (p: number) => void) => api.post(`/ma-boutique/produits/${id}/modifier`, fd, multipart(onProgress)),
+  remove: (id: number)                                    => api.delete(`/ma-boutique/produits/${id}`),
+};
+
+// Page publique (sans connexion)
+export const boutiquePubService = {
+  get:       (code: string)                  => api.get(`/boutique/${encodeURIComponent(code)}`),
+  commander: (code: string, data: object)    => api.post(`/boutique/${encodeURIComponent(code)}/commander`, data),
+};
+
 export const financeService = {
   budgetStock:        ()                              => api.get('/finance/budget-stock'),
   deduireBudgetStock: (montant: number, description: string) => api.post('/finance/budget-stock/deduire', { montant, description }),
@@ -192,7 +213,8 @@ export const financeService = {
 export const boutiqueVendeurService = {
   monLien:     ()                                                    => api.get('/mon-lien'),
   stats:       ()                                                    => api.get('/ma-boutique/stats'),
-  update:      (nom_boutique: string, description_boutique: string) => api.put('/ma-boutique', { nom_boutique, description_boutique }),
+  update:      (nom_boutique: string, description_boutique: string, whatsapp_boutique?: string) =>
+                 api.put('/ma-boutique', { nom_boutique, description_boutique, ...(whatsapp_boutique !== undefined ? { whatsapp_boutique } : {}) }),
 };
 
 export const commissionsService = {

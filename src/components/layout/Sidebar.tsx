@@ -5,8 +5,7 @@ import {
   LayoutDashboard, Package, TrendingUp, TrendingDown, Truck,
   Users, FolderOpen, BarChart2, MapPin, Banknote, Store,
   LogOut, ChevronRight, Settings, Trophy,
-  CheckSquare, Bell, ClipboardList, X,
-} from 'lucide-react';
+  CheckSquare, Bell, ClipboardList, X, ImagePlus } from 'lucide-react';
 
 const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]> = {
   super_admin: [
@@ -53,6 +52,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Produits',             to:'/vendeur/produits',              Icon:Package         },
     { label:'Mes ventes',           to:'/vendeur/ventes',                Icon:TrendingUp      },
     { label:'Ma boutique',          to:'/vendeur/boutique',              Icon:Store           },
+    { label:'Ma vitrine',           to:'/vendeur/vitrine',               Icon:ImagePlus       },
     { label:'Closing Shopify',      to:'/vendeur/closing',               Icon:CheckSquare     },
     { label:'Mes commissions',      to:'/vendeur/commissions',           Icon:TrendingUp      },
     { label:'Mes retraits',         to:'/vendeur/retraits',              Icon:Banknote        },

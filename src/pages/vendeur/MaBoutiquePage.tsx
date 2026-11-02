@@ -1,6 +1,8 @@
 import { useState, useEffect, type CSSProperties } from 'react';
 import { RefreshCw, Copy, Check, Edit2, X, Store, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { boutiqueVendeurService } from '../../services/api';
+import { lienBoutiquePublique } from '../../utils/boutique';
 import toast from 'react-hot-toast';
 
 export default function MaBoutiquePage() {
@@ -12,6 +14,7 @@ export default function MaBoutiquePage() {
   const [saving,  setSaving]  = useState(false);
   const [nom,     setNom]     = useState('');
   const [desc,    setDesc]    = useState('');
+  const [wa,      setWa]      = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -20,14 +23,17 @@ export default function MaBoutiquePage() {
       setLien(l.data); setStats(s.data);
       setNom(l.data.nom_boutique || '');
       setDesc(l.data.description_boutique || '');
+      setWa(l.data.whatsapp_boutique || '');
     } catch { toast.error('Erreur chargement'); }
     finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
 
+  const lienPublic = lienBoutiquePublique(lien?.code_boutique);
+
   const copyLink = () => {
-    const link = lien?.lien || '';
+    const link = lienPublic;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(link).then(() => { setCopied(true); toast.success('Lien copié !'); setTimeout(()=>setCopied(false),2000); });
     } else {
@@ -41,7 +47,7 @@ export default function MaBoutiquePage() {
   const save = async () => {
     setSaving(true);
     try {
-      await boutiqueVendeurService.update(nom, desc);
+      await boutiqueVendeurService.update(nom, desc, wa);
       toast.success('Boutique mise à jour ✓');
       setModal(false); load();
     } catch(e:any) { toast.error(e.response?.data?.message || 'Erreur'); }
@@ -89,7 +95,7 @@ export default function MaBoutiquePage() {
               </p>
               <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
                 <code style={{ fontSize:12, color:'#0d1b3e', background:'white', padding:'6px 10px', borderRadius:7, border:'1px solid #dde5f4', flex:1, wordBreak:'break-all', minWidth:0 }}>
-                  {lien?.lien}
+                  {lienPublic}
                 </code>
                 <button onClick={copyLink}
                   style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 14px', borderRadius:8, background:copied?'#0a9e6e':'#1465BB', color:'white', border:'none', cursor:'pointer', fontSize:12, fontWeight:600, flexShrink:0 }}>
@@ -99,6 +105,14 @@ export default function MaBoutiquePage() {
               <p style={{ fontSize:11, color:'#166534', margin:'6px 0 0' }}>
                 Partagez ce lien avec vos clients — ils peuvent commander sans créer de compte.
               </p>
+              <div style={{ display:'flex', gap:8, marginTop:10, flexWrap:'wrap' }}>
+                <Link to="/vendeur/vitrine" style={{ padding:'7px 14px', borderRadius:8, background:'#1465BB', color:'white', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                  Gérer mes produits (photos, vidéo, description)
+                </Link>
+                <a href={lienPublic} target="_blank" rel="noreferrer" style={{ padding:'7px 14px', borderRadius:8, border:'1.5px solid #1465BB', color:'#1465BB', fontSize:12, fontWeight:600, textDecoration:'none' }}>
+                  Voir ma page
+                </a>
+              </div>
             </div>
           </div>
 
@@ -137,6 +151,11 @@ export default function MaBoutiquePage() {
               <div>
                 <label style={T2.lbl}>Description</label>
                 <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3} placeholder="Décrivez votre boutique…" style={{ ...T2.inp, resize:'none' as const }}/>
+              </div>
+              <div>
+                <label style={T2.lbl}>Numéro WhatsApp (facultatif)</label>
+                <input value={wa} onChange={e=>setWa(e.target.value)} inputMode="tel" placeholder="Ex: 70 00 00 00" style={T2.inp}/>
+                <p style={{ fontSize:11, color:'#8a96b0', margin:'4px 0 0' }}>Si renseigné, vos clients voient un bouton WhatsApp sur votre page et après leur commande.</p>
               </div>
               <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
                 <button onClick={()=>setModal(false)} style={{ padding:'9px 16px', borderRadius:8, border:'1.5px solid #dde5f4', background:'white', cursor:'pointer', color:'#4a5578' }}>Annuler</button>
