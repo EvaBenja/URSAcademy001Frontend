@@ -172,6 +172,15 @@ export const closingService = {
 };
 
 // ── Commissions ────────────────────────────────────────────
+export const bilansService = {
+  monBilan:    ()                                  => api.get('/bilans/mon-bilan'),
+  historique:  ()                                  => api.get('/bilans/historique'),
+  cloturer:    (id: number, data: object)          => api.patch(`/bilans/${id}/cloturer`, data),
+  parJour:     (date: string)                      => api.get('/bilans', { params: { date } }),
+  creer:       (data: object)                      => api.post('/bilans', data),
+  ajouter:     (id: number, lignes: object[])      => api.post(`/bilans/${id}/lignes`, { lignes }),
+};
+
 export const financeService = {
   budgetStock:        ()                              => api.get('/finance/budget-stock'),
   deduireBudgetStock: (montant: number, description: string) => api.post('/finance/budget-stock/deduire', { montant, description }),

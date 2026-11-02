@@ -18,6 +18,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Boutiques en ligne',   to:'/dashboard/boutiques',           Icon:Store           },
     { label:'Closing Shopify',      to:'/dashboard/closing',             Icon:CheckSquare     },
     { label:'Budget Stock',         to:'/dashboard/budget-stock',        Icon:Package         },
+    { label:'Bilans livreurs',      to:'/dashboard/bilans',              Icon:ClipboardList   },
     { label:'Bénéfices',           to:'/dashboard/benefices',           Icon:TrendingUp      },
     { label:'Suivi livraisons',     to:'/dashboard/suivi-livraisons',    Icon:MapPin          },
     { label:'Historique livraisons',to:'/dashboard/historique-livraisons',Icon:FolderOpen      },
@@ -32,6 +33,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
     { label:'Stocks & Produits',    to:'/gestionnaire/produits',         Icon:Package         },
     { label:'Suivi ventes',         to:'/gestionnaire/ventes',           Icon:CheckSquare     },
     { label:'Livraisons',           to:'/gestionnaire/livraisons',       Icon:Truck           },
+    { label:'Bilans livreurs',      to:'/gestionnaire/bilans',           Icon:ClipboardList   },
     { label:'Retraits',             to:'/gestionnaire/retraits',         Icon:Banknote        },
     { label:'Commissions',          to:'/gestionnaire/commissions',      Icon:TrendingUp      },
     { label:'Demandes livreurs',    to:'/gestionnaire/demandes',         Icon:ClipboardList   },
@@ -57,6 +59,7 @@ const NAV: Record<string, { label:string; to:string; Icon:React.ElementType }[]>
   ],
   livreur: [
     { label:'Mes courses',       to:'/livreur/livraisons',            Icon:Truck           },
+    { label:'Mon bilan du jour', to:'/livreur/bilan',                 Icon:ClipboardList   },
     { label:'Historique',           to:'/livreur/historique',            Icon:FolderOpen      },
     { label:'Mes dossiers',          to:'/livreur/dossiers',              Icon:ClipboardList   },
     { label:'Mes demandes',          to:'/livreur/demandes',             Icon:Bell            },

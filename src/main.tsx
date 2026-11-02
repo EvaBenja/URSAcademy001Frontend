@@ -55,6 +55,10 @@ import LivreurDossiers   from './pages/livreur/DossierPage';
 import VendeurClosing     from './pages/vendeur/ClosingPage';
 import ClosingAdmin       from './pages/super-admin/ClosingAdminPage';
 
+// Bilans journaliers livreurs
+import LivreurBilan        from './pages/livreur/BilanPage';
+import BilansLivreursPage from './pages/gestionnaire/BilansLivreursPage';
+
 // Finance & Boutique
 import BudgetStockPage    from './pages/super-admin/BudgetStockPage';
 import BeneficesPage      from './pages/super-admin/BeneficesPage';
@@ -118,6 +122,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="boutiques"            element={<BoutiquesPage />} />
             <Route path="closing"              element={<ClosingAdmin />} />
             <Route path="budget-stock"         element={<BudgetStockPage />} />
+            <Route path="bilans"               element={<BilansLivreursPage />} />
             <Route path="benefices"            element={<BeneficesPage />} />
             <Route path="demandes-livreurs"    element={<GestDemandes />} />
             <Route path="dossiers-journaliers" element={<SADossiers />} />
@@ -133,6 +138,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="ventes"     element={<GestValidation />} />
             <Route path="classement" element={<GestClassement />} />
             <Route path="livraisons" element={<GestLivraisons />} />
+            <Route path="bilans"     element={<BilansLivreursPage />} />
             <Route path="retraits"   element={<GestionRetraits />} />
             <Route path="commissions" element={<CommissionsPage />} />
             <Route path="demandes"   element={<GestDemandes />} />
@@ -163,6 +169,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           {/* Livreur */}
           <Route path="/livreur" element={<ProtectedRoute roles={['livreur','super_admin']}><DashboardLayout /></ProtectedRoute>}>
             <Route path="livraisons" element={<LivreurLivraisons />} />
+            <Route path="bilan"      element={<LivreurBilan />} />
             <Route path="historique" element={<LivreurHistorique />} />
             <Route path="demandes"   element={<LivreurDemandes />} />
             <Route path="dossiers"   element={<LivreurDossiers />} />
