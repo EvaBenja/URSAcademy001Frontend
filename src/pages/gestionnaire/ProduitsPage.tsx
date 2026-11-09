@@ -18,6 +18,7 @@ interface Product {
 export default function ProduitsPage() {
   const [products,  setProducts]  = useState<Product[]>([]);
   const [loading,   setLoading]   = useState(true);
+  const [voirArchives, setVoirArchives] = useState(false);
   const [modalType, setModalType] = useState<'nouveau'|'edition'|null>(null);
   const [editForm,  setEditForm]  = useState<Partial<Product>>({});
   const [saving,    setSaving]    = useState(false);
@@ -97,8 +98,14 @@ export default function ProduitsPage() {
           <Layers size={20} color="#1465BB"/>
           <h2 style={{ fontSize:18, fontWeight:700, color:'#1e293b', margin:0 }}>Inventaire & Prix</h2>
         </div>
+        {products.some(p => (p.nom||'').includes('[Archivé]')) && (
+          <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'#64748b', marginBottom:14, cursor:'pointer' }}>
+            <input type="checkbox" checked={voirArchives} onChange={e=>setVoirArchives(e.target.checked)} />
+            Afficher les produits archivés — conservés pour l'historique des ventes
+          </label>
+        )}
         <Table<Product>
-          data={products}
+          data={voirArchives ? products : products.filter(p => !(p.nom||'').includes('[Archivé]'))}
           columns={[
             { key:'reference', label:'Réf.' },
             { key:'nom', label:'Désignation', render:(row)=><span style={{fontWeight:600,color:'#1e293b'}}>

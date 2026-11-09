@@ -15,7 +15,11 @@ export default function SAProduitsPage() {
   const [saving,   setSaving]   = useState(false);
 
   useEffect(() => { load(); }, []);
-  const filtered = produits.filter((p:any) => {
+  const [voirArchives, setVoirArchives] = useState(false);
+  const estArchive = (p:any) => (p.nom||'').includes('[Archivé]');
+  const nbArchives = produits.filter(estArchive).length;
+  const visibles = voirArchives ? produits : produits.filter((p:any) => !estArchive(p));
+  const filtered = visibles.filter((p:any) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (p.nom||'').toLowerCase().includes(q) || (p.reference||'').toLowerCase().includes(q) || (p.unite||'').toLowerCase().includes(q);
@@ -70,7 +74,13 @@ export default function SAProduitsPage() {
         ))}
       </div>
 
-      <SearchBar value={query} onChange={setQuery} placeholder="Rechercher par nom, référence…" count={produits.length} filtered={filtered.length} style={{ marginBottom:14 }}/>
+      <SearchBar value={query} onChange={setQuery} placeholder="Rechercher par nom, référence…" count={visibles.length} filtered={filtered.length} style={{ marginBottom:14 }}/>
+      {nbArchives > 0 && (
+        <label style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'#4a5578', margin:'-6px 0 14px', cursor:'pointer' }}>
+          <input type="checkbox" checked={voirArchives} onChange={e=>setVoirArchives(e.target.checked)} />
+          Afficher les produits archivés ({nbArchives}) — conservés pour l'historique des ventes
+        </label>
+      )}
 
       {/* Table desktop */}
       <div className="urs-table-desktop" style={{ background:'white', borderRadius:14, border:'1px solid #dde5f4', overflowX:'auto' }}>
